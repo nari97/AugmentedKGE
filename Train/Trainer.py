@@ -31,7 +31,7 @@ class Trainer(object):
 
     def train_one_step(self, data):
         self.optimizer.zero_grad()
-        self.model.startingBatch()
+        #self.model.startingBatch()
         
         loss = self.model({
             'batch_h': self.to_var(data['batch_h'], self.use_gpu),
@@ -136,9 +136,9 @@ class Trainer(object):
                     loss = self.train_one_step(data)
                     res += loss.item()
                     start_neg = time.perf_counter()
-                    tv.make_dot(loss, params=dict(self.model.model.named_parameters())).render("Graphs/comp_graph_ingrad_outside_after_score_norm", format="png")
+                    #tv.make_dot(loss, params=dict(self.model.model.named_parameters())).render("Graphs/comp_graph_ingrad_outside_after_score_norm", format="png")
                     
-                    exit()
+                    
                 self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".ckpt"), epoch=epoch)
                 
                 end = time.perf_counter()

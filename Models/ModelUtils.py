@@ -1,15 +1,5 @@
-from .Amie import Amie
-from .Analogy import Analogy
-from .ComplEx import ComplEx
-from .DistMult import DistMult
-from .HolE import HolE
-from .RESCAL import RESCAL
-from .RotatE import RotatE
-from .SimplE import SimplE
-from .TransD import TransD
 from .TransE import TransE
-from .TransH import TransH
-from .TransR import TransR
+
 
 from Strategy.NegativeSampling import NegativeSampling
 from Loss.MarginLoss import MarginLoss
@@ -60,11 +50,10 @@ class ModelUtils:
     def get_model(self, ent_total, rel_total, batch_size):
         if self.model_name == "transe":
             m = TransE(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
-                dim=self.params["dim"],
-                p_norm=self.params["pnorm"],
-                norm_flag=self.params["norm"])
+                ent_total=ent_total,
+                rel_total=rel_total,
+                dims=self.params["dim"],
+                norm=self.params["pnorm"])
         elif self.model_name == "transh":
             m = TransH(
                 ent_tot=ent_total,
