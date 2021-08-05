@@ -1,0 +1,19 @@
+find . -name "*.err" -not -empty
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_ours.sh /home/crrvcs/OpenKE/ 1
+
+[crrvcs@sporcsubmit OpenKE]$ sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_ours.sh /home/crrvcs/OpenKE/ 1
+Submitted batch job 11797315
+[crrvcs@sporcsubmit OpenKE]$
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA Global transe 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA transe 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA TCLCWA transe 2 others
+
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA Global ours 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA ours 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA TCLCWA ours 2 others
+
+
+

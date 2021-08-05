@@ -1,0 +1,41 @@
+find . -name "*.err" -not -empty
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_rescal.sh /home/crrvcs/OpenKE/ Global rescal 1 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_rescal.sh /home/crrvcs/OpenKE/ LCWA rescal 1 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_rescal.sh /home/crrvcs/OpenKE/ TCLCWA rescal 1 5.0
+
+
+[crrvcs@sporcsubmit OpenKE]$ sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_rescal.sh /home/crrvcs/OpenKE/ Global rescal 1 5.0
+Submitted batch job 11768908
+[crrvcs@sporcsubmit OpenKE]$ sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_rescal.sh /home/crrvcs/OpenKE/ LCWA rescal 1 5.0
+Submitted batch job 11768909
+[crrvcs@sporcsubmit OpenKE]$ sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_rescal.sh /home/crrvcs/OpenKE/ TCLCWA rescal 1 5.0
+Submitted batch job 11768910
+[crrvcs@sporcsubmit OpenKE]$
+
+sbatch --array=60-61 run_rescal.sh /home/crrvcs/OpenKE/ Global rescal 1 5.0
+sbatch --array=4-5,12-13,57-61 run_rescal.sh /home/crrvcs/OpenKE/ LCWA rescal 1 5.0
+sbatch --array=13,59-61 run_rescal.sh /home/crrvcs/OpenKE/ TCLCWA rescal 1 5.0
+
+[crrvcs@sporcsubmit OpenKE]$ sbatch --array=60-61 run_rescal.sh /home/crrvcs/OpenKE/ Global rescal 1 5.0
+Submitted batch job 11773997
+[crrvcs@sporcsubmit OpenKE]$ sbatch --array=4-5,12-13,57-61 run_rescal.sh /home/crrvcs/OpenKE/ LCWA rescal 1 5.0
+Submitted batch job 11773998
+[crrvcs@sporcsubmit OpenKE]$ sbatch --array=13,59-61 run_rescal.sh /home/crrvcs/OpenKE/ TCLCWA rescal 1 5.0
+Submitted batch job 11773999
+[crrvcs@sporcsubmit OpenKE]$
+
+# Include RESCAL first in test.py!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ Global Global rescal 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ Global LCWA rescal 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ Global TCLCWA rescal 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA Global rescal 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA rescal 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA TCLCWA rescal 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ TCLCWA Global rescal 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ TCLCWA LCWA rescal 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ TCLCWA TCLCWA rescal 1 others
+
+
+

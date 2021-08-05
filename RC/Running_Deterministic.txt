@@ -1,0 +1,21 @@
+find . -name "*.err" -not -empty
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA openke 2 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA openke_notr 2 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA openke_begin 2 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA manual_pge 2 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA manual_pge_notr 2 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA manual_pge_begin 2 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA manual_ours 2 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA manual_ours_notr 2 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA manual_ours_begin 2 5.0
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA openke 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA openke_notr 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA openke_begin 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA manual_pge 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA manual_pge_notr 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA manual_pge_begin 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA manual_ours 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA manual_ours_notr 2 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA manual_ours_begin 2 others

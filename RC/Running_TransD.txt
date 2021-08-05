@@ -1,0 +1,32 @@
+find . -name "*.err" -not -empty
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_transd.sh /home/crrvcs/OpenKE/ Global transd 1 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_transd.sh /home/crrvcs/OpenKE/ LCWA transd 1 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_transd.sh /home/crrvcs/OpenKE/ TCLCWA transd 1 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_transd.sh /home/crrvcs/OpenKE/ NLCWA transd 1 5.0
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_transd.sh /home/crrvcs/OpenKE/ GNLCWA transd 1 5.0
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ Global Global transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ Global LCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ Global TCLCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ Global NLCWA transd 1 others
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA Global transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA LCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA TCLCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ LCWA NLCWA transd 1 others
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ TCLCWA Global transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ TCLCWA LCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ TCLCWA TCLCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ TCLCWA NLCWA transd 1 others
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ NLCWA Global transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ NLCWA LCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ NLCWA TCLCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ NLCWA NLCWA transd 1 others
+
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ GNLCWA Global transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ GNLCWA LCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ GNLCWA TCLCWA transd 1 others
+sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_test.sh /home/crrvcs/OpenKE/ GNLCWA NLCWA transd 1 others
