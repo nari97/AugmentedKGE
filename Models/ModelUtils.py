@@ -1,4 +1,11 @@
 from .TransE import TransE
+from .TransH import TransH
+from .TransD import TransD
+from .SimplE import SimplE
+from .HolE import HolE
+from .RotatE import RotatE
+from .DistMult import DistMult
+from .ComplEx import ComplEx
 
 
 from Strategy.NegativeSampling import NegativeSampling
@@ -48,6 +55,7 @@ class ModelUtils:
         return s
 
     def get_model(self, ent_total, rel_total, batch_size):
+        m = None
         if self.model_name == "transe":
             m = TransE(
                 ent_total=ent_total,
@@ -56,23 +64,21 @@ class ModelUtils:
                 norm=self.params["pnorm"])
         elif self.model_name == "transh":
             m = TransH(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
-                dim=self.params["dim"],
-                p_norm=self.params["pnorm"],
-                norm_flag=self.params["norm"])
+                ent_total=ent_total,
+                rel_total=rel_total,
+                dims=self.params["dim"],
+                norm=self.params["pnorm"])
         elif self.model_name == "transd":
             m = TransD(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
+                ent_total=ent_total,
+                rel_total=rel_total,
                 dim_e=self.params["dime"],
                 dim_r=self.params["dimr"],
-                p_norm=self.params["pnorm"],
-                norm_flag=self.params["norm"])
+                norm=self.params["pnorm"])
         elif self.model_name == "transr":
             m = TransR(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
+                ent_total=ent_total,
+                rel_total=rel_total,
                 dim_e=self.params["dime"],
                 dim_r=self.params["dimr"],
                 p_norm=self.params["pnorm"],
@@ -84,34 +90,34 @@ class ModelUtils:
                 dim=self.params["dim"])
         elif self.model_name == "distmult":
             m = DistMult(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
-                dim=self.params["dim"])
+                ent_total=ent_total,
+                rel_total=rel_total,
+                dims=self.params["dim"])
         elif self.model_name == "complex":
             m = ComplEx(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
-                dim=self.params["dim"])
+                ent_total=ent_total,
+                rel_total=rel_total,
+                dims=self.params["dim"])
         elif self.model_name == "hole":
             m = HolE(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
-                dim=self.params["dim"])
+                ent_total=ent_total,
+                rel_total=rel_total,
+                dims=self.params["dim"])
         elif self.model_name == "simple":
             m = SimplE(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
-                dim=self.params["dim"])
+                ent_total=ent_total,
+                rel_total=rel_total,
+                dims=self.params["dim"])
         elif self.model_name == "analogy":
             m = Analogy(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
-                dim=self.params["dim"])
+                ent_total=ent_total,
+                rel_total=rel_total,
+                dims=self.params["dim"])
         elif self.model_name == "rotate":
             m = RotatE(
-                ent_tot=ent_total,
-                rel_tot=rel_total,
-                dim=self.params["dim"])
+                ent_total=ent_total,
+                rel_total=rel_total,
+                dims=self.params["dim"])
         elif self.model_name == "amie":
             m = Amie()
 
@@ -131,6 +137,9 @@ class ModelUtils:
         else:
             print ('Loss : Softplus Loss')
             loss = SoftplusLoss()
+        
+        for name, p in m.named_parameters():
+            print (name)
         
         return NegativeSampling(
                     model=m,

@@ -2,10 +2,10 @@ import torch
 from .Model import Model
 from Utils.Embedding import Embedding
 
-class TransE(Model):
+class DistMult(Model):
 
     def __init__(self, ent_total, rel_total, dims, norm = 2):
-        super(TransE, self).__init__(ent_total, rel_total)
+        super(DistMult, self).__init__(ent_total, rel_total)
 
         self.dims = dims
         self.norm = norm
@@ -15,10 +15,13 @@ class TransE(Model):
 
     def normalize(self):
         self.entities.normalize()
+        self.relations.normalize()
         
 
     def _calc(self, h,r,t):
-        return -torch.norm(h+r-t, dim = -1, p = self.norm)
+        score = (h * r) * t
+        score = torch.sum(score, -1)
+        return score
 
     def forward(self, data):
 

@@ -1,11 +1,12 @@
 import torch
 from .Model import Model
 from Utils.Embedding import Embedding
+import torch.nn.functional as F
 
-class TransE(Model):
+class HolE(Model):
 
     def __init__(self, ent_total, rel_total, dims, norm = 2):
-        super(TransE, self).__init__(ent_total, rel_total)
+        super(HolE, self).__init__(ent_total, rel_total)
 
         self.dims = dims
         self.norm = norm
@@ -15,10 +16,25 @@ class TransE(Model):
 
     def normalize(self):
         self.entities.normalize()
+        self.relations.normalize()
         
 
     def _calc(self, h,r,t):
-        return -torch.norm(h+r-t, dim = -1, p = self.norm)
+        fourierH = torch.fft.rfft(h, dim = -1)
+        fourierT = torch.fft.rfft(t, dim = -1)
+      
+        conjH = torch.conj(fourierH)
+      
+        inv = torch.fft.irfft(conjH*fourierT, dim = -1)
+      
+        if r.shape[1]>inv.shape[1]:
+            r = r[:, :inv.shape[1]]
+        elif inv.shape[1]>r.shape[1]:
+            inv = inv[:, :r.shape[1]]
+       
+        answer = torch.sum(r*inv, dim = -1)
+      
+        return answer
 
     def forward(self, data):
 
