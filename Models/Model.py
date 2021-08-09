@@ -24,9 +24,9 @@ class Model(BaseModule):
         if type == "h":
             return data['batch_h']
         if type == "r":
-            return data['batch_t']
-        if type == "t":
             return data['batch_r']
+        if type == "t":
+            return data['batch_t']
 
 
     
