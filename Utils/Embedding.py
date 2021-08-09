@@ -1,8 +1,11 @@
 import torch
+import torch.nn as nn
 
-class Embedding:
+class Embedding(nn.Module):
 
-    def __init__(self, n_emb, n_dim , rep = 'real', c_rep = 'complex', init = 'xavier_uniform'):
+    def __init__(self, n_emb, n_dim , rep = 'real', c_rep = 'complex', init = 'xavier_uniform', init_params = None):
+
+        super(Embedding, self).__init__()
 
         self.n_emb = n_emb
         self.n_dim = n_dim
@@ -11,6 +14,8 @@ class Embedding:
 
         self.emb = None
         self.init = init
+
+        self.init_params = init_params
         
         self.create_embedding()
         self.init_embedding()
@@ -32,6 +37,8 @@ class Embedding:
 
         if self.init == 'xavier_uniform':
             self.emb.weight.data = torch.nn.init.xavier_uniform_(self.emb.weight.data)
+        if self.init == 'uniform':
+            self.emb.weight.data = torch.nn.init.uniform_(self.emb.weight.data, a = self.init_params[0], b = self.init_params[1])
 
     def normalize(self, norm = 'norm', p = 2, dim = -1, maxnorm = 1):
 
