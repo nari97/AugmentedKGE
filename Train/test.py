@@ -8,7 +8,7 @@ import os
 import jsonpickle
 import math
 
-if __name__ == '__main__':
+def test(model_name, dataset, corruption_mode, type = "test"):
     #folder = sys.argv[1]
     #model_name = sys.argv[2]
     #dataset = int(sys.argv[3])
