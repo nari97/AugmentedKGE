@@ -1,2 +1,3 @@
 sphinxcontrib-napoleon
 sphinxcontrib-bibtex
+torch==1.9.0+cpu
