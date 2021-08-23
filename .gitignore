@@ -1,5 +1,3 @@
 Model/
 __pycache__/
 test_code.py
-build/
-.gitignore
