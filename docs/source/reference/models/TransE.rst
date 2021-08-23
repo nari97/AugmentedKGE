@@ -1,7 +1,7 @@
 TransE module
 =============
 
-.. automodule:: TransE
+.. automodule:: Models.TransE
    :members:
    :undoc-members:
    :show-inheritance:

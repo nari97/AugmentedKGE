@@ -10,6 +10,11 @@ Welcome to AugmentedKGE's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+Models
+===================
+.. automodule:: Models
+   :members:
+
 
 
 Indices and tables
