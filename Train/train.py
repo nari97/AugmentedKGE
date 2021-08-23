@@ -9,7 +9,7 @@ import sys
 import os
 import pickle
 
-def train():
+def train(model_name, dataset, corruption_mode, parameters, index = 0, validation_epochs = 10, train_times = 2500, rel_anomaly_min = 0, rel_anomaly_max = 0.75):
     #folder = sys.argv[1]
     #model_name = sys.argv[2]
     #dataset = int(sys.argv[3])
@@ -17,10 +17,7 @@ def train():
     #corruption_mode = "LCWA"
 
     folder = ""
-    model_name = "complex"
-    dataset = 6
-    index = 0
-    corruption_mode = "Global"
+    
 
     validation_epochs = 10
     train_times = 2500
@@ -60,18 +57,7 @@ def train():
     '''
 
 
-    parameters = {}
-    parameters["nbatches"] = 225
-    parameters["nr"] = 13
-    parameters["lr"] = 0.7801073119264197
-    parameters["wd"] = 1.4175317295064768e-09
-    parameters["m"] = 0.9263060805387795
-    parameters["trial_index"] = 1
-    parameters["dim"] = 40
-    #parameters["dimr"] = 30
-    parameters["pnorm"] = 2
-    parameters["norm"] = True
-    parameters["gamma"] = 4.226494273198768
+    
     
     
     mu = ModelUtils(model_name, parameters)
@@ -130,5 +116,3 @@ def train():
     with open(result_file, 'wb') as f:
         pickle.dump(result, f, pickle.HIGHEST_PROTOCOL)
 
-if __name__ == '__main__':
-    train()
