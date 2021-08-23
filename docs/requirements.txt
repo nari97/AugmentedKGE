@@ -1,3 +1,4 @@
 sphinxcontrib-napoleon
 sphinxcontrib-bibtex
 torch==1.9.0
+numpy==1.19.2
