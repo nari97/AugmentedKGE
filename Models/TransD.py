@@ -1,9 +1,23 @@
 import torch
-from .Model import Model
+
+from Models.Model import Model
 from Utils.Embedding import Embedding
+
 import torch.nn.functional as F
 
 class TransD(Model):
+    """
+    TransD \cite{transd} is a translation-based embedding approach that introduces the concept that entity and relation embeddings are no longer represented in the same space. Entity embeddings are represented in space :math:`\mathbb{R}^{k}` and relation embeddings are represented in space :math:`\mathbb{R}^{d}` where :math:`k \geq d`. TransD also introduces additional embeddings :math:`\mathbf{w_{h}}, \mathbf{w_{t}} \in \mathbb{R}^{k}$ and \mathbf{w_{r} \in \mathbb{R}^{d}}`. I is the identity matrix.
+    The scoring function for TransD is defined as
+    
+    :math:`f_{r}(h,t) = -||h_{\bot} + \mathbf{r} - t_{\bot}||`
+    
+    :math:`h_{\bot} = (\mathbf{w_{r}}\mathbf{w_{h}^{T}} + I^{d \times k})\,\mathbf{h}`
+    
+    :math:`t_{\bot} = (\mathbf{w_{r}}\mathbf{w_{t}^{T}} + I^{d \times k})\,\mathbf{t}`
+
+    TransD imposes contraints like :math:`||\mathbf{h}||_{2} \leq 1, ||\mathbf{t}||_{2} \leq 1, ||\mathbf{r}||_{2} \leq 1, ||h_{\bot}||_{2} \leq 1` and :math`||t_{\bot}||_{2} \leq 1`
+    """
 
     def __init__(self, ent_total, rel_total, dim_e, dim_r, norm = 2):
         """

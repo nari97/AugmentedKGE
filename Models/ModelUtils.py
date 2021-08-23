@@ -1,11 +1,11 @@
-from .TransE import TransE
-from .TransH import TransH
-from .TransD import TransD
-from .SimplE import SimplE
-from .HolE import HolE
-from .RotatE import RotatE
-from .DistMult import DistMult
-from .ComplEx import ComplEx
+from Models.TransE import TransE
+from Models.TransH import TransH
+from Models.TransD import TransD
+from Models.SimplE import SimplE
+from Models.HolE import HolE
+from Models.RotatE import RotatE
+from Models.DistMult import DistMult
+from Models.ComplEx import ComplEx
 
 
 from Strategy.NegativeSampling import NegativeSampling
