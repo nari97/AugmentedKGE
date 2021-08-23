@@ -6,6 +6,14 @@ import torch.nn.functional as F
 class TransD(Model):
 
     def __init__(self, ent_total, rel_total, dim_e, dim_r, norm = 2):
+        """
+        Args:
+            ent_total (int): Total number of entities
+            rel_total (int): Total number of relations
+            dim_e (int): Number of dimensions for entity embeddings
+            dim_r (int): Number of dimensions for relation embeddings
+            norm (int): L1 or L2 norm. Default: 2
+        """
         super(TransD, self).__init__(ent_total, rel_total)
 
         self.dim_e = dim_e

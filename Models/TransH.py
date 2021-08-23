@@ -1,10 +1,33 @@
 import torch
-from .Model import Model
+from Models.Model import Model
 from Utils.Embedding import Embedding
 
 class TransH(Model):
+    
+    """
+    TransH :cite:`wang2014knowledge` allows entities to have different representations for different relations by creating an additional embedding :math:`\mathbf{w_{r}} \in \mathbb{R}^{d}`.
+    This is done by projecting entities onto a hyperplane specific to the relation r and with normal vector :math:`\mathbf{w_{r}}`.
+   
+    :math:`f_r(h,t) = -||h_{\\bot} + \\mathbf{r} -t_{\\bot}||_{2}^{2}` 
+    
+    :math:`h_{\\bot} = \\mathbf{h} - \\mathbf{w_{r}^{T}}\\mathbf{h} \\mathbf{w_{r}}`
+    
+    :math:`t_{\\bot} = \\mathbf{t} - \\mathbf{w_{r}^{T}} \\mathbf{t} \\mathbf{w_{r}}`
+    
+    
+    TransH imposes additional constraints :math:`||\mathbf{h}||_{2} \leq 1`, :math:`||\mathbf{t}||_{2} \leq 1` and :math:`||\mathbf{w_{r}}|| = 1`.
+    
+    """
 
     def __init__(self, ent_total, rel_total, dims, norm = 2):
+        """
+        Args:
+            ent_total (int): Total number of entities
+            rel_total (int): Total number of relations
+            dims (int): Number of dimensions for embeddings
+            norm (int): L1 or L2 norm. Default: 2
+        """
+
         super(TransH, self).__init__(ent_total, rel_total)
 
         self.dims = dims
