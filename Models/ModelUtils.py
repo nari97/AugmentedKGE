@@ -54,27 +54,30 @@ class ModelUtils:
             s = s + "_" + p + "_" + str(self.params[p])
         return s
 
-    def get_model(self, ent_total, rel_total, batch_size):
+    def get_model(self, ent_total, rel_total, batch_size, inner_norm):
         m = None
         if self.model_name == "transe":
             m = TransE(
                 ent_total=ent_total,
                 rel_total=rel_total,
                 dims=self.params["dim"],
-                norm=self.params["pnorm"])
+                norm=self.params["pnorm"],
+                inner_norm = inner_norm)
         elif self.model_name == "transh":
             m = TransH(
                 ent_total=ent_total,
                 rel_total=rel_total,
                 dims=self.params["dim"],
-                norm=self.params["pnorm"])
+                norm=self.params["pnorm"],
+                inner_norm = inner_norm)
         elif self.model_name == "transd":
             m = TransD(
                 ent_total=ent_total,
                 rel_total=rel_total,
                 dim_e=self.params["dime"],
                 dim_r=self.params["dimr"],
-                norm=self.params["pnorm"])
+                norm=self.params["pnorm"],
+                inner_norm = inner_norm)
         elif self.model_name == "transr":
             m = TransR(
                 ent_total=ent_total,
@@ -82,42 +85,50 @@ class ModelUtils:
                 dim_e=self.params["dime"],
                 dim_r=self.params["dimr"],
                 p_norm=self.params["pnorm"],
-                norm_flag=self.params["norm"])
+                norm_flag=self.params["norm"],
+                inner_norm = inner_norm)
         elif self.model_name == "rescal":
             m = RESCAL(
                 ent_tot=ent_total,
                 rel_tot=rel_total,
-                dim=self.params["dim"])
+                dim=self.params["dim"],
+                inner_norm = inner_norm)
         elif self.model_name == "distmult":
             m = DistMult(
                 ent_total=ent_total,
                 rel_total=rel_total,
-                dims=self.params["dim"])
+                dims=self.params["dim"],
+                inner_norm = inner_norm)
         elif self.model_name == "complex":
             m = ComplEx(
                 ent_total=ent_total,
                 rel_total=rel_total,
-                dims=self.params["dim"])
+                dims=self.params["dim"],
+                inner_norm = inner_norm)
         elif self.model_name == "hole":
             m = HolE(
                 ent_total=ent_total,
                 rel_total=rel_total,
-                dims=self.params["dim"])
+                dims=self.params["dim"],
+                inner_norm = inner_norm)
         elif self.model_name == "simple":
             m = SimplE(
                 ent_total=ent_total,
                 rel_total=rel_total,
-                dims=self.params["dim"])
+                dims=self.params["dim"],
+                inner_norm = inner_norm)
         elif self.model_name == "analogy":
             m = Analogy(
                 ent_total=ent_total,
                 rel_total=rel_total,
-                dims=self.params["dim"])
+                dims=self.params["dim"],
+                inner_norm = inner_norm)
         elif self.model_name == "rotate":
             m = RotatE(
                 ent_total=ent_total,
                 rel_total=rel_total,
-                dims=self.params["dim"])
+                dims=self.params["dim"],
+                inner_norm = inner_norm)
         elif self.model_name == "amie":
             m = Amie()
 

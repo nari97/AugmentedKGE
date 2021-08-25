@@ -10,7 +10,7 @@ import torchviz as tv
 class Trainer(object):
 
     def __init__(self, model=None, train=None, validation=None, train_times=1000, alpha=0.5, use_gpu=True,
-                 opt_method="sgd", save_steps=None, checkpoint_dir=None, weight_decay=0, momentum=0):
+                 opt_method="sgd", save_steps=None, checkpoint_dir=None, weight_decay=0, momentum=0, inner_norm = False):
         self.train_times = train_times
 
         self.opt_method = opt_method
@@ -28,6 +28,7 @@ class Trainer(object):
         self.checkpoint_dir = checkpoint_dir
         self.patient_count = 3
         self.finished = False
+        self.inner_norm = inner_norm
 
     def train_one_step(self, data):
         self.optimizer.zero_grad()
@@ -40,7 +41,7 @@ class Trainer(object):
             'batch_y': self.to_var(data['batch_y'], self.use_gpu),
             'mode': data['mode']
         })
-        self.model.model.normalize()
+        
         loss.backward()
         
         self.optimizer.step()
@@ -128,6 +129,9 @@ class Trainer(object):
                 start = time.perf_counter()
                 start_neg = time.perf_counter()
                 time_neg = 0
+                
+                if not self.inner_norm:
+                    self.model.model.normalize()
                 
                 for data in self.train:
                     

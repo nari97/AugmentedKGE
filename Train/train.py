@@ -9,7 +9,7 @@ import sys
 import os
 import pickle
 
-def train(model_name, dataset, corruption_mode, parameters, index = 0, validation_epochs = 10, train_times = 2500, rel_anomaly_min = 0, rel_anomaly_max = 0.75):
+def train(model_name, dataset, corruption_mode, parameters, index = 0, validation_epochs = 10, train_times = 2500, rel_anomaly_min = 0, rel_anomaly_max = 0.75, inner_norm = False):
     #folder = sys.argv[1]
     #model_name = sys.argv[2]
     #dataset = int(sys.argv[3])
@@ -70,7 +70,7 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     train_manager = TripleManager(path, splits=["new_train"], nbatches=parameters["nbatches"],
                                   neg_ent=parameters["nr"], neg_rel=negative_rel, corruption_mode=corruption_mode)
 
-    model = mu.get_model(train_manager.entityTotal, train_manager.relationTotal, train_manager.batchSize)
+    model = mu.get_model(train_manager.entityTotal, train_manager.relationTotal, train_manager.batchSize, inner_norm)
 
     validation = Evaluator(TripleManager(path, splits=["new_valid", "new_train"], corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min)
@@ -87,7 +87,7 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
 
         trainer = Trainer(model=model, train=train_manager, validation=validation, train_times=train_times,
             alpha=parameters["lr"], weight_decay=parameters["wd"], momentum=parameters["m"], use_gpu=False,
-                          save_steps=validation_epochs, checkpoint_dir=checkpoint_dir)
+                          save_steps=validation_epochs, checkpoint_dir=checkpoint_dir, inner_norm = inner_norm)
         
         trainer.run(init_epoch=init_epoch)
     else:
