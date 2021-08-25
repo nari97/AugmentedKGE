@@ -2,6 +2,7 @@ import torch
 from Models.Model import Model
 from Utils.Embedding import Embedding
 import torch.nn.functional as F
+from Utils.utils import normalize, clamp_norm
 
 class TransH(Model):
     
@@ -40,12 +41,12 @@ class TransH(Model):
         self.norm_vector = Embedding(self.rel_tot, self.dims)
 
     def normalize(self):
-        self.entities.normalize()
+        self.entities.normalize(norm='clamp', maxnorm = 1)
         self.norm_vector.normalize()
 
     def normalize_inner(self, h, t, w_r):
-        h = F.normalize(h, p = 2, dim = -1)
-        t = F.normalize(t, p = 2, dim = -1)
+        h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)
+        t = clamp_norm(t, p = 2, dim = -1, maxnorm = 1)
         w_r = F.normalize(w_r, p = 2, dim = -1)
 
     def _calc(self, h, r, t, w_r):

@@ -1,6 +1,7 @@
 import torch
 from .Model import Model
 from Utils.Embedding import Embedding
+from Utils.utils import clamp_norm, normalize
 import torch.nn.functional as F
 
 class HolE(Model):
@@ -16,13 +17,13 @@ class HolE(Model):
         self.relations = Embedding(self.rel_tot, self.dims)
 
     def normalize(self):
-        self.entities.normalize()
-        self.relations.normalize()
+        self.entities.normalize(norm = 'clamp', maxnorm = 1)
+        self.relations.normalize(norm = 'clamp', maxnorm = 1)
     
     def normalize_inner(self, h, r, t):
-        h = F.normalize(h, dim = -1, p = 2)
-        r = F.normalize(r, dim = -1, p = 2)
-        t = F.normalize(t, dim = -1, p = 2)
+        h = clamp_norm(h, dim = -1, p = 2, maxnorm = 1)
+        r = clamp_norm(r, dim = -1, p = 2, maxnorm = 1)
+        t = clamp_norm(t, dim = -1, p = 2, maxnorm = 1)
 
         return h,r,t
 

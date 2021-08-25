@@ -1,6 +1,7 @@
 import torch
 from .Model import Model
 from Utils.Embedding import Embedding
+from Utils.utils import clamp_norm, normalize
 
 class ComplEx(Model):
 
@@ -16,8 +17,6 @@ class ComplEx(Model):
         self.relations_img = Embedding(self.rel_tot, self.dims)
 
     def normalize(self):
-        #self.entities.normalize()
-        #self.relations.normalize()
         pass
 
     def _calc(self, h_re, h_im, t_re, t_im, r_re, r_im):

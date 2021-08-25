@@ -2,6 +2,7 @@ import torch
 from .Model import Model
 from Utils.Embedding import Embedding
 import torch.nn.functional as F
+from Utils.utils import clamp_norm, normalize
 
 class DistMult(Model):
 
@@ -17,12 +18,12 @@ class DistMult(Model):
 
     def normalize(self):
         self.entities.normalize()
-        self.relations.normalize()
+        self.relations.normalize(norm = 'clamp', maxnorm = 1)
         
     def normalize_inner(self, h, r, t):
-        h = F.normalize(h, dim = -1, p = 2)
-        r = F.normalize(r, dim = -1, p = 2)
-        t = F.normalize(t, dim = -1, p = 2)
+        h = normalize(h, dim = -1, p = 2)
+        r = clamp_norm(r, dim = -1, p = 2, maxnorm = 1)
+        t = normalize(t, dim = -1, p = 2)
 
         return h,r,t
 

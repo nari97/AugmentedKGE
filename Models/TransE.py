@@ -2,6 +2,7 @@ import torch
 from Models.Model import Model
 from Utils.Embedding import Embedding
 import torch.nn.functional as F
+from Utils.utils import normalize
 
 class TransE(Model):
     """
@@ -37,8 +38,8 @@ class TransE(Model):
         self.entities.normalize()
         
     def normalize_inner(self, h, t):
-        h = F.normalize(h, p = 2, dim = -1)
-        t = F.normalize(t, p = 2, dim = -1)
+        h = normalize(h, p = 2, dim = -1)
+        t = normalize(t, p = 2, dim = -1)
 
         return h,t
 

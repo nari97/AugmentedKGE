@@ -2,7 +2,7 @@ import torch
 
 from Models.Model import Model
 from Utils.Embedding import Embedding
-
+from Utils.utils import clamp_norm, normalize
 import torch.nn.functional as F
 
 class TransD(Model):
@@ -41,13 +41,13 @@ class TransD(Model):
         self.rel_transfer = Embedding(self.rel_tot, self.dim_r)
 
     def normalize(self):
-        self.entities.normalize()
-        self.relations.normalize()
+        self.entities.normalize(norm = 'clamp', maxnorm = 1)
+        self.relations.normalize(norm = 'clamp', maxnorm = 1)
 
     def normalize_inner(self, h, r, t):
-        h = F.normalize(h, p = 2, dim = -1)
-        t = F.normalize(t, p = 2, dim = -1)
-        r = F.normalize(r, p = 2, dim = -1)
+        h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)
+        t = clamp_norm(t, p = 2, dim = -1, maxnorm = 1)
+        r = clamp_norm(r, p = 2, dim = -1, maxnorm = 1)
 
         return h, t, r
 
@@ -66,7 +66,7 @@ class TransD(Model):
         m = wr*torch.sum(wh*e, dim=-1, keepdim=True)
         I = torch.matmul(e, torch.eye(e.shape[1], m.shape[1]))
 
-        return F.normalize(m+I, p=2, dim=-1)
+        return clamp_norm(m+I, p=2, dim=-1, maxnorm = 1)
 
     def forward(self, data):
 
