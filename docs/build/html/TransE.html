@@ -181,19 +181,10 @@
 <dt class="sig sig-object py" id="Models.TransE.TransE">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Models.TransE.</span></span><span class="sig-name descname"><span class="pre">TransE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Models.Model.Model</span></code></p>
-<p>TransE <span id="id1">[<a class="reference internal" href="#id3" title="Antoine Bordes, Nicolas Usunier, Alberto Garcia-Duran, Jason Weston, and Oksana Yakhnenko. Translating embeddings for modeling multi-relational data. Advances in neural information processing systems, 2013.">BUGD+13</a>]</span> is a representative relational distance model. All the embeddings, entities and relations are both represented in the same space <span class="math notranslate nohighlight">\(\mathbb{R}^{d}\)</span> where d is the dimension of the embedding. Given a triple (head, relation, tail), transE imposes the constraint that <span class="math notranslate nohighlight">\(h+r \approx t\)</span>.
-The scoring function for TransE is defined as
-<span class="math notranslate nohighlight">\(f_{r}(h,t) = -||\mathbf{h}+\mathbf{r}-\mathbf{t}||_{1/2}\)</span>
-TransE enforces additional constraints <span class="math notranslate nohighlight">\(||\mathbf{h}||_{2} = 1\)</span> and <span class="math notranslate nohighlight">\(||\mathbf{t}||_{2} = 1\)</span>.</p>
-<p id="id2"><dl class="citation">
-<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">BUGD+13</a></span></dt>
-<dd><p>Antoine Bordes, Nicolas Usunier, Alberto Garcia-Duran, Jason Weston, and Oksana Yakhnenko. Translating embeddings for modeling multi-relational data. <em>Advances in neural information processing systems</em>, 2013.</p>
-</dd>
-<dt class="label" id="id4"><span class="brackets">WZFC14</span></dt>
-<dd><p>Zhen Wang, Jianwen Zhang, Jianlin Feng, and Zheng Chen. Knowledge graph embedding by translating on hyperplanes. In <em>Proceedings of the AAAI Conference on Artificial Intelligence</em>, volume 28. 2014.</p>
-</dd>
-</dl>
-</p>
+<p>TransE <span id="id1">[<a class="reference internal" href="bib.html#id2" title="Antoine Bordes, Nicolas Usunier, Alberto Garcia-Duran, Jason Weston, and Oksana Yakhnenko. Translating embeddings for modeling multi-relational data. Advances in neural information processing systems, 2013.">BUGD+13</a>]</span> is a representative relational distance model. All the embeddings, entities and relations are both represented in the same space <span class="math notranslate nohighlight">\(\mathbb{R}^{d}\)</span> where d is the dimension of the embedding. Given a triple (head, relation, tail), transE imposes the constraint that <span class="math notranslate nohighlight">\(h+r \approx t\)</span>.
+The scoring function for TransE is defined as</p>
+<p><span class="math notranslate nohighlight">\(f_{r}(h,t) = -||\mathbf{h}+\mathbf{r}-\mathbf{t}||_{1/2}\)</span></p>
+<p>TransE enforces additional constraints <span class="math notranslate nohighlight">\(||\mathbf{h}||_{2} = 1\)</span> and <span class="math notranslate nohighlight">\(||\mathbf{t}||_{2} = 1\)</span>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="Models.TransE.TransE.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE.__init__" title="Permalink to this definition">¶</a></dt>
