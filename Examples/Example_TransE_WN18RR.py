@@ -21,9 +21,9 @@ parameters["pnorm"] = 2
 parameters["norm"] = True
 parameters["gamma"] = 4.226494273198768
 
-train(model_name = model_name, dataset = dataset, corruption_mode = corruption, parameters = parameters)
+train(model_name = model_name, dataset = dataset, corruption_mode = corruption, parameters = parameters, inner_norm=True)
 
-test(model_name = model_name, dataset = dataset, corruption_mode = corruption)
+#test(model_name = model_name, dataset = dataset, corruption_mode = corruption)
 
 
 
