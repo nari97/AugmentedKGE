@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from Utils.utils import clamp_norm
 
 class Embedding(nn.Module):
     """
@@ -62,7 +63,7 @@ class Embedding(nn.Module):
         if self.init == 'uniform':
             self.emb.weight.data = torch.nn.init.uniform_(self.emb.weight.data, a = self.init_params[0], b = self.init_params[1])
 
-    def normalize(self, norm = 'norm', p = 2, dim = -1):
+    def normalize(self, norm = 'norm', p = 2, dim = -1, maxnorm = 1):
 
         """
         Applies L1 or L2 normalisation on the embedding belonging to the class
@@ -72,13 +73,12 @@ class Embedding(nn.Module):
             p (int): The exponent value in normalisation. Default: 2
             dim (int): The dimension to normalize. Default: -1
 
-
         """
+        if norm == 'norm':
+            self.emb.weight.data = torch.nn.functional.normalize(self.emb.weight.data, p, dim)
 
-        self.emb.weight.data = torch.nn.functional.normalize(self.emb.weight.data, p, dim)
-
-        if norm == 'clamp':
-            self.emb.weight.data = torch.clamp(self.emb.weight.data, max = 1)
+        else:
+            self.emb.weight.data = clamp_norm(self.emb.weight.data, p = 2, dim = -1, maxnorm=maxnorm)
 
     def get_embedding(self, batch):
 
