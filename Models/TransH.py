@@ -45,9 +45,12 @@ class TransH(Model):
         self.norm_vector.normalize()
 
     def normalize_inner(self, h, t, w_r):
+        
         h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)
         t = clamp_norm(t, p = 2, dim = -1, maxnorm = 1)
-        w_r = F.normalize(w_r, p = 2, dim = -1)
+        w_r = normalize(w_r, p = 2, dim = -1)
+
+        return h, t, w_r
 
     def _calc(self, h, r, t, w_r):
         ht = h - torch.sum(h*w_r, dim = -1, keepdim = True).repeat(1, self.dims)*w_r
@@ -61,8 +64,6 @@ class TransH(Model):
         batch_h = self.get_batch(data, "h")
         batch_r = self.get_batch(data, "r")
         batch_t = self.get_batch(data, "t")
-
-        
 
         h = self.entities.get_embedding(batch_h)
         r = self.relations.get_embedding(batch_r)
