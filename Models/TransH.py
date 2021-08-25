@@ -1,6 +1,7 @@
 import torch
 from Models.Model import Model
 from Utils.Embedding import Embedding
+import torch.nn.functional as F
 
 class TransH(Model):
     
@@ -19,7 +20,7 @@ class TransH(Model):
     
     """
 
-    def __init__(self, ent_total, rel_total, dims, norm = 2):
+    def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
         """
         Args:
             ent_total (int): Total number of entities
@@ -32,6 +33,7 @@ class TransH(Model):
 
         self.dims = dims
         self.norm = norm
+        self.inner_norm = inner_norm
 
         self.entities = Embedding(self.ent_tot, self.dims)
         self.relations = Embedding(self.rel_tot, self.dims)
@@ -40,6 +42,11 @@ class TransH(Model):
     def normalize(self):
         self.entities.normalize()
         self.norm_vector.normalize()
+
+    def normalize_inner(self, h, t, w_r):
+        h = F.normalize(h, p = 2, dim = -1)
+        t = F.normalize(t, p = 2, dim = -1)
+        w_r = F.normalize(w_r, p = 2, dim = -1)
 
     def _calc(self, h, r, t, w_r):
         ht = h - torch.sum(h*w_r, dim = -1, keepdim = True).repeat(1, self.dims)*w_r
@@ -61,6 +68,9 @@ class TransH(Model):
         t = self.entities.get_embedding(batch_t)
         w_r = self.norm_vector.get_embedding(batch_r)
         
+        if self.inner_norm:
+            h,t,w_r = self.normalize_inner(h, t, w_r)
+            
         score = self._calc(h, r, t, w_r).flatten()
 
         return score

@@ -7,19 +7,19 @@ import torch.nn.functional as F
 
 class TransD(Model):
     """
-    TransD \cite{transd} is a translation-based embedding approach that introduces the concept that entity and relation embeddings are no longer represented in the same space. Entity embeddings are represented in space :math:`\mathbb{R}^{k}` and relation embeddings are represented in space :math:`\mathbb{R}^{d}` where :math:`k \geq d`. TransD also introduces additional embeddings :math:`\mathbf{w_{h}}, \mathbf{w_{t}} \in \mathbb{R}^{k}$ and \mathbf{w_{r} \in \mathbb{R}^{d}}`. I is the identity matrix.
+    TransD :cite:`ji2015knowledge` is a translation-based embedding approach that introduces the concept that entity and relation embeddings are no longer represented in the same space. Entity embeddings are represented in space :math:`\mathbb{R}^{k}` and relation embeddings are represented in space :math:`\mathbb{R}^{d}` where :math:`k \geq d`.TransD also introduces additional embeddings :math:`\mathbf{w_{h}}, \mathbf{w_{t}} \in \mathbb{R}^{k}` and :math:`\mathbf{w_{r} \in \mathbb{R}^{d}}`. I is the identity matrix.
     The scoring function for TransD is defined as
     
-    :math:`f_{r}(h,t) = -||h_{\bot} + \mathbf{r} - t_{\bot}||`
+    :math:`f_{r}(h,t) = -||h_{\\bot} + \mathbf{r} - t_{\\bot}||`
     
-    :math:`h_{\bot} = (\mathbf{w_{r}}\mathbf{w_{h}^{T}} + I^{d \times k})\,\mathbf{h}`
+    :math:`h_{\\bot} = (\mathbf{w_{r}}\mathbf{w_{h}^{T}} + I^{d \\times k})\,\mathbf{h}`
     
-    :math:`t_{\bot} = (\mathbf{w_{r}}\mathbf{w_{t}^{T}} + I^{d \times k})\,\mathbf{t}`
+    :math:`t_{\\bot} = (\mathbf{w_{r}}\mathbf{w_{t}^{T}} + I^{d \\times k})\,\mathbf{t}`
 
-    TransD imposes contraints like :math:`||\mathbf{h}||_{2} \leq 1, ||\mathbf{t}||_{2} \leq 1, ||\mathbf{r}||_{2} \leq 1, ||h_{\bot}||_{2} \leq 1` and :math`||t_{\bot}||_{2} \leq 1`
+    TransD imposes contraints like :math:`||\mathbf{h}||_{2} \leq 1, ||\mathbf{t}||_{2} \leq 1, ||\mathbf{r}||_{2} \leq 1, ||h_{\\bot}||_{2} \leq 1` and :math:`||t_{\\bot}||_{2} \leq 1`
     """
 
-    def __init__(self, ent_total, rel_total, dim_e, dim_r, norm = 2):
+    def __init__(self, ent_total, rel_total, dim_e, dim_r, norm = 2, inner_norm = False):
         """
         Args:
             ent_total (int): Total number of entities
@@ -33,6 +33,7 @@ class TransD(Model):
         self.dim_e = dim_e
         self.dim_r = dim_r
         self.norm = norm
+        self.inner_norm = inner_norm
 
         self.entities = Embedding(self.ent_tot, self.dim_e)
         self.relations = Embedding(self.rel_tot, self.dim_r)
@@ -42,6 +43,14 @@ class TransD(Model):
     def normalize(self):
         self.entities.normalize()
         self.relations.normalize()
+
+    def normalize_inner(self, h, r, t):
+        h = F.normalize(h, p = 2, dim = -1)
+        t = F.normalize(t, p = 2, dim = -1)
+        r = F.normalize(r, p = 2, dim = -1)
+
+        return h, t, r
+
 
     def _calc(self, h,r,t):
         score = h + r - t
@@ -68,6 +77,9 @@ class TransD(Model):
         h = self.entities.get_embedding(batch_h)
         r = self.relations.get_embedding(batch_r)
         t = self.entities.get_embedding(batch_t)
+
+        if self.inner_nrom:
+            h, r, t = self.normalize_inner(h, r, t)
 
         h_transfer = self.entities.get_embedding(batch_h)
         r_transfer = self.relations.get_embedding(batch_r)

@@ -5,11 +5,12 @@ import torch.nn.functional as F
 
 class RotatE(Model):
 
-    def __init__(self, ent_total, rel_total, dims, norm = 2):
+    def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
         super(RotatE, self).__init__(ent_total, rel_total)
 
         self.dims = dims
         self.norm = norm
+        self.inner_norm = inner_norm
 
         self.entities = Embedding(self.ent_tot, 2*self.dims)
         self.relations = Embedding(self.rel_tot, self.dims, init = 'uniform', init_params=[0, 2*self.pi_const.item()])
@@ -20,6 +21,13 @@ class RotatE(Model):
     def normalize(self):
         self.entities.normalize()
         self.relations.normalize()
+
+    def normalize_inner(self, h, r, t):
+        h = F.normalize(h, dim = -1, p = 2)
+        r = F.normalize(r, dim = -1, p = 2)
+        t = F.normalize(t, dim = -1, p = 2)
+
+        return h, r, t
         
     def multiply(self, a, b):
         #print (a.shape)
@@ -63,6 +71,9 @@ class RotatE(Model):
         h = self.entities.get_embedding(batch_h)
         r = self.relations.get_embedding(batch_r)
         t = self.entities.get_embedding(batch_t)
+
+        if self.inner_norm:
+            h, r, t = self.normalize_inner(h, r, t)
 
         score = self._calc(h,r,t).flatten()
 
