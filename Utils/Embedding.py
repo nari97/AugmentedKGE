@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from Utils.utils import clamp_norm
 
+#Embedding redesign
 class Embedding(nn.Module):
     """
     The embedding class contains all the functionalities required to create, initialize and normalize the embeddings.
