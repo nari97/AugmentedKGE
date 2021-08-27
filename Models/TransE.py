@@ -31,8 +31,8 @@ class TransE(Model):
         self.norm = norm
         self.inner_norm = inner_norm
 
-        self.entities = Embedding(self.ent_tot, self.dims)
-        self.relations = Embedding(self.rel_tot, self.dims)
+        self.entities = Embedding(self.ent_tot, self.dims, emb_type = "entity")
+        self.relations = Embedding(self.rel_tot, self.dims, emb_type = "relation")
 
     def normalize(self):
         self.entities.normalize()
@@ -49,13 +49,8 @@ class TransE(Model):
 
     def forward(self, data):
 
-        batch_h = self.get_batch(data, "h")
-        batch_r = self.get_batch(data, "r")
-        batch_t = self.get_batch(data, "t")
-
-        h = self.entities.get_embedding(batch_h)
-        r = self.relations.get_embedding(batch_r)
-        t = self.entities.get_embedding(batch_t)
+        h, t = self.entities.get_embedding(data)
+        r = self.relations.get_embedding(data)
 
         if self.inner_norm:
             h,t = self.normalize_inner(h,t)
