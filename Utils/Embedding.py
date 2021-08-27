@@ -9,7 +9,7 @@ class Embedding(nn.Module):
 
     """
 
-    def __init__(self, n_emb, n_dim , rep = 'real', c_rep = 'complex', init = 'xavier_uniform', init_params = None):
+    def __init__(self, n_emb, n_dim, emb_type, rep = 'real', c_rep = 'complex', init = 'xavier_uniform', init_params = None):
         """Init function to create and initialize embeddings
 
         Args:
@@ -27,6 +27,7 @@ class Embedding(nn.Module):
         self.n_dim = n_dim
         self.rep = rep
         self.c_rep = c_rep
+        self.emb_type = emb_type
 
         self.emb = None
         self.init = init
@@ -81,7 +82,7 @@ class Embedding(nn.Module):
         else:
             self.emb.weight.data = clamp_norm(self.emb.weight.data, p = 2, dim = -1, maxnorm=maxnorm)
 
-    def get_embedding(self, batch):
+    def get_embedding(self, data):
 
         """
         Returns the embeddings of the corresponding indices
@@ -92,5 +93,7 @@ class Embedding(nn.Module):
         Returns:
             emb: Tensor of embeddings for the corresponding indices
         """
-
-        return self.emb(batch)
+        if self.emb_type == "entity":
+            return self.emb(data["batch_h"]), self.emb(data["batch_t"])
+        else:
+            return self.emb(data["batch_r"])
