@@ -27,37 +27,36 @@ class TransE(Model):
         """
         super(TransE, self).__init__(ent_total, rel_total)
 
+        self.ent_tot = ent_total
+        self.rel_tot = rel_total
         self.dims = dims
         self.norm = norm
         self.inner_norm = inner_norm
 
-        self.entities = Embedding(self.ent_tot, self.dims, emb_type = "entity")
-        self.relations = Embedding(self.rel_tot, self.dims, emb_type = "relation")
+        #Create normalisation parameters
+        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
-    def normalize(self):
-        self.entities.normalize()
+        self.entities = self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params)
         
+        self.relations = self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "norm", norm_params= norm_params)
+        
+
     def normalize_inner(self, h, t):
+        '''
         h = normalize(h, p = 2, dim = -1)
         t = normalize(t, p = 2, dim = -1)
-
+        '''
         return h,t
 
     def _calc(self, h,r,t):
         return -torch.norm(h+r-t, dim = -1, p = self.norm)
 
+    def returnScore(self, head_emb, rel_emb, tail_emb):
+        h = head_emb["e"]
+        t = tail_emb["e"]
+        r = rel_emb["r"]
 
-    def forward(self, data):
-
-        h, t = self.entities.get_embedding(data)
-        r = self.relations.get_embedding(data)
-
-        if self.inner_norm:
-            h,t = self.normalize_inner(h,t)
-
-        score = self._calc(h,r,t).flatten()
-
-        return score
+        return self._calc(h, r, t)
 
     def predict(self, data):
         score = -self.forward(data)
