@@ -9,7 +9,7 @@ class Embedding(nn.Module):
 
     """
 
-    def __init__(self, n_emb, n_dim, emb_type, rep = 'real', c_rep = 'complex', init = 'xavier_uniform', init_params = None):
+    def __init__(self, n_emb, n_dim, emb_type, name, init = "xavier_uniform", init_params = None, normMethod = "norm", norm_params = []):
         """Init function to create and initialize embeddings
 
         Args:
@@ -25,14 +25,16 @@ class Embedding(nn.Module):
 
         self.n_emb = n_emb
         self.n_dim = n_dim
-        self.rep = rep
-        self.c_rep = c_rep
         self.emb_type = emb_type
+        self.name = name
 
-        self.emb = None
         self.init = init
-
         self.init_params = init_params
+        self.emb = None
+
+        self.normMethod = normMethod
+        self.norm_params = norm_params
+        
         
         self.create_embedding()
         self.init_embedding()
@@ -43,16 +45,8 @@ class Embedding(nn.Module):
         Creates an embedding based on the required size
 
         """
-
-        if self.rep == 'real':
-            self.emb = torch.nn.Embedding(self.n_emb, self.n_dim)
-
-        if self.rep == 'complex':
-
-            if self.c_rep == 'real':
-                self.emb = torch.nn.Embedding(self.n_emb, self.n_dim*2)
-            else:
-                self.emb = torch.nn.Embedding(self.n_emb, self.n_dim)
+        
+        self.emb = torch.nn.Embedding(self.n_emb, self.n_dim)
 
     def init_embedding(self):
         """
@@ -60,12 +54,12 @@ class Embedding(nn.Module):
 
         """
 
-        if self.init == 'xavier_uniform':
+        if self.init == "xavier_uniform":
             self.emb.weight.data = torch.nn.init.xavier_uniform_(self.emb.weight.data)
-        if self.init == 'uniform':
+        if self.init == "uniform":
             self.emb.weight.data = torch.nn.init.uniform_(self.emb.weight.data, a = self.init_params[0], b = self.init_params[1])
 
-    def normalize(self, norm = 'norm', p = 2, dim = -1, maxnorm = 1):
+    def normalize(self):
 
         """
         Applies L1 or L2 normalisation on the embedding belonging to the class
@@ -76,11 +70,29 @@ class Embedding(nn.Module):
             dim (int): The dimension to normalize. Default: -1
 
         """
-        if norm == 'norm':
-            self.emb.weight.data = torch.nn.functional.normalize(self.emb.weight.data, p, dim)
 
+        if "p" in self.norm_params:
+            p = self.norm_params["p"]
         else:
+            p = 2
+
+        if "dim" in self.norm_params:
+            dim = self.norm_params["dim"]
+        else:
+            dim = -1
+
+        if "maxnorm" in self.norm_params:
+            maxnorm = self.norm_params["maxnorm"]
+        else:
+            maxnorm = 1
+
+
+        if self.normMethod == "norm":
+            self.emb.weight.data = torch.nn.functional.normalize(self.emb.weight.data, p, dim)
+        elif self.normMethod == "clamp":
             self.emb.weight.data = clamp_norm(self.emb.weight.data, p = 2, dim = -1, maxnorm=maxnorm)
+        else:
+            pass
 
     def get_embedding(self, data):
 
@@ -93,7 +105,4 @@ class Embedding(nn.Module):
         Returns:
             emb: Tensor of embeddings for the corresponding indices
         """
-        if self.emb_type == "entity":
-            return self.emb(data["batch_h"]), self.emb(data["batch_t"])
-        else:
-            return self.emb(data["batch_r"])
+        return self.emb(data)
