@@ -2,3 +2,7 @@ Model/
 __pycache__/
 test_code.py
 build/
+Graphs/
+Example*
+Ax/
+tester_file.py
