@@ -9,7 +9,7 @@ class Embedding(nn.Module):
 
     """
 
-    def __init__(self, n_emb, n_dim, emb_type, name, init = "xavier_uniform", init_params = None, normMethod = "norm", norm_params = []):
+    def __init__(self, n_emb, n_dim, emb_type, name, init = "xavier_uniform", init_params = [0,1], normMethod = "norm", norm_params = []):
         """Init function to create and initialize embeddings
 
         Args:
