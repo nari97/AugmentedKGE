@@ -5,19 +5,22 @@ from Utils.utils import clamp_norm, normalize
 
 class ComplEx(Model):
 
-    def __init__(self, ent_total, rel_total, dims, norm = 2):
+    def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
         super(ComplEx, self).__init__(ent_total, rel_total)
 
         self.dims = dims
         self.norm = norm
 
-        self.entities_real = Embedding(self.ent_tot, self.dims)
-        self.entities_img = Embedding(self.ent_tot, self.dims)
-        self.relations_real = Embedding(self.rel_tot, self.dims)
-        self.relations_img = Embedding(self.rel_tot, self.dims)
+        self.inner_norm = inner_norm
 
-    def normalize(self):
-        pass
+        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
+        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e_real", normMethod = "none", norm_params = norm_params)
+        
+        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_real", normMethod = "none", norm_params= norm_params)
+
+        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e_img", normMethod = "none", norm_params = norm_params)
+        
+        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_img", normMethod = "none", norm_params= norm_params)
 
     def _calc(self, h_re, h_im, t_re, t_im, r_re, r_im):
         return torch.sum(
@@ -28,29 +31,23 @@ class ComplEx(Model):
             -1
         )
 
-    def forward(self, data):
+    def returnScore(self, head_emb, rel_emb, tail_emb):
 
-        batch_h = self.get_batch(data, "h")
-        batch_r = self.get_batch(data, "r")
-        batch_t = self.get_batch(data, "t")
+        h_real = head_emb["e_real"]
+        h_img = head_emb["e_img"]
 
-        h_real = self.entities_real.get_embedding(batch_h)
-        h_img = self.entities_img.get_embedding(batch_h)
+        r_real = rel_emb["r_real"]
+        r_img = rel_emb["r_img"]
 
-        r_real = self.relations_real.get_embedding(batch_r)
-        r_img = self.relations_img.get_embedding(batch_r)
+        t_real = tail_emb["e_real"]
+        t_img = tail_emb["e_img"]
 
-        t_real = self.entities_real.get_embedding(batch_t)
-        t_img = self.entities_img.get_embedding(batch_t)
 
         score = self._calc(h_real, h_img, t_real, t_img, r_real, r_img).flatten()
 
         return score
 
-    def predict(self, data):
-        score = -self.forward(data)
-
-        return score
+    
 
 
 

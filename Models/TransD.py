@@ -35,21 +35,23 @@ class TransD(Model):
         self.norm = norm
         self.inner_norm = inner_norm
 
-        self.entities = Embedding(self.ent_tot, self.dim_e)
-        self.relations = Embedding(self.rel_tot, self.dim_r)
-        self.ent_transfer = Embedding(self.ent_tot, self.dim_e)
-        self.rel_transfer = Embedding(self.rel_tot, self.dim_r)
+        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
-    def normalize(self):
-        self.entities.normalize(norm = 'clamp', maxnorm = 1)
-        self.relations.normalize(norm = 'clamp', maxnorm = 1)
+        self.entities = self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e", normMethod = "clamp", norm_params = norm_params)
+        
+        self.relations = self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r", normMethod = "clamp", norm_params= norm_params)
+        
+        self.ent_transfer = self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e_t", normMethod = "clamp", norm_params = norm_params)
+        
+        self.rel_transfer = self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r_t", normMethod = "clamp", norm_params= norm_params)
 
-    def normalize_inner(self, h, r, t):
+    def normalize_inner(self, h,r, t):
         h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)
         t = clamp_norm(t, p = 2, dim = -1, maxnorm = 1)
         r = clamp_norm(r, p = 2, dim = -1, maxnorm = 1)
-
-        return h, t, r
+    
+        
+        return h,r, t
 
 
     def _calc(self, h,r,t):
@@ -68,33 +70,26 @@ class TransD(Model):
 
         return clamp_norm(m+I, p=2, dim=-1, maxnorm = 1)
 
-    def forward(self, data):
+    def returnScore(self, head_emb, rel_emb, tail_emb):
 
-        batch_h = self.get_batch(data, "h")
-        batch_r = self.get_batch(data, "r")
-        batch_t = self.get_batch(data, "t")
+        h = head_emb["e"]
+        t = tail_emb["e"]
+        r = rel_emb["r"]
 
-        h = self.entities.get_embedding(batch_h)
-        r = self.relations.get_embedding(batch_r)
-        t = self.entities.get_embedding(batch_t)
+        h_transfer = head_emb["e_t"]
+        t_transfer = tail_emb["e_t"]
+        r_transfer = rel_emb["r_t"]
 
-        if self.inner_nrom:
-            h, r, t = self.normalize_inner(h, r, t)
-
-        h_transfer = self.entities.get_embedding(batch_h)
-        r_transfer = self.relations.get_embedding(batch_r)
-        t_transfer = self.entities.get_embedding(batch_t)
+        
+        if self.inner_norm:
+            h,r, t = self.normalize_inner(h,r, t)
 
         h = self._transfer(h, h_transfer, r_transfer)
         t = self._transfer(t, t_transfer, r_transfer)
-
         score = self._calc(h,r,t).flatten()
 
         return score
 
-    def predict(self, data):
-        score = -self.forward(data)
-        return score
 
 
 

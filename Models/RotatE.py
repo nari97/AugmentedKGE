@@ -2,6 +2,7 @@ import torch
 from .Model import Model
 from Utils.Embedding import Embedding
 import torch.nn.functional as F
+from Utils.utils import normalize
 
 class RotatE(Model):
 
@@ -9,23 +10,26 @@ class RotatE(Model):
         super(RotatE, self).__init__(ent_total, rel_total)
 
         self.dims = dims
+
+        self.dim_e = self.dims*2
+        self.dim_r = self.dims 
+
         self.norm = norm
         self.inner_norm = inner_norm
 
-        self.entities = Embedding(self.ent_tot, 2*self.dims)
-        self.relations = Embedding(self.rel_tot, self.dims, init = 'uniform', init_params=[0, 2*self.pi_const.item()])
+        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
-        #print (self.entities.emb)
-        #print (self.relations.emb)
+        self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params, init = "uniform", init_params=[0, 1])
+        
+        self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r", normMethod = "norm", norm_params= norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
 
-    def normalize(self):
-        self.entities.normalize()
-        self.relations.normalize()
+
+
 
     def normalize_inner(self, h, r, t):
-        h = F.normalize(h, dim = -1, p = 2)
-        r = F.normalize(r, dim = -1, p = 2)
-        t = F.normalize(t, dim = -1, p = 2)
+        h = normalize(h, dim = -1, p = 2)
+        r = normalize(r, dim = -1, p = 2)
+        t = normalize(t, dim = -1, p = 2)
 
         return h, r, t
         
@@ -51,7 +55,7 @@ class RotatE(Model):
         
         real = torch.cos(r)
         img = torch.sin(r)
-        #print (real.shape, img.shape)
+
         tr = torch.stack((real, img), dim = -1)
         
         #print (th.shape, tr.shape)
@@ -62,15 +66,11 @@ class RotatE(Model):
 
         return data
 
-    def forward(self, data):
+    def returnScore(self, head_emb, rel_emb, tail_emb):
 
-        batch_h = self.get_batch(data, "h")
-        batch_r = self.get_batch(data, "r")
-        batch_t = self.get_batch(data, "t")
-
-        h = self.entities.get_embedding(batch_h)
-        r = self.relations.get_embedding(batch_r)
-        t = self.entities.get_embedding(batch_t)
+        h = head_emb["e"]
+        t = tail_emb["e"]
+        r = rel_emb["r"]
 
         if self.inner_norm:
             h, r, t = self.normalize_inner(h, r, t)
@@ -79,10 +79,6 @@ class RotatE(Model):
 
         return score
 
-    def predict(self, data):
-        score = -self.forward(data)
-
-        return score
 
 
 

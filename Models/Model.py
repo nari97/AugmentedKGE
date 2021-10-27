@@ -36,11 +36,6 @@ class Model(BaseModule):
         tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
 
-        '''
-        if self.inner_norm:
-            h,t = self.normalize_inner(h,t)
-        '''
-
         score = self.returnScore(head_emb,rel_emb,tail_emb).flatten()
 
         return score
@@ -55,7 +50,11 @@ class Model(BaseModule):
         Returns:
             score (Tensor): Tensor containing the scores for each triple
         """
-        raise NotImplementedError
+        
+        score = -self.forward(data)
+
+        return score
+
 
     def returnScore(self, head_emb, rel_emb, tail_emb):
         raise NotImplementedError
