@@ -7,18 +7,20 @@ class SimplE(Model):
     def __init__(self, ent_total, rel_total, dims):
         super(SimplE, self).__init__(ent_total, rel_total)
 
+        self.ent_tot = ent_total
+        self.rel_tot = rel_total
         self.dims = dims
 
+        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
-        self.entities_h = Embedding(self.ent_tot, self.dims)
-        self.entities_t = Embedding(self.ent_tot, self.dims)
-        self.relations = Embedding(self.rel_tot, self.dims)
-        self.relation_inverse = Embedding(self.rel_tot, self.dims)
+        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "h", normMethod = "none", norm_params = norm_params)
+        
+        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params)
 
+        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "t", normMethod = "none", norm_params = norm_params)
+        
+        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_inv", normMethod = "none", norm_params= norm_params)
 
-    def normalize(self):
-        #self.entities.normalize()
-        pass
         
 
     def _calc_avg(self, h_i, t_i, h_j, t_j, r, r_inv):
@@ -29,32 +31,24 @@ class SimplE(Model):
 
     def forward(self, data):
 
-        batch_h = self.get_batch(data, "h")
-        batch_r = self.get_batch(data, "r")
-        batch_t = self.get_batch(data, "t")
+        h_i = self.embeddings["entity"]["h"].get_embedding(data["batch_h"])
+        h_j = self.embeddings["entity"]["h"].get_embedding(data["batch_t"])
 
-        h_i = self.entities_h.get_embedding(batch_h)
-        h_j = self.entities_h.get_embedding(batch_t)
+        t_i = self.embeddings["entity"]["t"].get_embedding(data["batch_h"])
+        t_j = self.embeddings["entity"]["t"].get_embedding(data["batch_t"])
 
-        t_i = self.entities_t.get_embedding(batch_h)
-        t_j = self.entities_t.get_embedding(batch_t)
-
-        r = self.relations.get_embedding(batch_r)
-        r_inv = self.relation_inverse.get_embedding(batch_r)
+        r = self.embeddings["relation"]["r"].get_embedding(data["batch_r"])
+        r_inv = self.embeddings["relation"]["r_inv"].get_embedding(data["batch_r"])
 
         score = self._calc_avg(h_i, t_i,h_j, t_j, r, r_inv).flatten()
 
         return score
 
     def predict(self, data):
-        batch_h = self.get_batch(data, "h")
-        batch_r = self.get_batch(data, "r")
-        batch_t = self.get_batch(data, "t")
-
-        h = self.entities_h.get_embedding(batch_h)
-        r = self.relations.get_embedding(batch_r)
-        t = self.entities_t.get_embedding(batch_t)
-
+        h = self.embeddings["entity"]["h"].get_embedding(data["batch_h"])
+        t = self.embeddings["entity"]["t"].get_embedding(data["batch_t"])
+        r = self.embeddings["relation"]["r"].get_embedding(data["batch_r"])
+        
         score = -self._calc_ingr(h, r, t)
         return score
 

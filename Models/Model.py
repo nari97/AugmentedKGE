@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from Models.BaseModule import BaseModule
+from Utils.Embedding import Embedding
 
 
 class Model(BaseModule):
@@ -18,12 +19,7 @@ class Model(BaseModule):
         super(Model, self).__init__()
         self.ent_tot = ent_tot
         self.rel_tot = rel_tot
-
-    def normalize(self):
-        """
-        Implement normalizations for parameters of the model
-        """
-        raise NotImplementedError
+        self.embeddings = {"entity" : {}, "relation" : {}}
 
     def forward(self, data):
         """
@@ -35,7 +31,14 @@ class Model(BaseModule):
         Returns:
             score (Tensor): Tensor containing the scores for each triple
         """
-        raise NotImplementedError
+    
+        head_emb = self.get_head_embeddings(data)
+        tail_emb = self.get_tail_embeddings(data)
+        rel_emb = self.get_relation_embeddings(data)
+
+        score = self.returnScore(head_emb,rel_emb,tail_emb).flatten()
+
+        return score
 
     def predict(self, data):
         """
@@ -47,6 +50,13 @@ class Model(BaseModule):
         Returns:
             score (Tensor): Tensor containing the scores for each triple
         """
+        
+        score = -self.forward(data)
+
+        return score
+
+
+    def returnScore(self, head_emb, rel_emb, tail_emb):
         raise NotImplementedError
 
     def get_batch(self, data, type):
@@ -67,7 +77,38 @@ class Model(BaseModule):
         if type == "t":
             return data['batch_t']
 
+    def create_embedding(self, total, dimension, emb_type, name, init = "xavier_uniform", init_params = [], normMethod = "none", norm_params = []):
 
-    
+        self.embeddings[emb_type][name] = Embedding(total, dimension, emb_type, name, init, init_params, normMethod, norm_params)
+
+    def get_head_embeddings(self, data):
+
+        head_embeddings = {}
+        for emb in self.embeddings["entity"]:
+            head_embeddings[emb] = self.embeddings["entity"][emb].get_embedding(data["batch_h"])
+
+        return head_embeddings
+
+    def get_tail_embeddings(self, data):
+        tail_embeddings = {}
+
+        for emb in self.embeddings["entity"]:
+            tail_embeddings[emb] = self.embeddings["entity"][emb].get_embedding(data["batch_t"])
+
+        return tail_embeddings
+
+    def get_relation_embeddings(self, data):
+        relation_embeddings = {}
+
+        for emb in self.embeddings["relation"]:
+            relation_embeddings[emb] = self.embeddings["relation"][emb].get_embedding(data["batch_r"])
+
+        return relation_embeddings
+
+    def normalize(self):
+
+        for key1 in self.embeddings:
+            for key2 in self.embeddings[key1]:
+                self.embeddings[key1][key2].normalize()
 
     

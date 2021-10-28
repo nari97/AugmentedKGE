@@ -36,18 +36,19 @@ class TransH(Model):
         self.norm = norm
         self.inner_norm = inner_norm
 
-        self.entities = Embedding(self.ent_tot, self.dims)
-        self.relations = Embedding(self.rel_tot, self.dims)
-        self.norm_vector = Embedding(self.rel_tot, self.dims)
+        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
-    def normalize(self):
-        self.entities.normalize(norm='clamp', maxnorm = 1)
-        self.norm_vector.normalize()
+        self.entities = self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params)
+        
+        self.relations = self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params)
+
+        self.w_relations = self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "w_r", normMethod = "norm", norm_params= norm_params)
 
     def normalize_inner(self, h, t, w_r):
         
         h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)
         t = clamp_norm(t, p = 2, dim = -1, maxnorm = 1)
+        
         w_r = normalize(w_r, p = 2, dim = -1)
 
         return h, t, w_r
@@ -59,28 +60,15 @@ class TransH(Model):
 
         return answer
 
-    def forward(self, data):
-
-        batch_h = self.get_batch(data, "h")
-        batch_r = self.get_batch(data, "r")
-        batch_t = self.get_batch(data, "t")
-
-        h = self.entities.get_embedding(batch_h)
-        r = self.relations.get_embedding(batch_r)
-        t = self.entities.get_embedding(batch_t)
-        w_r = self.norm_vector.get_embedding(batch_r)
+    def returnScore(self, head_emb, rel_emb, tail_emb):
+        h = head_emb["e"]
+        t = tail_emb["e"]
+        r = rel_emb["r"]
+        w_r = rel_emb["w_r"]
         
         if self.inner_norm:
-            h,t,w_r = self.normalize_inner(h, t, w_r)
-            
-        score = self._calc(h, r, t, w_r).flatten()
+            h,t, w_r = self.normalize_inner(h,t, w_r)
 
-        return score
-
-    def predict(self, data):
-        score = -self.forward(data)
-
-        return score
-
+        return self._calc(h, r, t, w_r)
 
 

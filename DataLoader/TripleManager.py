@@ -3,6 +3,8 @@ import random
 import sys
 from .DataLoader import DataLoader
 
+np.random.seed(0)
+
 class DataSampler(object):
 
     def __init__(self, nbatches, datasampler):
@@ -28,11 +30,11 @@ class TripleManager():
     splits contains a list of the splits to consider. Usually, ['train'] for training, ['validation', 'train'] for validation,
     and ['test', 'validation', 'train'] for test. The order is important, the first position must be the main one.
     """
-    def __init__(self, path, splits, nbatches=None, neg_ent=None, neg_rel=None, use_bern=False, seed=None, corruption_mode="Global"):
+    def __init__(self, path, splits, nbatches=None, neg_ent=None, neg_rel=None, use_bern=False, seed=None, corruption_mode="Global", randomCorruption = "False"):
         self.counter = 0
         # Whether we will use a Bernoulli distribution to determine whether to corrupt head or tail
         self.use_bern = use_bern
-
+        self.randomCorruption = randomCorruption
         loaders = []
         self.tripleList = []
         headEntities, tailEntities = set(), set()
@@ -76,6 +78,8 @@ class TripleManager():
                         ran[r] = set()
                     ran[r] = ran[r].union(loader.getRange()[r])
 
+        self.allHeadEntities = headEntities
+        self.allTailEntities = tailEntities
         self.nbatches = nbatches
         self.negative_ent = neg_ent
         self.negative_rel = neg_rel
@@ -107,6 +111,7 @@ class TripleManager():
 
         # The entity set and anomalies must be the same for all
         self.entitySet = set(range(loaders[0].entityTotal))
+        self.relSet = set(range(loaders[0].relationTotal))
         self.relation_anomaly = loaders[0].relation_anomaly
         self.tripleTotal = len(self.tripleList)
         if self.nbatches is not None:
@@ -202,6 +207,31 @@ class TripleManager():
             tPrime = self.next_corrupted(h, self.tailCorruptedDict[r], self.tailEntities[r], self.tailDict[r])
         return tPrime
 
+    def get_all_corrupted(self):
+        
+        entities = list(self.entitySet)
+        relations = list(self.relSet)
+
+        while True:
+            randIndex = random.randint(0, len(entities)-1)
+            h = entities[randIndex]
+            randIndex = random.randint(0, len(entities)-1)
+            t = entities[randIndex]
+            randIndex = random.randint(0, len(relations)-1)
+            r = relations[randIndex]
+
+
+            if r not in self.headDict and r not in self.tailDict:
+                corrupted = [h,r,t]
+                break
+            else:
+                if t not in self.headDict[r] and h not in self.tailDict[r]:
+                    corrupted = [h,r,t]
+                    break
+                    
+        return corrupted
+
+        
     def next_corrupted(self, e, corrupted_dict, all_entities, these_entities):
         ret = None
         if e in corrupted_dict:
@@ -246,24 +276,36 @@ class TripleManager():
             last = self.batchSize
 
             for times in range(self.negative_ent):
-                ch = self.tripleList[randIndex].h
-                ct = self.tripleList[randIndex].t
 
-                if random.random() < self.headProb[self.tripleList[randIndex].r] \
-                    if self.use_bern else random.random() < 0.5:
-                    ch = self.corrupt_head(ch, self.tripleList[randIndex].r, ct)
+                if self.randomCorruption:
+                    c = self.get_all_corrupted()
+
+                    batch_h[batch + last] = c[0]
+                    batch_t[batch + last] = c[2]
+                    batch_r[batch + last] = c[1]
+                    batch_y[batch + last] = -1
+                    last = last + self.batchSize
+
                 else:
-                    ct = self.corrupt_tail(ch, self.tripleList[randIndex].r, ct)
 
-                if ch == None or ct == None:
-                    times = times - 1
-                    continue
+                    ch = self.tripleList[randIndex].h
+                    ct = self.tripleList[randIndex].t
 
-                batch_h[batch + last] = ch
-                batch_t[batch + last] = ct
-                batch_r[batch + last] = self.tripleList[randIndex].r
-                batch_y[batch + last] = -1
-                last = last + self.batchSize
+                    if random.random() < self.headProb[self.tripleList[randIndex].r] \
+                        if self.use_bern else random.random() < 0.5:
+                        ch = self.corrupt_head(ch, self.tripleList[randIndex].r, ct)
+                    else:
+                        ct = self.corrupt_tail(ch, self.tripleList[randIndex].r, ct)
+
+                    if ch == None or ct == None:
+                        times = times - 1
+                        continue
+
+                    batch_h[batch + last] = ch
+                    batch_t[batch + last] = ct
+                    batch_r[batch + last] = self.tripleList[randIndex].r
+                    batch_y[batch + last] = -1
+                    last = last + self.batchSize
 
         return {
             "batch_h": batch_h,
