@@ -30,7 +30,7 @@ class TripleManager():
     splits contains a list of the splits to consider. Usually, ['train'] for training, ['validation', 'train'] for validation,
     and ['test', 'validation', 'train'] for test. The order is important, the first position must be the main one.
     """
-    def __init__(self, path, splits, nbatches=None, neg_ent=None, neg_rel=None, use_bern=False, seed=None, corruption_mode="Global", randomCorruption = "False"):
+    def __init__(self, path, splits, nbatches=None, neg_ent=None, neg_rel=None, use_bern=False, seed=None, corruption_mode="Global", randomCorruption = False):
         self.counter = 0
         # Whether we will use a Bernoulli distribution to determine whether to corrupt head or tail
         self.use_bern = use_bern
@@ -277,6 +277,7 @@ class TripleManager():
 
             for times in range(self.negative_ent):
 
+                '''
                 if self.randomCorruption:
                     c = self.get_all_corrupted()
 
@@ -287,25 +288,25 @@ class TripleManager():
                     last = last + self.batchSize
 
                 else:
+                '''
+                ch = self.tripleList[randIndex].h
+                ct = self.tripleList[randIndex].t
 
-                    ch = self.tripleList[randIndex].h
-                    ct = self.tripleList[randIndex].t
+                if random.random() < self.headProb[self.tripleList[randIndex].r] \
+                    if self.use_bern else random.random() < 0.5:
+                    ch = self.corrupt_head(ch, self.tripleList[randIndex].r, ct)
+                else:
+                    ct = self.corrupt_tail(ch, self.tripleList[randIndex].r, ct)
 
-                    if random.random() < self.headProb[self.tripleList[randIndex].r] \
-                        if self.use_bern else random.random() < 0.5:
-                        ch = self.corrupt_head(ch, self.tripleList[randIndex].r, ct)
-                    else:
-                        ct = self.corrupt_tail(ch, self.tripleList[randIndex].r, ct)
+                if ch == None or ct == None:
+                    times = times - 1
+                    continue
 
-                    if ch == None or ct == None:
-                        times = times - 1
-                        continue
-
-                    batch_h[batch + last] = ch
-                    batch_t[batch + last] = ct
-                    batch_r[batch + last] = self.tripleList[randIndex].r
-                    batch_y[batch + last] = -1
-                    last = last + self.batchSize
+                batch_h[batch + last] = ch
+                batch_t[batch + last] = ct
+                batch_r[batch + last] = self.tripleList[randIndex].r
+                batch_y[batch + last] = -1
+                last = last + self.batchSize
 
         return {
             "batch_h": batch_h,
