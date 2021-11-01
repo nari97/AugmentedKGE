@@ -21,6 +21,10 @@ class Model(BaseModule):
         self.rel_tot = rel_tot
         self.embeddings = {"entity" : {}, "relation" : {}}
 
+        self.ranks = None
+        self.totals = None
+        
+
     def forward(self, data):
         """
         Calculate the scores for the given batch of triples
