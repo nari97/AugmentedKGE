@@ -102,11 +102,11 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
         all_totals = np.load(f)
     '''
 
-    all_ranks = model.ranks
-    all_totals = model.totals
+    all_ranks = model.model.ranks
+    all_totals = model.model.totals
 
     rc = RankCollector()
-    rc.load(all_ranks.tolist(), all_totals.tolist())
+    rc.load(all_ranks, all_totals)
 
     # Report metric!!!!!
     result = {}

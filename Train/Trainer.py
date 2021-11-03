@@ -102,7 +102,7 @@ class Trainer(object):
 
         if self.model.model.ranks!=None and self.model.model.totals!=None:
             collector = RankCollector()
-            collector.load(self.model.model.ranks.tolist(), self.model.model.totals.tolist())
+            collector.load(self.model.model.ranks, self.model.model.totals)
             
         for epoch in range(init_epoch, self.train_times+1):
             if self.save_steps and self.checkpoint_dir and epoch > 0 and epoch % self.save_steps == 0:
@@ -136,6 +136,8 @@ class Trainer(object):
                     self.model.model.totals = new_collector.all_totals
                     collector = new_collector
                     print("Epoch %d has finished, saving..." % epoch)
+                    print (self.model.model.embeddings["entity"]["e"].emb.weight.data[0])
+                    break
 
             if epoch < self.train_times:
                 res = 0.0

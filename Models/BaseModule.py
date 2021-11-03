@@ -12,14 +12,4 @@ class BaseModule(nn.Module):
         self.pi_const.requires_grad = False
         self.epoch = 0
 
-    def load_checkpoint(self, path):
-        dict = torch.load(os.path.join(path))
-        if 'epoch' in dict.keys():
-            self.epoch = dict.pop('epoch')
-        self.load_state_dict(dict)
-        self.eval()
-
-    def save_checkpoint(self, path, epoch=0):
-        dict = self.state_dict()
-        dict['epoch'] = epoch
-        torch.save(dict, path)
+    
