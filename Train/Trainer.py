@@ -49,7 +49,6 @@ class Trainer(object):
 
     def run(self, init_epoch=0):
         patient = 0
-        print (torch.__version__)
         if self.use_gpu:
             self.model.cuda()
         
@@ -87,16 +86,24 @@ class Trainer(object):
         print("Finish initializing...")
 
         collector = None
-
+        # Ranks and totals may have been computed before
+        # If they exist, just collect and load them
+        '''
         if os.path.exists(self.checkpoint_dir + ".ranks") and os.path.exists(self.checkpoint_dir + ".totals"):
             # Report metric
+            
             with open(self.checkpoint_dir + ".ranks", 'rb') as f:
                 all_ranks = np.load(f)
             with open(self.checkpoint_dir + ".totals", 'rb') as f:
                 all_totals = np.load(f)
             collector = RankCollector()
-            collector.load(all_ranks.tolist(), all_totals.tolist())
+            collector.load(self.model.model.ranks.tolist(), self.model.model.totals.tolist())
+        '''
 
+        if self.model.model.ranks!=None and self.model.model.totals!=None:
+            collector = RankCollector()
+            collector.load(self.model.model.ranks, self.model.model.totals)
+            
         for epoch in range(init_epoch, self.train_times+1):
             if self.save_steps and self.checkpoint_dir and epoch > 0 and epoch % self.save_steps == 0:
                 if self.validation is not None:
@@ -117,13 +124,21 @@ class Trainer(object):
                     break
                 else:
                     
+                    #If we are not finished, save model as .valid and save totals and ranks
                     self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".valid"), epoch=epoch)
+                    '''
                     with open(os.path.join(self.checkpoint_dir + ".ranks"), 'wb') as f:
                         np.save(f, np.array(new_collector.all_ranks))
                     with open(os.path.join(self.checkpoint_dir + ".totals"), 'wb') as f:
                         np.save(f, np.array(new_collector.all_totals))
+                    '''
+                    self.model.model.ranks = new_collector.all_ranks
+                    self.model.model.totals = new_collector.all_totals
                     collector = new_collector
                     print("Epoch %d has finished, saving..." % epoch)
+                    print (self.model.model.embeddings["entity"]["e"].emb.weight.data[0])
+                    break
+
             if epoch < self.train_times:
                 res = 0.0
                 start = time.perf_counter()
@@ -140,9 +155,8 @@ class Trainer(object):
                     loss = self.train_one_step(data)
                     res += loss.item()
                     start_neg = time.perf_counter()
-                    #tv.make_dot(loss, params=dict(self.model.model.named_parameters())).render("Graphs/comp_graph_ingrad_outside_after_score_norm", format="png")
                     
-                    
+    
                 self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".ckpt"), epoch=epoch)
                 
                 end = time.perf_counter()

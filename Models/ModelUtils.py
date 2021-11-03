@@ -54,7 +54,7 @@ class ModelUtils:
             s = s + "_" + p + "_" + str(self.params[p])
         return s
 
-    def get_model(self, ent_total, rel_total, batch_size, inner_norm):
+    def get_model(self, ent_total, rel_total, batch_size, inner_norm = False):
         m = None
         if self.model_name == "transe":
             m = TransE(

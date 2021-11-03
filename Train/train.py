@@ -55,15 +55,9 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     with open(trial_file, 'rb') as f:
         parameters = pickle.load(f)
     '''
-
-
-    
-    
     
     mu = ModelUtils(model_name, parameters)
     print("Parameters:", parameters)
-    
-    
     
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
@@ -101,12 +95,18 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
         os.remove(checkpoint_dir + ".ckpt")
 
     # Report metric
+    '''
     with open(checkpoint_dir + ".ranks", 'rb') as f:
         all_ranks = np.load(f)
     with open(checkpoint_dir + ".totals", 'rb') as f:
         all_totals = np.load(f)
+    '''
+
+    all_ranks = model.model.ranks
+    all_totals = model.model.totals
+
     rc = RankCollector()
-    rc.load(all_ranks.tolist(), all_totals.tolist())
+    rc.load(all_ranks, all_totals)
 
     # Report metric!!!!!
     result = {}

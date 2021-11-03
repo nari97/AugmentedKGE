@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from Models.BaseModule import BaseModule
 from Utils.Embedding import Embedding
-
+import os
 
 class Model(BaseModule):
 
@@ -20,6 +20,10 @@ class Model(BaseModule):
         self.ent_tot = ent_tot
         self.rel_tot = rel_tot
         self.embeddings = {"entity" : {}, "relation" : {}}
+
+        self.ranks = None
+        self.totals = None
+        
 
     def forward(self, data):
         """
@@ -111,4 +115,16 @@ class Model(BaseModule):
             for key2 in self.embeddings[key1]:
                 self.embeddings[key1][key2].normalize()
 
-    
+    def load_checkpoint(self, path):
+        dict = torch.load(os.path.join(path))
+        if 'epoch' in dict.keys():
+            self.epoch = dict.pop("epoch")
+        self.embeddings = dict.pop("embeddings")
+        self.ranks = dict.pop("ranks")
+        self.totals = dict.pop("totals")
+        self.eval()
+
+    def save_checkpoint(self, path, epoch=0):
+        dict = {"embeddings" : self.embeddings, "ranks" : self.ranks, "totals" : self.totals, "epoch" : self.epoch}
+        
+        torch.save(dict, path)

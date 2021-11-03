@@ -16,10 +16,10 @@ def test(model_name, dataset, corruption_mode, type = "test"):
     #corruption_mode = "LCWA"
 
     folder = ""
-    model_name = "transd"
-    dataset = 6
-    type = "test"
-    corruption_mode = "LCWA"
+    # model_name = "trans"
+    # dataset = 6
+    # type = "test"
+    # corruption_mode = "LCWA"
 
     dataset_name = ""
     if dataset == 0:
@@ -96,8 +96,9 @@ def test(model_name, dataset, corruption_mode, type = "test"):
         else:
             util = ModelUtils(model_name, ModelUtils.get_params(model_file))
             #print (manager.hpt, manager.tph)
-            model = util.get_model(manager.entityTotal, manager.relationTotal, 0, manager)
+            model = util.get_model(manager.entityTotal, manager.relationTotal, 0)
             model.model.load_checkpoint(model_file)
+            print (model.model.embeddings["entity"]["e"].emb.weight.data[0])
             rc = evaluator.evaluate(model.model, type == "test", name = model_name, dataset = dataset)
             # Store rc
             with open(file, 'w') as f:
