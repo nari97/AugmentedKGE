@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
-from Models.BaseModule import BaseModule
 from Utils.Embedding import Embedding
 import os
 
-class Model(BaseModule):
+class Model(nn.Module):
 
     """
         Base class for all models to inherit
@@ -19,6 +18,7 @@ class Model(BaseModule):
         super(Model, self).__init__()
         self.ent_tot = ent_tot
         self.rel_tot = rel_tot
+        self.epoch = 0
         self.embeddings = {"entity" : {}, "relation" : {}}
 
         self.ranks = None
@@ -125,6 +125,6 @@ class Model(BaseModule):
         self.eval()
 
     def save_checkpoint(self, path, epoch=0):
-        dict = {"embeddings" : self.embeddings, "ranks" : self.ranks, "totals" : self.totals, "epoch" : self.epoch}
+        dict = {"embeddings" : self.embeddings, "ranks" : self.ranks, "totals" : self.totals, "epoch" : epoch}
         
         torch.save(dict, path)
