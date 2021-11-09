@@ -44,7 +44,8 @@ class Evaluator(object):
     def evaluate(self, model, materialize=False, name = None, dataset = None):
         collector = RankCollector()
         
-        
+        # rank_test_h = []
+        # ranks_test_t = []
         # We will split the evaluation by relation
         relations = {}
         for t in self.manager.get_triples():
@@ -113,8 +114,10 @@ class Evaluator(object):
                                 #self.add_triple(neg_triples, arrH[i], arrR[i], arrT[i], 2)
                         
                             
+                # rank_test_h.append(self.frac_rank(rankhLess, rankhEq))
+                # ranks_test_t.append(self.frac_rank(ranktLess, ranktEq))
                 
-                
+
                 collector.update_rank(self.frac_rank(rankhLess, rankhEq), rankhEq>1, len(corruptedHeads),
                            self.frac_rank(ranktLess, ranktEq), ranktEq>1, len(corruptedTails), t.r, self.manager.relation_anomaly[t.r])
   
@@ -133,6 +136,23 @@ class Evaluator(object):
 
         
         
+        # rank_test = []
+        # for i in range(len(rank_test_h)):
+        #     rank_test.append(rank_test_h[i])
+        #     rank_test.append(ranks_test_t[i])
+
+        # print ('Tested Ranks : ', len(rank_test), len(collector.all_ranks))
+
+        # if len(rank_test) == len(collector.all_ranks):
+        #     miss = 0
+        #     for i in range(len(rank_test)):
+        #         if rank_test[i]!=collector.all_ranks[i]:
+        #             miss+=1
+
+        #     print ('Miss : ', miss)
+        # else:
+        #     print ('Lengths are not the same!')
+
         return collector
 
     def add_triple(self, tree, h, r, t, i):
