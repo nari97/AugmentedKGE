@@ -157,8 +157,8 @@ class Trainer(object):
                     loss = self.train_one_step(data)
                     res += loss.item()
                     start_neg = time.perf_counter()
-                    make_dot(loss, params=dict(list(self.model.model.named_parameters()))).render(self.model.model.model_name, format="png")
-                    exit()
+                    #make_dot(loss, params=dict(list(self.model.model.named_parameters()))).render(self.model.model.model_name, format="png")
+                    #exit()
 
                 #self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".ckpt"), epoch=epoch)
                 torch.save(self.model.model, os.path.join(self.checkpoint_dir + ".ckpt"))
