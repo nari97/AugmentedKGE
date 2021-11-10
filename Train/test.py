@@ -1,6 +1,7 @@
 from DataLoader.TripleManager import TripleManager
 from Train.Evaluator import Evaluator
 from Models.ModelUtils import ModelUtils
+import torch
 import time
 import sys
 import glob
@@ -76,9 +77,12 @@ def test(model_name, dataset, corruption_mode, type = "test"):
     models = []
     collectors = []
     pending = 0
+    
+    
     for model_file in glob.glob(folder + "Model/" + str(dataset) + "/" + model_name + "*.model"):
         pending = pending+1
 
+    
     for model_file in glob.glob(folder + "Model/" + str(dataset) + "/" + model_name + "*.model"):
         print('Pending:',pending)
         pending = pending-1
@@ -94,12 +98,12 @@ def test(model_name, dataset, corruption_mode, type = "test"):
             rc.unique_triples_materialized = {int(k): v for k, v in rc.unique_triples_materialized.items()}
             rc.total_unique_triples = {int(k): v for k, v in rc.total_unique_triples.items()}
         else:
-            util = ModelUtils(model_name, ModelUtils.get_params(model_file))
+            #util = ModelUtils(model_name, ModelUtils.get_params(model_file))
             #print (manager.hpt, manager.tph)
-            model = util.get_model(manager.entityTotal, manager.relationTotal, 0)
-            model.model.load_checkpoint(model_file)
-            print (model.model.embeddings["entity"]["e"].emb.weight.data[0])
-            rc = evaluator.evaluate(model.model, type == "test", name = model_name, dataset = dataset)
+            model = torch.load(model_file)
+            #model.model.load_checkpoint(model_file)
+            #print (model.embeddings["entity"]["e"].emb.weight.data[0])
+            rc = evaluator.evaluate(model, type == "test", name = model_name, dataset = dataset)
             # Store rc
             with open(file, 'w') as f:
                 f.write(jsonpickle.encode(rc))
