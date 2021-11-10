@@ -21,19 +21,20 @@ class RotatE(Model):
         
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
-        self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params, init = "uniform", init_params=[0, 1])
+        self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e", normMethod = "none", norm_params = norm_params, init = "xavier_uniform", init_params=[0, 1])
         
-        self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r", normMethod = "norm", norm_params= norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
+        self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
 
         self.register_params()
 
 
     def normalize_inner(self, h, r, t):
-        h = normalize(h, dim = -1, p = 2)
-        r = normalize(r, dim = -1, p = 2)
-        t = normalize(t, dim = -1, p = 2)
+        # h = normalize(h, dim = -1, p = 2)
+        # r = normalize(r, dim = -1, p = 2)
+        # t = normalize(t, dim = -1, p = 2)
 
-        return h, r, t
+        # return h, r, t
+        pass
         
     def multiply(self, a, b):
         #print (a.shape)

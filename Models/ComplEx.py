@@ -14,13 +14,13 @@ class ComplEx(Model):
         self.inner_norm = inner_norm
         self.model_name = "complex"
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
-        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e_real", normMethod = "none", norm_params = norm_params)
+        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e_real", normMethod = "clamp", norm_params = norm_params)
         
-        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_real", normMethod = "none", norm_params= norm_params)
+        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_real", normMethod = "clamp", norm_params= norm_params)
 
-        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e_img", normMethod = "none", norm_params = norm_params)
+        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e_img", normMethod = "clamp", norm_params = norm_params)
         
-        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_img", normMethod = "none", norm_params= norm_params)
+        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_img", normMethod = "clamp", norm_params= norm_params)
 
         self.register_params()
         

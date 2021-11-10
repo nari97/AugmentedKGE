@@ -43,7 +43,7 @@ class TransD(Model):
         
         self.ent_transfer = self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e_t", normMethod = "clamp", norm_params = norm_params)
         
-        self.rel_transfer = self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r_t", normMethod = "clamp", norm_params= norm_params)
+        self.rel_transfer = self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r_t", normMethod = "none", norm_params= norm_params)
         self.register_params()
         
     def normalize_inner(self, h,r, t):

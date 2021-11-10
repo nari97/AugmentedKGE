@@ -38,7 +38,7 @@ class TransH(Model):
         self.model_name = "transh"
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
-        self.entities = self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params)
+        self.entities = self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e", normMethod = "clamp", norm_params = norm_params)
         
         self.relations = self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params)
 
