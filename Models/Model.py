@@ -21,8 +21,11 @@ class Model(nn.Module):
         self.epoch = 0
         self.embeddings = {"entity" : {}, "relation" : {}}
 
+        
         self.ranks = None
         self.totals = None
+
+        self.hyperparameters = None
         
 
     def forward(self, data):
@@ -122,9 +125,29 @@ class Model(nn.Module):
         self.embeddings = dict.pop("embeddings")
         self.ranks = dict.pop("ranks")
         self.totals = dict.pop("totals")
+        self.hyperparameters = dict.pop("hyperparameters")
+
         self.eval()
 
     def save_checkpoint(self, path, epoch=0):
-        dict = {"embeddings" : self.embeddings, "ranks" : self.ranks, "totals" : self.totals, "epoch" : epoch}
+        dict = {"embeddings" : self.embeddings, "ranks" : self.ranks, "totals" : self.totals, "epoch" : epoch, "hyperparamters" : self.hyperparameters}
         
         torch.save(dict, path)
+
+    def set_params(self, params):
+        self.hyperparameters = params
+
+    def get_params(self):
+        return self.hyperparameters
+
+    def get_name(self):
+        s = self.model_name
+        for p in self.hyperparameters:
+            s = s + "_" + p + "_" + str(self.hyperparameters[p])
+        return s
+
+    def register_params(self):
+
+        for key1 in self.embeddings:
+            for key2 in self.embeddings[key1]:
+                self.register_parameter(key1+"_"+key2, self.embeddings[key1][key2].emb.weight)

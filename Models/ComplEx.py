@@ -12,7 +12,7 @@ class ComplEx(Model):
         self.norm = norm
 
         self.inner_norm = inner_norm
-
+        self.model_name = "complex"
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
         self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e_real", normMethod = "none", norm_params = norm_params)
         
@@ -22,6 +22,8 @@ class ComplEx(Model):
         
         self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_img", normMethod = "none", norm_params= norm_params)
 
+        self.register_params()
+        
     def _calc(self, h_re, h_im, t_re, t_im, r_re, r_im):
         return torch.sum(
             h_re * t_re * r_re

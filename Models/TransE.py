@@ -32,14 +32,15 @@ class TransE(Model):
         self.dims = dims
         self.norm = norm
         self.inner_norm = inner_norm
-
+        self.model_name = "transe"
         #Create normalisation parameters
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
-
+        
         self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params)
         
         self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params)
         
+        self.register_params()
 
     def normalize_inner(self, h, t):
         

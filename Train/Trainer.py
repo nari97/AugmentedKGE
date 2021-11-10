@@ -5,7 +5,7 @@ import os
 import time
 import numpy as np
 from .Evaluator import RankCollector
-import torchviz as tv
+from torchviz import make_dot
 
 class Trainer(object):
 
@@ -125,7 +125,9 @@ class Trainer(object):
                 else:
                     
                     #If we are not finished, save model as .valid and save totals and ranks
-                    self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".valid"), epoch=epoch)
+                    #self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".valid"), epoch=epoch)
+                    self.model.model.epoch = epoch
+                    torch.save(self.model.model, os.path.join(self.checkpoint_dir + ".valid"))
                     '''
                     with open(os.path.join(self.checkpoint_dir + ".ranks"), 'wb') as f:
                         np.save(f, np.array(new_collector.all_ranks))
@@ -136,7 +138,7 @@ class Trainer(object):
                     self.model.model.totals = new_collector.all_totals
                     collector = new_collector
                     print("Epoch %d has finished, saving..." % epoch)
-                    print (self.model.model.embeddings["entity"]["e"].emb.weight.data[0])
+                    #print (self.model.model.embeddings["entity"]["e"].emb.weight.data[0])
                     break
 
             if epoch < self.train_times:
@@ -155,10 +157,11 @@ class Trainer(object):
                     loss = self.train_one_step(data)
                     res += loss.item()
                     start_neg = time.perf_counter()
-                    
-    
-                self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".ckpt"), epoch=epoch)
-                
+                    make_dot(loss, params=dict(list(self.model.model.named_parameters()))).render(self.model.model.model_name, format="png")
+                    exit()
+
+                #self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".ckpt"), epoch=epoch)
+                torch.save(self.model.model, os.path.join(self.checkpoint_dir + ".ckpt"))
                 end = time.perf_counter()
                 print("Epoch:",epoch,"; Loss:",res,"; Time:", end-start,"; Time neg.:",time_neg)
 

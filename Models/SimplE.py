@@ -10,7 +10,7 @@ class SimplE(Model):
         self.ent_tot = ent_total
         self.rel_tot = rel_total
         self.dims = dims
-
+        self.model_name = "simple"
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
         self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "h", normMethod = "none", norm_params = norm_params)
@@ -21,6 +21,7 @@ class SimplE(Model):
         
         self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_inv", normMethod = "none", norm_params= norm_params)
 
+        self.register_params()
         
 
     def _calc_avg(self, h_i, t_i, h_j, t_j, r, r_inv):
