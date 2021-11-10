@@ -35,7 +35,7 @@ class TransH(Model):
         self.dims = dims
         self.norm = norm
         self.inner_norm = inner_norm
-
+        self.model_name = "transh"
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
         self.entities = self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params)
@@ -43,7 +43,8 @@ class TransH(Model):
         self.relations = self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params)
 
         self.w_relations = self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "w_r", normMethod = "norm", norm_params= norm_params)
-
+        self.register_params()
+        
     def normalize_inner(self, h, t, w_r):
         
         h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)

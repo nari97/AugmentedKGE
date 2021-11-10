@@ -34,7 +34,7 @@ class TransD(Model):
         self.dim_r = dim_r
         self.norm = norm
         self.inner_norm = inner_norm
-
+        self.model_name = "transd"
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
 
         self.entities = self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e", normMethod = "clamp", norm_params = norm_params)
@@ -44,7 +44,8 @@ class TransD(Model):
         self.ent_transfer = self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e_t", normMethod = "clamp", norm_params = norm_params)
         
         self.rel_transfer = self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r_t", normMethod = "clamp", norm_params= norm_params)
-
+        self.register_params()
+        
     def normalize_inner(self, h,r, t):
         h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)
         t = clamp_norm(t, p = 2, dim = -1, maxnorm = 1)

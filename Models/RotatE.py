@@ -16,6 +16,7 @@ class RotatE(Model):
 
         self.norm = norm
         self.inner_norm = inner_norm
+        self.model_name = "rotate"
         self.pi_const = torch.Tensor([3.14159265358979323846])
         
         norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
@@ -24,7 +25,7 @@ class RotatE(Model):
         
         self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r", normMethod = "norm", norm_params= norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
 
-
+        self.register_params()
 
 
     def normalize_inner(self, h, r, t):
