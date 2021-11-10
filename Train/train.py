@@ -1,7 +1,6 @@
 from DataLoader.TripleManager import TripleManager
 from Train.Evaluator import Evaluator
 from Train.Trainer import Trainer
-from Models.ModelUtils import ModelUtils
 from Train.Evaluator import RankCollector
 from Strategy.NegativeSampling import NegativeSampling
 from Utils import utils
@@ -79,6 +78,7 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     model = NegativeSampling(model = mu, loss = loss, batch_size = train_manager.batchSize)
     for name, param in mu.named_parameters():
         print (name)
+    exit()
     validation = Evaluator(TripleManager(path, splits=["new_valid", "new_train"], corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min)
 

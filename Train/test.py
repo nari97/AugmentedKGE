@@ -1,6 +1,5 @@
 from DataLoader.TripleManager import TripleManager
 from Train.Evaluator import Evaluator
-from Models.ModelUtils import ModelUtils
 import torch
 import time
 import sys
