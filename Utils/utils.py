@@ -2,43 +2,21 @@ import torch
 import Loss
 import pickle
 from Train.Evaluator import RankCollector
-import Models
+from Models.ComplEx import ComplEx
+from Models.DistMult import DistMult
+from Models.HolE import HolE
+from Models.RotatE import RotatE
+from Models.SimplE import SimplE
+from Models.TransD import TransD
+from Models.TransE import TransE
+from Models.TransH import TransH
+from Loss.MarginLoss import MarginLoss
+from Loss.MarginSigmoidLoss import MarginSigmoidLoss
+from Loss.NegativeSamplingLoss import NegativeSamplingLoss
+from Loss.SigmoidLoss import SigmoidLoss
+from Loss.SoftplusLoss import SoftplusLoss
 
-def clamp_norm(input, p = 2, dim = -1, maxnorm = 1):
-    """
-        Computed Ln norm and clamps value of input to max
 
-        Args:
-            input (Tensor): Tensor containing vector of data to be clamped
-            p (int) : L1 or L2 norm. Default: 2
-            dim (int) : Dimension across which norm is to be calculated. Default: -1
-            maxnorm (int) : Maximum value after which data is clamped. Default: 1
-
-        Returns:
-            ans: Tensor that has been normalised and has had values clamped
-    """
-
-    norm = torch.norm(input, p = p, dim = dim, keepdim=True)
-    mask = (norm<maxnorm).long()
-    ans = mask*input + (1-mask)*(input/torch.clamp_min(norm, 10e-8)*maxnorm)
-    return ans
-
-def normalize(input, p = 2, dim = -1):
-    """
-        Computes Ln norm
-
-        Args:
-            input (Tensor): Tensor containing vector of data to be normalized
-            p (int) : L1 or L2 norm. Default: 2
-            dim (int) : Dimension across which norm is to be calculated. Default: -1
-            
-
-        Returns:
-            ans: Tensor that has been normalised
-    """
-
-    ans = torch.nn.functional.normalize(input, p = p, dim = dim)
-    return ans
 
 def getLoss(model_name, gamma = 0):
     """
@@ -54,20 +32,20 @@ def getLoss(model_name, gamma = 0):
     """
 
     if model_name == "transe" or model_name == "transh" or model_name == "transd":
-        loss = Loss.MarginLoss.MarginLoss(margin=gamma)
+        loss = MarginLoss(margin=gamma)
         print ('Loss : Margin Loss')
     elif model_name == 'hole' or model_name == 'distmult':
-        loss = Loss.MarginSigmoidLoss.MarginSigmoidLoss(margin = gamma)
+        loss = MarginSigmoidLoss(margin = gamma)
         print ('Loss : Margin Sigmoid Loss')
     elif model_name == "rotate":
-        loss = Loss.NegativeSamplingLoss.NegativeSamplingLoss(margin = gamma)
+        loss = NegativeSamplingLoss(margin = gamma)
         print ('Loss : Negative Sampling Loss')
     elif model_name == "analogy":
         print ('Loss : Sigmoid Loss')
-        loss = Loss.SigmoidLoss.SigmoidLoss()
+        loss = SigmoidLoss()
     else:
         print ('Loss : Softplus Loss')
-        loss = Loss.SoftplusLoss.SoftplusLoss()
+        loss = SoftplusLoss()
 
     return loss
 
@@ -115,21 +93,21 @@ def getModel(model_name, params):
 
         m = None
         if model_name == "transe":
-            m = Models.TransE.TransE(
+            m = TransE(
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dims = params["dim"],
                 norm = params["pnorm"],
                 inner_norm = params["inner_norm"])
         elif model_name == "transh":
-            m = Models.TransH.TransH(
+            m = TransH(
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dims=params["dim"],
                 norm=params["pnorm"],
                 inner_norm = params["inner_norm"])
         elif model_name == "transd":
-            m = Models.TransD.TransD(
+            m = TransD(
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dim_e=params["dime"],
@@ -137,36 +115,30 @@ def getModel(model_name, params):
                 norm = params["pnorm"],
                 inner_norm = params["inner_norm"])
         elif model_name == "distmult":
-            m = Models.DistMult.DistMult(
+            m = DistMult(
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dims = params["dim"],
                 inner_norm = params["inner_norm"])
         elif model_name == "complex":
-            m = Models.ComplEx.ComplEx(
+            m = ComplEx(
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dims = params["dim"],
                 inner_norm = params["inner_norm"])
         elif model_name == "hole":
-            m = Models.HolE.HolE(
+            m = HolE(
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dims = params["dim"],
                 inner_norm = params["inner_norm"])
         elif model_name == "simple":
-            m = Models.SimplE.SimplE(
+            m = SimplE(
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dims = params["dim"])
-        elif model_name == "analogy":
-            m = Models.Analogy.Analogy(
-                ent_total = params["ent_total"],
-                rel_total = params["rel_total"],
-                dims = params["dim"],
-                inner_norm = params["inner_norm"])
         elif model_name == "rotate":
-            m = Models.RotatE.RotatE(
+            m = RotatE(
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dims = params["dim"],
