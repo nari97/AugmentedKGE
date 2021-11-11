@@ -1,8 +1,7 @@
 import torch
 from Models.Model import Model
-from Utils.Embedding import Embedding
 import torch.nn.functional as F
-from Utils.utils import normalize
+from Utils.NormUtils import normalize
 
 class TransE(Model):
     """
@@ -25,20 +24,10 @@ class TransE(Model):
             dims (int): Number of dimensions for embeddings
             norm (int): L1 or L2 norm. Default: 2
         """
-        super(TransE, self).__init__(ent_total, rel_total)
+        super(TransE, self).__init__(ent_total, rel_total, dims, "transe", inner_norm)
 
-        self.ent_tot = ent_total
-        self.rel_tot = rel_total
-        self.dims = dims
-        self.norm = norm
-        self.inner_norm = inner_norm
-        self.model_name = "transe"
-        #Create normalisation parameters
-        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
-        
-        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params)
-        
-        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params)
+        self.create_embedding(self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = self.norm_params)
+        self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= self.norm_params)
         
         self.register_params()
 
@@ -50,7 +39,7 @@ class TransE(Model):
         return h,t
 
     def _calc(self, h,r,t):
-        return -torch.norm(h+r-t, dim = -1, p = self.norm)
+        return -torch.norm(h+r-t, dim = -1, p = 2)
 
     def returnScore(self, head_emb, rel_emb, tail_emb):
         h = head_emb["e"]

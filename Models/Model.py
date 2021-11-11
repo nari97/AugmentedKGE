@@ -9,23 +9,26 @@ class Model(nn.Module):
         Base class for all models to inherit
     """
 
-    def __init__(self, ent_tot, rel_tot):
+    def __init__(self, ent_tot, rel_tot, dims, model_name, inner_norm = False):
         """
         Args:
             ent_tot (int): Total number of entites
             rel_tot (int): Total number of relations
         """
         super(Model, self).__init__()
+
         self.ent_tot = ent_tot
         self.rel_tot = rel_tot
+        self.dims = dims
+        self.norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
+        self.inner_norm = inner_norm
+        self.model_name = model_name
         self.epoch = 0
         self.embeddings = {"entity" : {}, "relation" : {}}
-
-        
         self.ranks = None
         self.totals = None
-
         self.hyperparameters = None
+        self.pi_const = torch.Tensor([3.14159265358979323846])
         
 
     def forward(self, data):
@@ -84,7 +87,15 @@ class Model(nn.Module):
         if type == "t":
             return data['batch_t']
 
-    def create_embedding(self, total, dimension, emb_type, name, init = "xavier_uniform", init_params = [], normMethod = "none", norm_params = []):
+    def create_embedding(self, dimension, emb_type, name, init = "xavier_uniform", init_params = [], normMethod = "none", norm_params = []):
+        total = 0
+
+        if emb_type == "entity":
+            total = self.ent_tot
+        elif emb_type == "relation":
+            total = self.rel_tot
+        else:
+            raise Exception("Type of embedding must be relation or entity")
 
         self.embeddings[emb_type][name] = Embedding(total, dimension, emb_type, name, init, init_params, normMethod, norm_params)
 
