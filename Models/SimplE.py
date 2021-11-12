@@ -1,25 +1,16 @@
 import torch
 from .Model import Model
-from Utils.Embedding import Embedding
+
 
 class SimplE(Model):
 
     def __init__(self, ent_total, rel_total, dims):
-        super(SimplE, self).__init__(ent_total, rel_total)
+        super(SimplE, self).__init__(ent_total, rel_total, dims, "simple")
 
-        self.ent_tot = ent_total
-        self.rel_tot = rel_total
-        self.dims = dims
-        self.model_name = "simple"
-        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
-
-        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "h", normMethod = "none", norm_params = norm_params)
-        
-        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params)
-
-        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "t", normMethod = "none", norm_params = norm_params)
-        
-        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r_inv", normMethod = "none", norm_params= norm_params)
+        self.create_embedding(self.dims, emb_type = "entity", name = "h", normMethod = "none", norm_params = self.norm_params)
+        self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= self.norm_params)
+        self.create_embedding(self.dims, emb_type = "entity", name = "t", normMethod = "none", norm_params = self.norm_params)
+        self.create_embedding(self.dims, emb_type = "relation", name = "r_inv", normMethod = "none", norm_params= self.norm_params)
 
         self.register_params()
         

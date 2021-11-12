@@ -2,7 +2,7 @@ import torch
 
 from Models.Model import Model
 from Utils.Embedding import Embedding
-from Utils.utils import clamp_norm, normalize
+from Utils.NormUtils import clamp_norm, normalize
 import torch.nn.functional as F
 
 class TransD(Model):
@@ -28,22 +28,17 @@ class TransD(Model):
             dim_r (int): Number of dimensions for relation embeddings
             norm (int): L1 or L2 norm. Default: 2
         """
-        super(TransD, self).__init__(ent_total, rel_total)
+        super(TransD, self).__init__(ent_total, rel_total, 0, "transd", inner_norm)
 
         self.dim_e = dim_e
         self.dim_r = dim_r
-        self.norm = norm
-        self.inner_norm = inner_norm
-        self.model_name = "transd"
-        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
+        
 
-        self.entities = self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e", normMethod = "clamp", norm_params = norm_params)
+        self.entities = self.create_embedding(self.dim_e, emb_type = "entity", name = "e", normMethod = "clamp", norm_params = self.norm_params)
+        self.relations = self.create_embedding(self.dim_r, emb_type = "relation", name = "r", normMethod = "clamp", norm_params= self.norm_params)
+        self.ent_transfer = self.create_embedding(self.dim_e, emb_type = "entity", name = "e_t", normMethod = "clamp", norm_params = self.norm_params)
+        self.rel_transfer = self.create_embedding(self.dim_r, emb_type = "relation", name = "r_t", normMethod = "none", norm_params= self.norm_params)
         
-        self.relations = self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r", normMethod = "clamp", norm_params= norm_params)
-        
-        self.ent_transfer = self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e_t", normMethod = "clamp", norm_params = norm_params)
-        
-        self.rel_transfer = self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r_t", normMethod = "none", norm_params= norm_params)
         self.register_params()
         
     def normalize_inner(self, h,r, t):

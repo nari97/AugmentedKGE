@@ -2,28 +2,19 @@ import torch
 from .Model import Model
 from Utils.Embedding import Embedding
 import torch.nn.functional as F
-from Utils.utils import normalize
+from Utils.NormUtils import normalize
 
 class RotatE(Model):
 
     def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
-        super(RotatE, self).__init__(ent_total, rel_total)
+        super(RotatE, self).__init__(ent_total, rel_total, dims, "rotate", inner_norm)
 
-        self.dims = dims
 
         self.dim_e = self.dims*2
         self.dim_r = self.dims 
 
-        self.norm = norm
-        self.inner_norm = inner_norm
-        self.model_name = "rotate"
-        self.pi_const = torch.Tensor([3.14159265358979323846])
-        
-        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
-
-        self.create_embedding(self.ent_tot, self.dim_e, emb_type = "entity", name = "e", normMethod = "none", norm_params = norm_params, init = "xavier_uniform", init_params=[0, 1])
-        
-        self.create_embedding(self.rel_tot, self.dim_r, emb_type = "relation", name = "r", normMethod = "none", norm_params= norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
+        self.create_embedding(self.dim_e, emb_type = "entity", name = "e", normMethod = "none", norm_params = self.norm_params, init = "xavier_uniform")
+        self.create_embedding(self.dim_r, emb_type = "relation", name = "r", normMethod = "none", norm_params= self.norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
 
         self.register_params()
 

@@ -1,23 +1,15 @@
 import torch
 from .Model import Model
-from Utils.Embedding import Embedding
 import torch.nn.functional as F
-from Utils.utils import clamp_norm, normalize
+from Utils.NormUtils import clamp_norm, normalize
 
 class DistMult(Model):
 
     def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
-        super(DistMult, self).__init__(ent_total, rel_total)
+        super(DistMult, self).__init__(ent_total, rel_total, dims, "distmult", inner_norm)
 
-        self.dims = dims
-        self.norm = norm
-        self.inner_norm = inner_norm
-        self.model_name = "distmult"
-        norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
-
-        self.create_embedding(self.ent_tot, self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = norm_params)
-        
-        self.create_embedding(self.rel_tot, self.dims, emb_type = "relation", name = "r", normMethod = "clamp", norm_params= norm_params)
+        self.create_embedding(self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = self.norm_params)
+        self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = "clamp", norm_params= self.norm_params)
         
         self.register_params()
         

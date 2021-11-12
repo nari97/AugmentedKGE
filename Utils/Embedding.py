@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from Utils.utils import clamp_norm
+from Utils.NormUtils import clamp_norm
 
 #Embedding redesign
 class Embedding(nn.Module):

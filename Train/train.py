@@ -22,7 +22,7 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     folder = ""
     
 
-    validation_epochs = 10
+    validation_epochs = 2
     train_times = 2500
     negative_rel = 0
     rel_anomaly_max = .75
@@ -68,17 +68,19 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     parameters["ent_total"] = train_manager.entityTotal
     parameters["rel_total"] = train_manager.relationTotal
     print("Parameters:", parameters)
+    
 
 
     mu = utils.getModel(model_name, parameters)
     mu.set_params(parameters)
-    
+    print("Model name : ", mu.model_name)
     loss = utils.getLoss(model_name, parameters["gamma"])
-
+    print ("Model parameters : ")
     model = NegativeSampling(model = mu, loss = loss, batch_size = train_manager.batchSize)
     for name, param in mu.named_parameters():
         print (name)
-    exit()
+        print (param.shape)
+
     validation = Evaluator(TripleManager(path, splits=["new_valid", "new_train"], corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min)
 
