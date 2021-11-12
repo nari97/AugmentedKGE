@@ -62,7 +62,14 @@ class TransD(Model):
         wr = r_transfer
 
         m = wr*torch.sum(wh*e, dim=-1, keepdim=True)
-        I = torch.matmul(e, torch.eye(e.shape[1], m.shape[1]))
+
+        I = torch.eye(e.shape[1], m.shape[1])
+
+        
+        if m.is_cuda:
+            I = I.cuda()
+        
+        I = torch.matmul(e, I)
 
         return clamp_norm(m+I, p=2, dim=-1, maxnorm = 1)
 

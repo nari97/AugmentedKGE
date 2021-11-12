@@ -4,6 +4,8 @@ from Train.Trainer import Trainer
 from Train.Evaluator import RankCollector
 from Strategy.NegativeSampling import NegativeSampling
 from Utils import utils
+from Utils import ModelUtils
+from Utils import LossUtils
 import torch
 import Loss
 import numpy as np
@@ -12,7 +14,7 @@ import sys
 import os
 import pickle
 
-def train(model_name, dataset, corruption_mode, parameters, index = 0, validation_epochs = 10, train_times = 2500, rel_anomaly_min = 0, rel_anomaly_max = 0.75):
+def train(model_name, dataset, corruption_mode, parameters, index = 0, validation_epochs = 10, train_times = 2500, rel_anomaly_min = 0, rel_anomaly_max = 0.75, use_gpu = False):
     #folder = sys.argv[1]
     #model_name = sys.argv[2]
     #dataset = int(sys.argv[3])
@@ -71,18 +73,18 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     
 
 
-    mu = utils.getModel(model_name, parameters)
+    mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
     print("Model name : ", mu.model_name)
-    loss = utils.getLoss(model_name, parameters["gamma"])
+    loss = LossUtils.getLoss(model_name, parameters["gamma"], use_gpu = use_gpu)
     print ("Model parameters : ")
     model = NegativeSampling(model = mu, loss = loss, batch_size = train_manager.batchSize)
-    for name, param in mu.named_parameters():
-        print (name)
-        print (param.shape)
+    # for name, param in mu.named_parameters():
+    #     print (name)
+    #     print (param.shape)
 
     validation = Evaluator(TripleManager(path, splits=["new_valid", "new_train"], corruption_mode=corruption_mode),
-                           rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min)
+                           rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min, use_gpu = use_gpu)
 
     end = time.perf_counter()
     print("Initialization time: " + str(end - start))
@@ -98,7 +100,7 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     if not os.path.exists(checkpoint_dir + ".model"):
 
         trainer = Trainer(model=model, train=train_manager, validation=validation, train_times=train_times,
-            alpha=parameters["lr"], weight_decay=parameters["wd"], momentum=parameters["m"], use_gpu=False,
+            alpha=parameters["lr"], weight_decay=parameters["wd"], momentum=parameters["m"], use_gpu= use_gpu,
                           save_steps=validation_epochs, checkpoint_dir=checkpoint_dir, inner_norm = parameters["inner_norm"])
         
         trainer.run(init_epoch=init_epoch)
@@ -113,9 +115,35 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
         os.remove(checkpoint_dir + ".ckpt")
 
     # Report metrics
-    utils.reportMetrics(folder, dataset, index, model_name, model.model.ranks, model.model.totals, parameters)
+    reportMetrics(folder, dataset, index, model_name, model.model.ranks, model.model.totals, parameters)
 
 
+def reportMetrics(folder, dataset, index, model_name, ranks, totals, parameters):
+    """
+        Reports metrics and saves it as ax file
 
+        Args:
+            folder (str): Base folder
+            dataset (int) : Dataset chosen
+            index (int) : Index of experiment
+            model_name (str) : Name of model
+            ranks (list) : List of all the ranks from the experiment
+            totals (list) : List of all the totals from the experiment
+            parameters (dict) : Dictionary containing the hyperparameters of the experiment
+            
 
+        Returns:
+            
+    """
+
+    rc = RankCollector()
+    rc.load(ranks, totals)
+
+    # Report metric!!!!!
+    result = {}
+    result['trial_index'] = parameters['trial_index']
+    result['mrh'] = rc.get_metric().get()
+    result_file = folder + "Ax/" + model_name + "_" + str(dataset) + "_" + str(index) + ".result"
+    with open(result_file, 'wb') as f:
+        pickle.dump(result, f, pickle.HIGHEST_PROTOCOL)
 

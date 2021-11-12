@@ -1,15 +1,19 @@
 import torch
+from torch.functional import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 from .Loss import Loss
+from Utils.utils import to_var
 
 class MarginLoss(Loss):
 
-    def __init__(self, adv_temperature=None, margin=6.0):
+    def __init__(self, adv_temperature=None, margin=6.0, use_gpu = False):
         super(MarginLoss, self).__init__()
         self.margin = nn.Parameter(torch.Tensor([margin]))
         self.margin.requires_grad = False
         self.loss = nn.MarginRankingLoss(margin)
+
+        self.use_gpu = use_gpu
         
         if adv_temperature != None:
             self.adv_temperature = nn.Parameter(torch.Tensor([adv_temperature]))
@@ -28,8 +32,13 @@ class MarginLoss(Loss):
                 dim=-1).mean() + self.margin
         else:
             t = torch.ones((len(p_score), 1))
-            ones = torch.Tensor(t)
+            ones = Tensor(t)
 
+
+            if p_score.is_cuda:
+                ones = ones.cuda()
+
+            #print (p_score.device, n_score.device, ones.device)
             return self.loss(p_score, n_score, ones)
 
     def predict(self, p_score, n_score):

@@ -2,15 +2,19 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .Loss import Loss
+from Utils.utils import to_var
+
 
 class MarginSigmoidLoss(Loss):
 
-    def __init__(self, adv_temperature=None, margin=6.0):
+    def __init__(self, adv_temperature=None, margin=6.0, use_gpu = False):
         super(MarginSigmoidLoss, self).__init__()
         self.margin = nn.Parameter(torch.Tensor([margin]))
         self.sigmoid = nn.Sigmoid()
         self.margin.requires_grad = False
         self.loss = nn.MarginRankingLoss(margin)
+
+        self.use_gpu = use_gpu
         
         if adv_temperature != None:
             self.adv_temperature = nn.Parameter(torch.Tensor([adv_temperature]))
@@ -30,6 +34,9 @@ class MarginSigmoidLoss(Loss):
         else:
             t = torch.ones((len(p_score), 1))
             ones = torch.Tensor(t)
+
+            if p_score.is_cuda:
+                ones = ones.cuda()
 
             return self.loss(self.sigmoid(p_score), self.sigmoid(n_score), ones)
 

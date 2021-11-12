@@ -3,6 +3,8 @@ from torch.autograd import Variable
 import numpy as np
 import math
 from scipy.stats import wilcoxon
+from Utils.utils import to_var
+
 
 class Evaluator(object):
 
@@ -10,16 +12,10 @@ class Evaluator(object):
     def __init__(self, manager=None, use_gpu=False, rel_anomaly_max=.75, rel_anomaly_min=0):
         self.manager = manager
         self.use_gpu = use_gpu
-        if self.use_gpu:
-            self.model.cuda()
         self.rel_anomaly_max = rel_anomaly_max
         self.rel_anomaly_min = rel_anomaly_min
 
-    def to_var(self, x, use_gpu):
-        if use_gpu:
-            return Variable(torch.from_numpy(x).cuda())
-        else:
-            return Variable(torch.from_numpy(x))
+    
 
     def get_totals(self):
         totals = []
@@ -175,9 +171,9 @@ class Evaluator(object):
 
     def predict(self, arrH, arrR, arrT, model):
         return model.predict({
-            'batch_h': self.to_var(arrH, self.use_gpu),
-            'batch_r': self.to_var(arrR, self.use_gpu),
-            'batch_t': self.to_var(arrT, self.use_gpu),
+            'batch_h': to_var(arrH, self.use_gpu),
+            'batch_r': to_var(arrR, self.use_gpu),
+            'batch_t': to_var(arrT, self.use_gpu),
             'mode': 'normal'
         })
 

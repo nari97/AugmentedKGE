@@ -8,7 +8,7 @@ import os
 import jsonpickle
 import math
 
-def test(model_name, dataset, corruption_mode, type = "test"):
+def test(model_name, dataset, corruption_mode, type = "test", use_gpu = False):
     #folder = sys.argv[1]
     #model_name = sys.argv[2]
     #dataset = int(sys.argv[3])
@@ -71,7 +71,7 @@ def test(model_name, dataset, corruption_mode, type = "test"):
         evaluators["MRG_Q4"] = {'metric_str': 'mrg', 'rel_anomaly_max': .2499, 'rel_anomaly_min': 0}
         evaluators["MRH_Q4"] = {'metric_str': 'mrh', 'rel_anomaly_max': .2499, 'rel_anomaly_min': 0}
 
-    evaluator = Evaluator(manager, rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=0)
+    evaluator = Evaluator(manager, rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=0, use_gpu= use_gpu)
 
     models = []
     collectors = []

@@ -100,6 +100,7 @@ class Trainer(object):
             collector.load(self.model.model.ranks.tolist(), self.model.model.totals.tolist())
         '''
 
+        #To check: Ranks
         if self.model.model.ranks!=None and self.model.model.totals!=None:
             collector = RankCollector()
             collector.load(self.model.model.ranks, self.model.model.totals)
@@ -161,6 +162,7 @@ class Trainer(object):
                     #exit()
 
                 #self.model.model.save_checkpoint(os.path.join(self.checkpoint_dir + ".ckpt"), epoch=epoch)
+                self.model.model.epoch = epoch
                 torch.save(self.model.model, os.path.join(self.checkpoint_dir + ".ckpt"))
                 end = time.perf_counter()
                 print("Epoch:",epoch,"; Loss:",res,"; Time:", end-start,"; Time neg.:",time_neg)
