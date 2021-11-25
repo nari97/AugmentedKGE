@@ -77,12 +77,12 @@ def test(model_name, dataset, corruption_mode, type = "test", use_gpu = False):
     collectors = []
     pending = 0
     
-    
-    for model_file in glob.glob(folder + "Model/" + str(dataset) + "/" + model_name + "*.model"):
+    #glob.glob(folder + "Model/" + str(dataset) + "/" + model_name + "*.model")
+    for model_file in glob.glob(folder + "Model/" +  model_name + "*.model"):
         pending = pending+1
 
-    
-    for model_file in glob.glob(folder + "Model/" + str(dataset) + "/" + model_name + "*.model"):
+    #glob.glob(folder + "Model/" + str(dataset) + "/" + model_name + "*.model")
+    for model_file in glob.glob(folder + "Model/"  + model_name + "*.model"):
         print('Pending:',pending)
         pending = pending-1
 

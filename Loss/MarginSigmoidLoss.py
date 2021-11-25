@@ -7,39 +7,19 @@ from Utils.utils import to_var
 
 class MarginSigmoidLoss(Loss):
 
-    def __init__(self, adv_temperature=None, margin=6.0, use_gpu = False):
-        super(MarginSigmoidLoss, self).__init__()
+    def __init__(self,model,  margin=6.0):
+        super(MarginSigmoidLoss, self).__init__(model)
         self.margin = nn.Parameter(torch.Tensor([margin]))
         self.sigmoid = nn.Sigmoid()
         self.margin.requires_grad = False
         self.loss = nn.MarginRankingLoss(margin)
 
-        self.use_gpu = use_gpu
-        
-        if adv_temperature != None:
-            self.adv_temperature = nn.Parameter(torch.Tensor([adv_temperature]))
-            self.adv_temperature.requires_grad = False
-            self.adv_flag = True
-        else:
-            self.adv_flag = False
+    def lossFn(self, p_score, n_score):
 
-    def get_weights(self, n_score):
-        return F.softmax(-n_score * self.adv_temperature, dim=-1).detach()
+        t = torch.ones((len(p_score), 1))
+        ones = torch.Tensor(t)
 
-    def forward(self, p_score, n_score):
-        #print (p_score.shape)
-        if self.adv_flag:
-            return (self.get_weights(n_score) * torch.max(p_score - n_score, -self.margin)).sum(
-                dim=-1).mean() + self.margin
-        else:
-            t = torch.ones((len(p_score), 1))
-            ones = torch.Tensor(t)
+        if p_score.is_cuda:
+            ones = ones.cuda()
 
-            if p_score.is_cuda:
-                ones = ones.cuda()
-
-            return self.loss(self.sigmoid(p_score), self.sigmoid(n_score), ones)
-
-    def predict(self, p_score, n_score):
-        score = self.forward(p_score, n_score)
-        return score.cpu().data.numpy()
+        return self.loss(self.sigmoid(p_score), self.sigmoid(n_score), ones)

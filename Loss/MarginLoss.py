@@ -7,8 +7,8 @@ from Utils.utils import to_var
 
 class MarginLoss(Loss):
 
-    def __init__(self, margin=6.0):
-        super(MarginLoss, self).__init__()
+    def __init__(self, model, margin=6.0):
+        super(MarginLoss, self).__init__(model)
         self.margin = nn.Parameter(torch.Tensor([margin]))
         self.margin.requires_grad = False
         self.loss = nn.MarginRankingLoss(margin)

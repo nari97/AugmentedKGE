@@ -76,13 +76,8 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
     print("Model name : ", mu.model_name)
-    loss = LossUtils.getLoss(model_name, parameters["gamma"], use_gpu = use_gpu)
-    print ("Model parameters : ")
-    model = NegativeSampling(model = mu, loss = loss, batch_size = train_manager.batchSize)
-    # for name, param in mu.named_parameters():
-    #     print (name)
-    #     print (param.shape)
-
+    model = LossUtils.getLoss(gamma = parameters["gamma"], model = mu)
+    
     validation = Evaluator(TripleManager(path, splits=["new_valid", "new_train"], corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min, use_gpu = use_gpu)
 
