@@ -4,7 +4,7 @@ from Loss.NegativeSamplingLoss import NegativeSamplingLoss
 from Loss.SigmoidLoss import SigmoidLoss
 from Loss.SoftplusLoss import SoftplusLoss
 
-def getLoss(model_name, gamma = 0, use_gpu = False):
+def getLoss(model, gamma = 0):
     """
         Gets the loss function based on model
 
@@ -16,21 +16,21 @@ def getLoss(model_name, gamma = 0, use_gpu = False):
         Returns:
             loss: Loss function selected according to model_name
     """
-
+    model_name = model.model_name
     if model_name == "transe" or model_name == "transh" or model_name == "transd":
-        loss = MarginLoss(margin=gamma, use_gpu = use_gpu)
+        loss = MarginLoss(model = model, margin=gamma)
         print ('Loss : Margin Loss')
     elif model_name == 'hole' or model_name == 'distmult':
-        loss = MarginSigmoidLoss(margin = gamma, use_gpu = use_gpu)
+        loss = MarginSigmoidLoss(model = model, margin = gamma)
         print ('Loss : Margin Sigmoid Loss')
     elif model_name == "rotate":
-        loss = NegativeSamplingLoss(margin = gamma)
+        loss = NegativeSamplingLoss(model = model, margin = gamma)
         print ('Loss : Negative Sampling Loss')
     elif model_name == "analogy":
         print ('Loss : Sigmoid Loss')
-        loss = SigmoidLoss()
+        loss = SigmoidLoss(model = model)
     else:
         print ('Loss : Softplus Loss')
-        loss = SoftplusLoss()
+        loss = SoftplusLoss(model = model)
 
     return loss
