@@ -2,7 +2,6 @@ from DataLoader.TripleManager import TripleManager
 from Train.Evaluator import Evaluator
 from Train.Trainer import Trainer
 from Train.Evaluator import RankCollector
-from Strategy.NegativeSampling import NegativeSampling
 from Utils import utils
 from Utils import ModelUtils
 from Utils import LossUtils
