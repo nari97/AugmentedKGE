@@ -1,19 +1,16 @@
-# This file tests if get_batch returns all triples in train
-
-
 from Train.train import train
 from Utils.Embedding import Embedding
 from Loss.MarginLoss import MarginLoss
 from Loss.SigmoidLoss import SigmoidLoss
 import torch
 from DataLoader.TripleManager import TripleManager
-from DataLoader.TripleManager_New import TripleManager as TripleManager_new
+
 
 path = "Datasets/" + "WN18RR" + "/"
-train = TripleManager(path, splits=["new_train"], nbatches=10,
-                                  neg_ent=10, neg_rel=0, corruption_mode="Global")
-train = TripleManager_new(path, splits=["new_train"], batch_size = 8912,
-                                    neg_rate=10, corruption_mode="LCWA")
+# train = TripleManager(path, splits=["new_train"], nbatches=10,
+#                                   neg_ent=10, neg_rel=0, corruption_mode="Global")
+train = TripleManager(path, splits=["new_train"], batch_size = 8912,
+                                    neg_rate=10, corruption_mode="Global")
 dictOfActualTriples = {}
 
 f = open("Datasets/WN18RR/new_train2id.txt")
