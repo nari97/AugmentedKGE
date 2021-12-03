@@ -64,8 +64,8 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
 
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
-    train_manager = TripleManager(path, splits=["new_train"], nbatches=parameters["nbatches"],
-                                  neg_ent=parameters["nr"], neg_rel=negative_rel, corruption_mode=corruption_mode)
+    train_manager = TripleManager(path, splits=["new_train"], batch_size=parameters["batch_size"],
+                                  neg_rate=parameters["nr"],  corruption_mode=corruption_mode)
     parameters["ent_total"] = train_manager.entityTotal
     parameters["rel_total"] = train_manager.relationTotal
     print("Parameters:", parameters)
@@ -77,7 +77,7 @@ def train(model_name, dataset, corruption_mode, parameters, index = 0, validatio
     print("Model name : ", mu.model_name)
     model = LossUtils.getLoss(gamma = parameters["gamma"], model = mu)
     
-    validation = Evaluator(TripleManager(path, splits=["new_valid", "new_train"], corruption_mode=corruption_mode),
+    validation = Evaluator(TripleManager(path, splits=["new_valid", "new_train"], batch_size = parameters["batch_size"], neg_rate = parameters["nr"], corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min, use_gpu = use_gpu)
 
     end = time.perf_counter()

@@ -38,8 +38,7 @@ class Trainer(object):
             'batch_h': self.to_var(data['batch_h'], self.use_gpu),
             'batch_t': self.to_var(data['batch_t'], self.use_gpu),
             'batch_r': self.to_var(data['batch_r'], self.use_gpu),
-            'batch_y': self.to_var(data['batch_y'], self.use_gpu),
-            'mode': data['mode']
+            'batch_y': self.to_var(data['batch_y'], self.use_gpu)
         })
         
         loss.backward()

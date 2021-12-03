@@ -57,7 +57,6 @@ class Evaluator(object):
             
         for r in relations.keys():
             #print (str(r) + ":Started")
-            print (r)
             if materialize:
                 neg_triples = {}
                 #neg_counts = {}
