@@ -14,12 +14,6 @@ class HolE(Model):
     
         self.register_params()
         
-    def normalize_inner(self, h, r, t):
-        h = clamp_norm(h, dim = -1, p = 2, maxnorm = 1)
-        r = clamp_norm(r, dim = -1, p = 2, maxnorm = 1)
-        t = clamp_norm(t, dim = -1, p = 2, maxnorm = 1)
-        return h,r,t
-
 
     def _calc(self, h,r,t):
         fourierH = torch.fft.rfft(h, dim = -1)
@@ -44,8 +38,6 @@ class HolE(Model):
         t = tail_emb["e"]
         r = rel_emb["r"]
 
-        if self.inner_norm:
-            h,r,t = self.normalize_inner(h,r,t)
 
         score = self._calc(h,r,t).flatten()
 

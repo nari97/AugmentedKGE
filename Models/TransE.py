@@ -27,16 +27,10 @@ class TransE(Model):
         super(TransE, self).__init__(ent_total, rel_total, dims, "transe", inner_norm)
 
         self.create_embedding(self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = self.norm_params)
-        self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = "none", norm_params= self.norm_params)
+        self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = None, norm_params= self.norm_params)
         
         self.register_params()
 
-    def normalize_inner(self, h, t):
-        
-        h = normalize(h, p = 2, dim = -1)
-        t = normalize(t, p = 2, dim = -1)
-        
-        return h,t
 
     def _calc(self, h,r,t):
         return -torch.norm(h+r-t, dim = -1, p = 2)
@@ -46,9 +40,6 @@ class TransE(Model):
         t = tail_emb["e"]
         r = rel_emb["r"]
         
-        if self.inner_norm:
-            h,t = self.normalize_inner(h,t)
-
         return self._calc(h, r, t)
 
 

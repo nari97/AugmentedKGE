@@ -38,14 +38,6 @@ class TransH(Model):
         
         self.register_params()
         
-    def normalize_inner(self, h, t, w_r):
-        
-        h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)
-        t = clamp_norm(t, p = 2, dim = -1, maxnorm = 1)
-        
-        w_r = normalize(w_r, p = 2, dim = -1)
-
-        return h, t, w_r
 
     def _calc(self, h, r, t, w_r):
         ht = h - torch.sum(h*w_r, dim = -1, keepdim = True).repeat(1, self.dims)*w_r
@@ -60,9 +52,8 @@ class TransH(Model):
         r = rel_emb["r"]
         w_r = rel_emb["w_r"]
         
-        if self.inner_norm:
-            h,t, w_r = self.normalize_inner(h,t, w_r)
 
+        
         return self._calc(h, r, t, w_r)
 
 

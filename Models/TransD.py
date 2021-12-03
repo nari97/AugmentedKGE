@@ -37,17 +37,9 @@ class TransD(Model):
         self.entities = self.create_embedding(self.dim_e, emb_type = "entity", name = "e", normMethod = "clamp", norm_params = self.norm_params)
         self.relations = self.create_embedding(self.dim_r, emb_type = "relation", name = "r", normMethod = "clamp", norm_params= self.norm_params)
         self.ent_transfer = self.create_embedding(self.dim_e, emb_type = "entity", name = "e_t", normMethod = "clamp", norm_params = self.norm_params)
-        self.rel_transfer = self.create_embedding(self.dim_r, emb_type = "relation", name = "r_t", normMethod = "none", norm_params= self.norm_params)
+        self.rel_transfer = self.create_embedding(self.dim_r, emb_type = "relation", name = "r_t", normMethod = None, norm_params= self.norm_params)
         
         self.register_params()
-        
-    def normalize_inner(self, h,r, t):
-        h = clamp_norm(h, p = 2, dim = -1, maxnorm = 1)
-        t = clamp_norm(t, p = 2, dim = -1, maxnorm = 1)
-        r = clamp_norm(r, p = 2, dim = -1, maxnorm = 1)
-    
-        
-        return h,r, t
 
 
     def _calc(self, h,r,t):
@@ -82,10 +74,6 @@ class TransD(Model):
         h_transfer = head_emb["e_t"]
         t_transfer = tail_emb["e_t"]
         r_transfer = rel_emb["r_t"]
-
-        
-        if self.inner_norm:
-            h,r, t = self.normalize_inner(h,r, t)
 
         h = self._transfer(h, h_transfer, r_transfer)
         t = self._transfer(t, t_transfer, r_transfer)

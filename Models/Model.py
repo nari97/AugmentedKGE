@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from Utils.Embedding import Embedding
 import os
+import Utils.NormUtils as NormUtils
 
 class Model(nn.Module):
 
@@ -46,10 +47,25 @@ class Model(nn.Module):
         tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
 
+        # if self.inner_norm:
+        #     head_emb, tail_emb, rel_emb = self.inner_normalize(head_emb, tail_emb, rel_emb)
+
         score = self.returnScore(head_emb,rel_emb,tail_emb).flatten()
 
         return score
 
+    def inner_normalize(self, head_emb, tail_emb, rel_emb):
+        for key in head_emb:
+            head_emb[key] = self.normalize(head_emb[key], "entity", key)
+
+        for key in tail_emb:
+            tail_emb[key] = self.normalize(tail_emb[key], "entity", key)
+
+        for key in rel_emb:
+            rel_emb[key] = self.normalize(rel_emb[key], "relation", key)
+
+        return head_emb, tail_emb, rel_emb
+                
     def predict(self, data):
         """
         Calculate the scores for a given batch of triples during evaluation
@@ -87,7 +103,7 @@ class Model(nn.Module):
         if type == "t":
             return data['batch_t']
 
-    def create_embedding(self, dimension, emb_type, name, init = "xavier_uniform", init_params = [], normMethod = "none", norm_params = []):
+    def create_embedding(self, dimension, emb_type, name, init = "xavier_uniform", init_params = [], normMethod = None, norm_params = []):
         total = 0
 
         if emb_type == "entity":
@@ -98,6 +114,8 @@ class Model(nn.Module):
             raise Exception("Type of embedding must be relation or entity")
 
         self.embeddings[emb_type][name] = Embedding(total, dimension, emb_type, name, init, init_params, normMethod, norm_params)
+
+    
 
     def get_head_embeddings(self, data):
 
@@ -123,11 +141,41 @@ class Model(nn.Module):
 
         return relation_embeddings
 
-    def normalize(self):
+    def normalize(self, embedding = None, type = None, name = None):
 
-        for key1 in self.embeddings:
-            for key2 in self.embeddings[key1]:
-                self.embeddings[key1][key2].normalize()
+        if self.inner_norm:
+            norm_params = self.embeddings[type][name].norm_params
+            normMethod = self.embeddings[type][name].normMethod
+
+            if "p" in norm_params:
+                p = norm_params["p"]
+            else:
+                p = 2
+
+            if "dim" in norm_params:
+                dim = norm_params["dim"]
+            else:
+                dim = -1
+
+            if "maxnorm" in norm_params:
+                maxnorm = norm_params["maxnorm"]
+            else:
+                maxnorm = 1
+
+
+            if normMethod == "norm":
+                embedding = NormUtils.normalize(embedding, p, dim)
+            elif normMethod == "clamp":
+                embedding = NormUtils.clamp_norm(embedding, p, dim, maxnorm=maxnorm)
+            else:
+                pass
+
+            return embedding
+
+        else:
+            for key1 in self.embeddings:
+                for key2 in self.embeddings[key1]:
+                    self.embeddings[key1][key2].normalize()
 
     def load_checkpoint(self, path):
         dict = torch.load(os.path.join(path))

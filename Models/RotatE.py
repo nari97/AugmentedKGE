@@ -13,19 +13,13 @@ class RotatE(Model):
         self.dim_e = self.dims*2
         self.dim_r = self.dims 
 
-        self.create_embedding(self.dim_e, emb_type = "entity", name = "e", normMethod = "none", norm_params = self.norm_params, init = "xavier_uniform")
-        self.create_embedding(self.dim_r, emb_type = "relation", name = "r", normMethod = "none", norm_params= self.norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
+        self.create_embedding(self.dim_e, emb_type = "entity", name = "e", normMethod = None, norm_params = self.norm_params, init = "xavier_uniform")
+        self.create_embedding(self.dim_r, emb_type = "relation", name = "r", normMethod = None, norm_params= self.norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
 
         self.register_params()
 
 
-    def normalize_inner(self, h, r, t):
-        # h = normalize(h, dim = -1, p = 2)
-        # r = normalize(r, dim = -1, p = 2)
-        # t = normalize(t, dim = -1, p = 2)
 
-        # return h, r, t
-        pass
         
     def multiply(self, a, b):
         #print (a.shape)
@@ -65,9 +59,6 @@ class RotatE(Model):
         h = head_emb["e"]
         t = tail_emb["e"]
         r = rel_emb["r"]
-
-        if self.inner_norm:
-            h, r, t = self.normalize_inner(h, r, t)
 
         score = self._calc(h,r,t).flatten()
 
