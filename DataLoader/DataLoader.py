@@ -1,17 +1,42 @@
 import ast
 
 class Triple():
+    """
+        Triple is the class that contains functionality for triples
+    """
     __slots__ = "h","r","t"
 
     def __init__(self,h,r,t):
+        """
+            Initialise a triples
+        Args:
+            h (int): Head entity
+            r (int): Relation entity
+            t (int): Tail entity
+        """
         self.h=h
         self.r=r
         self.t=t
 
     def __eq__(self, other):
+        """
+            Checks for equality between two triples
+        Args:
+            other (Triple): Triple object to be compared to
+
+        Returns:
+            bool: Returns true if triples are equal, false otherwise 
+        """
         return (self.h,self.r,self.t) == (other.h,other.r,other.t)
 
     def __str__(self):
+        
+        """
+        Converts triple into a string
+
+        Returns:
+            str: [h,r,t]
+        """
         return "["+str(self.h)+","+str(self.r)+","+str(self.t)+"]"
 
 
@@ -29,6 +54,16 @@ class Triple():
 class DataLoader(object):
 
     def __init__(self,path,type):
+        """
+        Init function to initialise the data loader
+
+        Args:
+            path (str): Path to folder containing dataset
+            type (str): Type of split to load. Type can be "train", "test", "valid"
+
+        Returns:
+
+        """
         self.path = path
         self.headEntities = set()
         self.tailEntities = set()
@@ -70,6 +105,15 @@ class DataLoader(object):
                 line = fp.readline()
 
     def importFile(self,filePath):
+        """
+        Function to import file
+
+        Args:
+            filePath (str): Path to file that is required to be opened
+            
+        Returns:
+            
+        """
         list = []
         with open(filePath) as fp:
             fp.readline()
@@ -108,22 +152,71 @@ class DataLoader(object):
         return list
 
     def getTriples(self):
+        """
+        Returns the list of triples
+
+        Returns:
+            list (list): List of all triples
+            
+        """
         return self.list
 
     def getHeadEntities(self):
+        """
+        Returns all the entites that appear in the head
+
+        Returns:
+            headEntities (set): Set of all entities that appear in the head
+            
+        """
         return self.headEntities
 
     def getTailEntities(self):
+        """
+        Returns all the entites that appear in the tail
+
+        Returns:
+            tailEntities (set): Set of all entities that appear in the tail
+            
+        """
         return self.tailEntities
 
     def getHeadDict(self):
+        """
+        Returns a dictionary where keys are relations and values are head entities for that relation
+
+        Returns:
+            headDict (dict): Head dictionary
+            
+        """
         return self.headDict
 
     def getTailDict(self):
+        """
+        Returns a dictionary where keys are relations and values are tail entities for that relation
+
+        Returns:
+            tailDict (dict): Tail dictionary
+            
+        """
         return self.tailDict
 
     def getDomain(self):
+        """
+        Returns a dictionary where keys are relations and values are the domain for that relation
+
+        Returns:
+            domain (dict): Domain dictionary
+            
+        """
         return self.domain
 
     def getRange(self):
+        """
+        Returns a dictionary where keys are relations and values are the range for that relation
+
+        Returns:
+            range (dict): Range dictionary
+            
+        """
         return self.range
