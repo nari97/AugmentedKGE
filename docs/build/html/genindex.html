@@ -89,6 +89,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Loaders.html">Loading datasets</a></li>
 </ul>
 
             
@@ -160,7 +161,6 @@
 <div class="genindex-jumpbox">
  <a href="#_"><strong>_</strong></a>
  | <a href="#A"><strong>A</strong></a>
- | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
@@ -224,28 +224,15 @@
   </ul></td>
 </tr></table>
 
-<h2 id="B">B</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li>
-    BaseModule
-
-      <ul>
-        <li><a href="BaseModule.html#module-BaseModule">module</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="BaseModule.html#BaseModule.BaseModule">BaseModule (class in BaseModule)</a>
-</li>
-  </ul></td>
-</tr></table>
-
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Embedding.html#Embedding.Embedding.create_embedding">create_embedding() (Embedding.Embedding method)</a>
+
+      <ul>
+        <li><a href="Model.html#Model.Model.create_embedding">(Model.Model method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -270,15 +257,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Model.html#Model.Model.forward">forward() (Model.Model method)</a>
-
-      <ul>
-        <li><a href="TransE.html#Models.TransE.TransE.forward">(Models.TransE.TransE method)</a>
 </li>
-        <li><a href="TransD.html#TransD.TransD.forward">(TransD.TransD method)</a>
-</li>
-        <li><a href="TransH.html#TransH.TransH.forward">(TransH.TransH method)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -289,22 +268,28 @@
 </li>
       <li><a href="Embedding.html#Embedding.Embedding.get_embedding">get_embedding() (Embedding.Embedding method)</a>
 </li>
-      <li><a href="ModelUtils.html#ModelUtils.ModelUtils.get_model">get_model() (ModelUtils.ModelUtils method)</a>
+      <li><a href="Model.html#Model.Model.get_head_embeddings">get_head_embeddings() (Model.Model method)</a>
 </li>
-      <li><a href="ModelUtils.html#ModelUtils.ModelUtils.get_name">get_name() (ModelUtils.ModelUtils method)</a>
+      <li><a href="Model.html#Model.Model.get_name">get_name() (Model.Model method)</a>
+</li>
+      <li><a href="ax_async.html#ax_async.get_parameter_constraints">get_parameter_constraints() (in module ax_async)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ax_async.html#ax_async.get_parameter_constraints">get_parameter_constraints() (in module ax_async)</a>
-</li>
       <li><a href="ax_async.html#ax_async.get_parameters">get_parameters() (in module ax_async)</a>
 </li>
       <li><a href="ax_async.html#ax_async.get_params">get_params() (in module ax_async)</a>
 
       <ul>
-        <li><a href="ModelUtils.html#ModelUtils.ModelUtils.get_params">(ModelUtils.ModelUtils static method)</a>
+        <li><a href="Model.html#Model.Model.get_params">(Model.Model method)</a>
 </li>
       </ul></li>
+      <li><a href="Model.html#Model.Model.get_relation_embeddings">get_relation_embeddings() (Model.Model method)</a>
+</li>
+      <li><a href="Model.html#Model.Model.get_tail_embeddings">get_tail_embeddings() (Model.Model method)</a>
+</li>
+      <li><a href="ModelUtils.html#ModelUtils.getModel">getModel() (in module ModelUtils)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -312,6 +297,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Embedding.html#Embedding.Embedding.init_embedding">init_embedding() (Embedding.Embedding method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Model.html#Model.Model.inner_normalize">inner_normalize() (Model.Model method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -322,7 +311,7 @@
       <li><a href="Amie.html#Amie.Amie.load_checkpoint">load_checkpoint() (Amie.Amie method)</a>
 
       <ul>
-        <li><a href="BaseModule.html#BaseModule.BaseModule.load_checkpoint">(BaseModule.BaseModule method)</a>
+        <li><a href="Model.html#Model.Model.load_checkpoint">(Model.Model method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -354,8 +343,6 @@
         <li><a href="ModelUtils.html#module-ModelUtils">module</a>
 </li>
       </ul></li>
-      <li><a href="ModelUtils.html#ModelUtils.ModelUtils">ModelUtils (class in ModelUtils)</a>
-</li>
       <li>
     module
 
@@ -365,8 +352,6 @@
         <li><a href="ax_async.html#module-ax_async">ax_async</a>
 </li>
         <li><a href="ax_gen_fail.html#module-ax_gen_fail">ax_gen_fail</a>
-</li>
-        <li><a href="BaseModule.html#module-BaseModule">BaseModule</a>
 </li>
         <li><a href="Embedding.html#module-Embedding">Embedding</a>
 </li>
@@ -393,16 +378,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ax_async.html#ax_async.next_trials">next_trials() (in module ax_async)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Embedding.html#Embedding.Embedding.normalize">normalize() (Embedding.Embedding method)</a>
 
       <ul>
         <li><a href="Model.html#Model.Model.normalize">(Model.Model method)</a>
-</li>
-        <li><a href="TransE.html#Models.TransE.TransE.normalize">(Models.TransE.TransE method)</a>
-</li>
-        <li><a href="TransD.html#TransD.TransD.normalize">(TransD.TransD method)</a>
-</li>
-        <li><a href="TransH.html#TransH.TransH.normalize">(TransH.TransH method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -416,18 +397,26 @@
       <ul>
         <li><a href="Model.html#Model.Model.predict">(Model.Model method)</a>
 </li>
-        <li><a href="TransE.html#Models.TransE.TransE.predict">(Models.TransE.TransE method)</a>
-</li>
-        <li><a href="TransD.html#TransD.TransD.predict">(TransD.TransD method)</a>
-</li>
-        <li><a href="TransH.html#TransH.TransH.predict">(TransH.TransH method)</a>
-</li>
       </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Model.html#Model.Model.register_params">register_params() (Model.Model method)</a>
+</li>
+      <li><a href="Model.html#Model.Model.returnScore">returnScore() (Model.Model method)</a>
+
+      <ul>
+        <li><a href="TransE.html#Models.TransE.TransE.returnScore">(Models.TransE.TransE method)</a>
+</li>
+        <li><a href="TransD.html#TransD.TransD.returnScore">(TransD.TransD method)</a>
+</li>
+        <li><a href="TransH.html#TransH.TransH.returnScore">(TransH.TransH method)</a>
+</li>
+      </ul></li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ax_async.html#ax_async.run">run() (in module ax_async)</a>
 
@@ -441,7 +430,11 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="BaseModule.html#BaseModule.BaseModule.save_checkpoint">save_checkpoint() (BaseModule.BaseModule method)</a>
+      <li><a href="Model.html#Model.Model.save_checkpoint">save_checkpoint() (Model.Model method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Model.html#Model.Model.set_params">set_params() (Model.Model method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -463,11 +456,9 @@
         <li><a href="tester_file.html#module-tester_file">module</a>
 </li>
       </ul></li>
-      <li><a href="BaseModule.html#BaseModule.BaseModule.training">training (BaseModule.BaseModule attribute)</a>
+      <li><a href="Embedding.html#Embedding.Embedding.training">training (Embedding.Embedding attribute)</a>
 
       <ul>
-        <li><a href="Embedding.html#Embedding.Embedding.training">(Embedding.Embedding attribute)</a>
-</li>
         <li><a href="Model.html#Model.Model.training">(Model.Model attribute)</a>
 </li>
         <li><a href="TransE.html#Models.TransE.TransE.training">(Models.TransE.TransE attribute)</a>
@@ -500,8 +491,6 @@
       <li><a href="TransH.html#TransH.TransH">TransH (class in TransH)</a>
 </li>
       <li><a href="ax_async.html#ax_async.trials_in_parallel">trials_in_parallel() (in module ax_async)</a>
-</li>
-      <li><a href="ModelUtils.html#ModelUtils.ModelUtils.tryeval">tryeval() (ModelUtils.ModelUtils static method)</a>
 </li>
   </ul></td>
 </tr></table>
