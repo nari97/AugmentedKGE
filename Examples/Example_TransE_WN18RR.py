@@ -18,7 +18,7 @@ parameters["pnorm"] = 1
 parameters["gamma"] = 7.746041492315607
 parameters["bern"] = True
 parameters["inner_norm"] = True
-dataset = "transe"
+
 train(model_name = model_name, dataset = dataset, corruption_mode = corruption, parameters = parameters, use_gpu = True)
 test(model_name = model_name, dataset = dataset, corruption_mode = corruption, use_gpu = True)
 
