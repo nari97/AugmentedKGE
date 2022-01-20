@@ -179,7 +179,7 @@
 <span id="transd-module"></span><h1>TransD module<a class="headerlink" href="#module-TransD" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="TransD.TransD">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">TransD.</span></span><span class="sig-name descname"><span class="pre">TransD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransD.TransD" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">TransD.</span></span><span class="sig-name descname"><span class="pre">TransD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransD.TransD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Models.Model.Model</span></code></p>
 <p>TransD <span id="id1">[<a class="reference internal" href="bib.html#id4" title="Guoliang Ji, Shizhu He, Liheng Xu, Kang Liu, and Jun Zhao. Knowledge graph embedding via dynamic mapping matrix. In Proceedings of the 53rd Annual Meeting of the Association for Computational Linguistics and the 7th International Joint Conference on Natural Language Processing (Volume 1: Long Papers), 687–696. 2015.">JHX+15</a>]</span> is a translation-based embedding approach that introduces the concept that entity and relation embeddings are no longer represented in the same space. Entity embeddings are represented in space <span class="math notranslate nohighlight">\(\mathbb{R}^{k}\)</span> and relation embeddings are represented in space <span class="math notranslate nohighlight">\(\mathbb{R}^{d}\)</span> where <span class="math notranslate nohighlight">\(k \geq d\)</span>.TransD also introduces additional embeddings <span class="math notranslate nohighlight">\(\mathbf{w_{h}}, \mathbf{w_{t}} \in \mathbb{R}^{k}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{w_{r} \in \mathbb{R}^{d}}\)</span>. I is the identity matrix.
 The scoring function for TransD is defined as</p>
@@ -189,7 +189,7 @@ The scoring function for TransD is defined as</p>
 <p>TransD imposes contraints like <span class="math notranslate nohighlight">\(||\mathbf{h}||_{2} \leq 1, ||\mathbf{t}||_{2} \leq 1, ||\mathbf{r}||_{2} \leq 1, ||h_{\bot}||_{2} \leq 1\)</span> and <span class="math notranslate nohighlight">\(||t_{\bot}||_{2} \leq 1\)</span></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="TransD.TransD.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransD.TransD.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransD.TransD.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -204,44 +204,9 @@ The scoring function for TransD is defined as</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TransD.TransD.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransD.TransD.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the scores for the given batch of triples</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Tensor</em>) – Tensor containing the batch of triples for which scores are to be calculated</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Tensor containing the scores for each triple</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>score (Tensor)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TransD.TransD.normalize">
-<span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#TransD.TransD.normalize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implement normalizations for parameters of the model</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TransD.TransD.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransD.TransD.predict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the scores for a given batch of triples during evaluation</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Tensor</em>) – Tensor containing the batch of triples for which scores are to be calculated</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Tensor containing the scores for each triple</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>score (Tensor)</p>
-</dd>
-</dl>
-</dd></dl>
+<dt class="sig sig-object py" id="TransD.TransD.returnScore">
+<span class="sig-name descname"><span class="pre">returnScore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">head_emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_emb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransD.TransD.returnScore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="TransD.TransD.training">

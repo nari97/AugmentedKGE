@@ -12,6 +12,7 @@ AugmentedKGE's documentation!
 
    modules
    utils
+   Loaders
 
 
 

@@ -179,9 +179,9 @@
 <span id="transh-module"></span><h1>TransH module<a class="headerlink" href="#module-TransH" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="TransH.TransH">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">TransH.</span></span><span class="sig-name descname"><span class="pre">TransH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransH.TransH" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">TransH.</span></span><span class="sig-name descname"><span class="pre">TransH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransH.TransH" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Models.Model.Model</span></code></p>
-<p>TransH <span id="id1">[<a class="reference internal" href="TransE.html#id4" title="Zhen Wang, Jianwen Zhang, Jianlin Feng, and Zheng Chen. Knowledge graph embedding by translating on hyperplanes. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 28. 2014.">WZFC14</a>]</span> allows entities to have different representations for different relations by creating an additional embedding <span class="math notranslate nohighlight">\(\mathbf{w_{r}} \in \mathbb{R}^{d}\)</span>.
+<p>TransH <span id="id1">[<a class="reference internal" href="bib.html#id3" title="Zhen Wang, Jianwen Zhang, Jianlin Feng, and Zheng Chen. Knowledge graph embedding by translating on hyperplanes. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 28. 2014.">WZFC14</a>]</span> allows entities to have different representations for different relations by creating an additional embedding <span class="math notranslate nohighlight">\(\mathbf{w_{r}} \in \mathbb{R}^{d}\)</span>.
 This is done by projecting entities onto a hyperplane specific to the relation r and with normal vector <span class="math notranslate nohighlight">\(\mathbf{w_{r}}\)</span>.</p>
 <p><span class="math notranslate nohighlight">\(f_r(h,t) = -||h_{\bot} + \mathbf{r} -t_{\bot}||_{2}^{2}\)</span></p>
 <p><span class="math notranslate nohighlight">\(h_{\bot} = \mathbf{h} - \mathbf{w_{r}^{T}}\mathbf{h} \mathbf{w_{r}}\)</span></p>
@@ -189,7 +189,7 @@ This is done by projecting entities onto a hyperplane specific to the relation r
 <p>TransH imposes additional constraints <span class="math notranslate nohighlight">\(||\mathbf{h}||_{2} \leq 1\)</span>, <span class="math notranslate nohighlight">\(||\mathbf{t}||_{2} \leq 1\)</span> and <span class="math notranslate nohighlight">\(||\mathbf{w_{r}}|| = 1\)</span>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="TransH.TransH.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransH.TransH.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransH.TransH.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -203,44 +203,9 @@ This is done by projecting entities onto a hyperplane specific to the relation r
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TransH.TransH.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransH.TransH.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the scores for the given batch of triples</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Tensor</em>) – Tensor containing the batch of triples for which scores are to be calculated</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Tensor containing the scores for each triple</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>score (Tensor)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TransH.TransH.normalize">
-<span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#TransH.TransH.normalize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implement normalizations for parameters of the model</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TransH.TransH.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransH.TransH.predict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the scores for a given batch of triples during evaluation</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Tensor</em>) – Tensor containing the batch of triples for which scores are to be calculated</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Tensor containing the scores for each triple</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>score (Tensor)</p>
-</dd>
-</dl>
-</dd></dl>
+<dt class="sig sig-object py" id="TransH.TransH.returnScore">
+<span class="sig-name descname"><span class="pre">returnScore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">head_emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_emb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TransH.TransH.returnScore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="TransH.TransH.training">

@@ -179,7 +179,7 @@
 <span id="transe-module"></span><h1>TransE module<a class="headerlink" href="#module-Models.TransE" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="Models.TransE.TransE">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Models.TransE.</span></span><span class="sig-name descname"><span class="pre">TransE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Models.TransE.</span></span><span class="sig-name descname"><span class="pre">TransE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Models.Model.Model</span></code></p>
 <p>TransE <span id="id1">[<a class="reference internal" href="bib.html#id2" title="Antoine Bordes, Nicolas Usunier, Alberto Garcia-Duran, Jason Weston, and Oksana Yakhnenko. Translating embeddings for modeling multi-relational data. Advances in neural information processing systems, 2013.">BUGD+13</a>]</span> is a representative relational distance model. All the embeddings, entities and relations are both represented in the same space <span class="math notranslate nohighlight">\(\mathbb{R}^{d}\)</span> where d is the dimension of the embedding. Given a triple (head, relation, tail), transE imposes the constraint that <span class="math notranslate nohighlight">\(h+r \approx t\)</span>.
 The scoring function for TransE is defined as</p>
@@ -187,7 +187,7 @@ The scoring function for TransE is defined as</p>
 <p>TransE enforces additional constraints <span class="math notranslate nohighlight">\(||\mathbf{h}||_{2} = 1\)</span> and <span class="math notranslate nohighlight">\(||\mathbf{t}||_{2} = 1\)</span>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="Models.TransE.TransE.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ent_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -201,44 +201,9 @@ The scoring function for TransE is defined as</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="Models.TransE.TransE.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the scores for the given batch of triples</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Tensor</em>) – Tensor containing the batch of triples for which scores are to be calculated</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Tensor containing the scores for each triple</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>score (Tensor)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="Models.TransE.TransE.normalize">
-<span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE.normalize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implement normalizations for parameters of the model</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="Models.TransE.TransE.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE.predict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the scores for a given batch of triples during evaluation</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Tensor</em>) – Tensor containing the batch of triples for which scores are to be calculated</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Tensor containing the scores for each triple</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>score (Tensor)</p>
-</dd>
-</dl>
-</dd></dl>
+<dt class="sig sig-object py" id="Models.TransE.TransE.returnScore">
+<span class="sig-name descname"><span class="pre">returnScore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">head_emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_emb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tail_emb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Models.TransE.TransE.returnScore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="Models.TransE.TransE.training">
