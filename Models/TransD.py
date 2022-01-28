@@ -19,7 +19,7 @@ class TransD(Model):
     TransD imposes contraints like :math:`||\mathbf{h}||_{2} \leq 1, ||\mathbf{t}||_{2} \leq 1, ||\mathbf{r}||_{2} \leq 1, ||h_{\\bot}||_{2} \leq 1` and :math:`||t_{\\bot}||_{2} \leq 1`
     """
 
-    def __init__(self, ent_total, rel_total, dim_e, dim_r, norm = 2, inner_norm = False):
+    def __init__(self, ent_total, rel_total, dim_e, dim_r, inner_norm = False):
         """
         Args:
             ent_total (int): Total number of entities

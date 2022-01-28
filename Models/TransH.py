@@ -21,7 +21,7 @@ class TransH(Model):
     
     """
 
-    def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
+    def __init__(self, ent_total, rel_total, dims, inner_norm = False):
         """
         Args:
             ent_total (int): Total number of entities

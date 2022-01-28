@@ -25,6 +25,7 @@ class TransE(Model):
             norm (int): L1 or L2 norm. Default: 2
         """
         super(TransE, self).__init__(ent_total, rel_total, dims, "transe", inner_norm)
+        self.pnorm = norm
 
         self.create_embedding(self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = self.norm_params)
         self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = None, norm_params= self.norm_params)
@@ -33,7 +34,7 @@ class TransE(Model):
 
 
     def _calc(self, h,r,t):
-        return -torch.norm(h+r-t, dim = -1, p = 2)
+        return -torch.norm(h+r-t, dim = -1, p = self.pnorm)
 
     def returnScore(self, head_emb, rel_emb, tail_emb):
         h = head_emb["e"]

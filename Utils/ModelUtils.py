@@ -33,7 +33,6 @@ def getModel(model_name, params):
                 ent_total = params["ent_total"],
                 rel_total = params["rel_total"],
                 dims=params["dim"],
-                norm=params["pnorm"],
                 inner_norm = params["inner_norm"])
         elif model_name == "transd":
             m = TransD(
@@ -41,7 +40,6 @@ def getModel(model_name, params):
                 rel_total = params["rel_total"],
                 dim_e=params["dime"],
                 dim_r=params["dimr"],
-                norm = params["pnorm"],
                 inner_norm = params["inner_norm"])
         elif model_name == "distmult":
             m = DistMult(
