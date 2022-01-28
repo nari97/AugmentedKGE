@@ -27,7 +27,6 @@ class TransH(Model):
             ent_total (int): Total number of entities
             rel_total (int): Total number of relations
             dims (int): Number of dimensions for embeddings
-            norm (int): L1 or L2 norm. Default: 2
         """
 
         super(TransH, self).__init__(ent_total, rel_total, dims, "transh", inner_norm)
