@@ -55,9 +55,9 @@ class Embedding(nn.Module):
         """
 
         if self.init == "xavier_uniform":
-            self.emb.weight.data = torch.nn.init.xavier_uniform_(self.emb.weight.data)
+            torch.nn.init.xavier_uniform_(self.emb.weight.data)
         if self.init == "uniform":
-            self.emb.weight.data = torch.nn.init.uniform_(self.emb.weight.data, a = self.init_params[0], b = self.init_params[1])
+            torch.nn.init.uniform_(self.emb.weight.data, a = self.init_params[0], b = self.init_params[1])
 
     def normalize(self):
 
@@ -86,13 +86,15 @@ class Embedding(nn.Module):
         else:
             maxnorm = 1
 
-
+        normalised_emb = None
         if self.normMethod == "norm":
-            self.emb.weight.data = torch.nn.functional.normalize(self.emb.weight.data, p, dim)
+            normalised_emb = torch.nn.functional.normalize(self.emb.weight.data, p, dim)
         elif self.normMethod == "clamp":
-            self.emb.weight.data = clamp_norm(self.emb.weight.data, p = 2, dim = -1, maxnorm=maxnorm)
+            normalised_emb = clamp_norm(self.emb.weight.data, p = 2, dim = -1, maxnorm=maxnorm)
         else:
             pass
+
+        return normalised_emb
 
     def get_embedding(self, data):
 
