@@ -9,8 +9,8 @@ class HolE(Model):
     def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
         super(HolE, self).__init__(ent_total, rel_total, dims, "hole", inner_norm)
 
-        self.create_embedding(self.dims, emb_type = "entity", name = "e", normMethod = "clamp", norm_params = self.norm_params)
-        self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = "clamp", norm_params= self.norm_params)
+        self.create_embedding(self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = self.norm_params)
+        self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = "norm", norm_params= self.norm_params)
     
         self.register_params()
         
