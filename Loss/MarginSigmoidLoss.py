@@ -9,9 +9,7 @@ class MarginSigmoidLoss(Loss):
 
     def __init__(self,model,  margin=6.0):
         super(MarginSigmoidLoss, self).__init__(model)
-        self.margin = nn.Parameter(torch.Tensor([margin]))
         self.sigmoid = nn.Sigmoid()
-        self.margin.requires_grad = False
         self.loss = nn.MarginRankingLoss(margin)
 
     def lossFn(self, p_score, n_score):
