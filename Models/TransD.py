@@ -1,25 +1,22 @@
 import torch
-
 from Models.Model import Model
-from Utils.Embedding import Embedding
-from Utils.NormUtils import clamp_norm, normalize
-import torch.nn.functional as F
+
 
 class TransD(Model):
     """
     TransD :cite:`ji2015knowledge` is a translation-based embedding approach that introduces the concept that entity and relation embeddings are no longer represented in the same space. Entity embeddings are represented in space :math:`\mathbb{R}^{k}` and relation embeddings are represented in space :math:`\mathbb{R}^{d}` where :math:`k \geq d`.TransD also introduces additional embeddings :math:`\mathbf{w_{h}}, \mathbf{w_{t}} \in \mathbb{R}^{k}` and :math:`\mathbf{w_{r} \in \mathbb{R}^{d}}`. I is the identity matrix.
     The scoring function for TransD is defined as
-    
+
     :math:`f_{r}(h,t) = -||h_{\\bot} + \mathbf{r} - t_{\\bot}||`
-    
+
     :math:`h_{\\bot} = (\mathbf{w_{r}}\mathbf{w_{h}^{T}} + I^{d \\times k})\,\mathbf{h}`
-    
+
     :math:`t_{\\bot} = (\mathbf{w_{r}}\mathbf{w_{t}^{T}} + I^{d \\times k})\,\mathbf{t}`
 
     TransD imposes contraints like :math:`||\mathbf{h}||_{2} \leq 1, ||\mathbf{t}||_{2} \leq 1, ||\mathbf{r}||_{2} \leq 1, ||h_{\\bot}||_{2} \leq 1` and :math:`||t_{\\bot}||_{2} \leq 1`
     """
 
-    def __init__(self, ent_total, rel_total, dim_e, dim_r, inner_norm = False):
+    def __init__(self, ent_total, rel_total, dim_e, dim_r, norm=2):
         """
         Args:
             ent_total (int): Total number of entities
@@ -27,59 +24,55 @@ class TransD(Model):
             dim_e (int): Number of dimensions for entity embeddings
             dim_r (int): Number of dimensions for relation embeddings
         """
-        super(TransD, self).__init__(ent_total, rel_total, 0, "transd", inner_norm)
+        super(TransD, self).__init__(ent_total, rel_total, 0, "transd")
 
         self.dim_e = dim_e
         self.dim_r = dim_r
-        
 
-        self.entities = self.create_embedding(self.dim_e, emb_type = "entity", name = "e", normMethod = "clamp", norm_params = self.norm_params)
-        self.relations = self.create_embedding(self.dim_r, emb_type = "relation", name = "r", normMethod = "clamp", norm_params= self.norm_params)
-        self.ent_transfer = self.create_embedding(self.dim_e, emb_type = "entity", name = "e_t", normMethod = "clamp", norm_params = self.norm_params)
-        self.rel_transfer = self.create_embedding(self.dim_r, emb_type = "relation", name = "r_t", normMethod = None, norm_params= self.norm_params)
-        
-        self.register_params()
+        self.pnorm = norm
 
+        self.create_embedding(self.dim_e, emb_type="entity", name="e")
+        self.create_embedding(self.dim_e, emb_type="entity", name="ep")
+        self.create_embedding(self.dim_r, emb_type="relation", name="r")
+        self.create_embedding(self.dim_r, emb_type="relation", name="rp")
 
-    def _calc(self, h,r,t):
-        score = h + r - t
-        answer = -torch.pow(torch.norm(score, 2, -1),2)
-        
-        return answer
+        self.register_scale_constraint(emb_type="entity", name="e", p=2)
+        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_custom_constraint(self.h_constraint)
+        self.register_custom_constraint(self.t_constraint)
 
-    def _transfer(self, e, e_transfer, r_transfer):
-        
-        wh = e_transfer
-        wr = r_transfer
-
-        m = wr*torch.sum(wh*e, dim=-1, keepdim=True)
-
-        I = torch.eye(e.shape[1], m.shape[1])
-
-        
-        if m.is_cuda:
-            I = I.cuda()
-        
-        I = torch.matmul(e, I)
-
-        return clamp_norm(m+I, p=2, dim=-1, maxnorm = 1)
-
-    def returnScore(self, head_emb, rel_emb, tail_emb):
-
+    def h_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
         h = head_emb["e"]
+        hp = head_emb["ep"]
+        rp = rel_emb["rp"]
+        return torch.linalg.norm(self.get_et(h, hp, rp), ord=2) - epsilon
+
+    def t_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
         t = tail_emb["e"]
+        tp = tail_emb["ep"]
+        rp = rel_emb["rp"]
+        return torch.linalg.norm(self.get_et(t, tp, rp), ord=2) - epsilon
+
+    def get_et(self, e, ep, rp):
+        # shape[0] is the batch size.
+
+        # ep changed into a row matrix, and rp changed into a column matrix.
+        m = torch.matmul(rp.view(rp.shape[0], -1, 1), ep.view(ep.shape[0], 1, -1))
+        # Identity matrix.
+        i = torch.eye(self.dim_r, self.dim_e)
+        # add i to every result in the batch size, multiply by vector and put it back to regular shape.
+        return torch.matmul(m + i.repeat(ep.shape[0], 1, 1), e.view(ep.shape[0], -1, 1)).view(ep.shape[0], self.dim_r)
+
+    def _calc(self, h, hp, r, rp, t, tp):
+        return -torch.pow(torch.linalg.norm(
+            self.get_et(h, hp, rp) + r - self.get_et(t, tp, rp), ord=self.pnorm, dim=-1), 2)
+
+    def return_score(self, head_emb, rel_emb, tail_emb, is_predict=False):
+        h = head_emb["e"]
+        hp = head_emb["ep"]
+        t = tail_emb["e"]
+        tp = tail_emb["ep"]
         r = rel_emb["r"]
+        rp = rel_emb["rp"]
 
-        h_transfer = head_emb["e_t"]
-        t_transfer = tail_emb["e_t"]
-        r_transfer = rel_emb["r_t"]
-
-        h = self._transfer(h, h_transfer, r_transfer)
-        t = self._transfer(t, t_transfer, r_transfer)
-        score = self._calc(h,r,t).flatten()
-
-        return score
-
-
-
-
+        return self._calc(h, hp, r, rp, t, tp)

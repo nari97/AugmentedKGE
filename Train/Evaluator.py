@@ -1,5 +1,4 @@
 import torch
-from torch.autograd import Variable
 import numpy as np
 import math
 from scipy.stats import wilcoxon
@@ -14,8 +13,6 @@ class Evaluator(object):
         self.use_gpu = use_gpu
         self.rel_anomaly_max = rel_anomaly_max
         self.rel_anomaly_min = rel_anomaly_min
-
-    
 
     def get_totals(self):
         totals = []
@@ -39,9 +36,8 @@ class Evaluator(object):
 
     def evaluate(self, model, materialize=False, name = None, dataset = None):
         collector = RankCollector()
-        
-        # rank_test_h = []
-        # ranks_test_t = []
+
+        is_nan_cnt, total = 0, 0
         # We will split the evaluation by relation
         relations = {}
         for t in self.manager.get_triples():
@@ -53,14 +49,11 @@ class Evaluator(object):
                 relations[t.r] = []
             relations[t.r].append(t)
 
-        
-            
         for r in relations.keys():
+            total += 1
             #print (str(r) + ":Started")
             if materialize:
                 neg_triples = {}
-                #neg_counts = {}
-                count = 0
             for t in relations[r]:
                 corruptedHeads = self.manager.get_corrupted(t.h, t.r, t.t, "head")
                 corruptedTails = self.manager.get_corrupted(t.h, t.r, t.t, "tail")
@@ -72,8 +65,6 @@ class Evaluator(object):
                     for tp in corruptedTails:
                         self.add_triple(neg_triples, t.h, t.r, tp, 0)
                         
-                
-
                 totalTriples = 1 + len(corruptedHeads) + len(corruptedTails)
                 arrH = np.zeros(totalTriples, dtype=np.int64)
                 arrR = np.zeros(totalTriples, dtype=np.int64)
@@ -93,62 +84,35 @@ class Evaluator(object):
                 
                 scores = self.predict(arrH, arrR, arrT, model)
 
-                rankhLess, ranktLess, rankhEq, ranktEq = 0, 0, 1, 1
-
                 cHeads = scores[1:corruptedHeadsEnd]
                 cTails = scores[corruptedHeadsEnd:]
                 
-                rankhLess = torch.sum(scores[0]>cHeads).item()
-                ranktLess = torch.sum(scores[0]>cTails).item()
-                rankhEq += torch.sum(scores[0] == cHeads).item()
-                ranktEq += torch.sum(scores[0] == cTails).item()
+                rankhLess, ranktLess = torch.sum(scores[0]>cHeads).item(), torch.sum(scores[0]>cTails).item()
+                rankhEq, ranktEq = 1 + torch.sum(scores[0] == cHeads).item(), 1 + torch.sum(scores[0] == cTails).item()
+
+                # If it is NaN, rank last!
+                if np.isnan(scores[0].item()):
+                    is_nan_cnt += 1
+                    rankhLess, ranktLess = len(cHeads), len(cTails)
+                    rankhEq, ranktEq = 1, 1
                 
                 if materialize:
                     for i in range(1, totalTriples):
-                            if scores[0] >= scores[i]:
-                                self.add_triple(neg_triples, arrH[i], arrR[i], arrT[i], 1)
-                                #self.add_triple(neg_triples, arrH[i], arrR[i], arrT[i], 2)
-                        
-                            
-                # rank_test_h.append(self.frac_rank(rankhLess, rankhEq))
-                # ranks_test_t.append(self.frac_rank(ranktLess, ranktEq))
-                
+                        if scores[0] >= scores[i]:
+                            self.add_triple(neg_triples, arrH[i], arrR[i], arrT[i], 1)
 
                 collector.update_rank(self.frac_rank(rankhLess, rankhEq), rankhEq>1, len(corruptedHeads),
                            self.frac_rank(ranktLess, ranktEq), ranktEq>1, len(corruptedTails), t.r, self.manager.relation_anomaly[t.r])
   
-            #print (str(r) + ":Materialized")    
             if materialize:
-                count = 0
                 for p in neg_triples.keys():
                     collector.update_total_unique_triples(r)
                     
                     if neg_triples[p][1] > 0:
                         collector.update_unique_materialized(r)
-                        
-                    
 
-            #print (str(r) + ":Finished")
-
-        
-        
-        # rank_test = []
-        # for i in range(len(rank_test_h)):
-        #     rank_test.append(rank_test_h[i])
-        #     rank_test.append(ranks_test_t[i])
-
-        # print ('Tested Ranks : ', len(rank_test), len(collector.all_ranks))
-
-        # if len(rank_test) == len(collector.all_ranks):
-        #     miss = 0
-        #     for i in range(len(rank_test)):
-        #         if rank_test[i]!=collector.all_ranks[i]:
-        #             miss+=1
-
-        #     print ('Miss : ', miss)
-        # else:
-        #     print ('Lengths are not the same!')
-
+        # TODO Remove!
+        print('IsNaN (%):', is_nan_cnt/total)
         return collector
 
     def add_triple(self, tree, h, r, t, i):
@@ -157,17 +121,7 @@ class Evaluator(object):
         tree[(h, t)][i] = tree[(h, t)][i] + 1
 
     def frac_rank(self, less, eq):
-        ret = 0
-        for i in range(eq):
-            ret = ret + (less + (i+1))
-        ret = ret / eq
-
-        # TODO Change this if it works properly.
-        otherRet = (2*less + eq + 1)/2;
-        if otherRet != ret:
-            print('The other calculation for fractional ranks did not work!!!!!!!!')
-
-        return ret
+        return (2*less + eq + 1)/2
 
     def predict(self, arrH, arrR, arrT, model):
         return model.predict({
@@ -211,6 +165,39 @@ class RankCollector():
                 rc.total_unique_triples[self.all_rels[i]] = self.total_unique_triples[self.all_rels[i]]
         return rc
 
+    # Checks whether we should stop training.
+    def stop_train(self, previous):
+        if previous is None:
+            return False
+
+        current_metric = self.get_metric()
+
+        # TODO Remove!
+        print('Stop training')
+        print('Current metric: ', current_metric.get(), '; Previous metric: ', previous.get_metric().get())
+        print('Previous is better than current: ', Metric.is_improved(current_metric, previous.get_metric()))
+        try:
+           print('Is significant: ', RankCollector.is_significant(self.all_ranks, previous.all_ranks))
+        except ValueError as err:
+            print('Is significant error: ', err)
+        print('Expected: ', previous.get_expected().get())
+        print('Expected is better than current: ', Metric.is_improved(current_metric, previous.get_expected()))
+        try:
+            print('Is significant expected: ', self.is_significant_expected())
+        except ValueError as err:
+            print('Is significant error: ', err)
+
+        # If the current metric is improved by previous and it is significant.
+        if Metric.is_improved(current_metric, previous.get_metric()) and \
+                RankCollector.is_significant(self.all_ranks, previous.all_ranks):
+            return True
+
+        # If the current metric is improved by random and it is significant.
+        if Metric.is_improved(current_metric, previous.get_expected()) and self.is_significant_expected():
+            return True
+
+        return False
+
     def update_rank(self, rankh, hHasTies, totalh, rankt, tHasTies, totalt, r, anomaly):
         self.all_ranks.append(rankh)
         self.all_ties.append(hHasTies)
@@ -239,40 +226,44 @@ class RankCollector():
             self.total_unique_triples[r] = 0
         self.total_unique_triples[r] = self.total_unique_triples[r]+1
 
-    def get_expected(self, metric_str="mrh"):
+    def get_expected(self, metric_str="mr"):
         expected=[]
         for i in range(len(self.all_totals)):
             expected.append((self.all_totals[i] + 1) / 2)
         return self.get(expected, self.all_totals, metric_str)
 
-    def get_metric(self, metric_str="mrh"):
+    def get_metric(self, metric_str="mr"):
         return self.get(self.all_ranks, self.all_totals, metric_str)
 
-    def is_significant(self, other_ranks, threshold=.05):
-        return wilcoxon(self.all_ranks, other_ranks, zero_method='pratt').pvalue < threshold
+    @staticmethod
+    def is_significant(these_ranks, other_ranks, threshold=.05):
+        return wilcoxon(these_ranks, other_ranks, zero_method='pratt').pvalue < threshold
 
     def is_significant_expected(self):
         expected = []
         for i in range(len(self.all_totals)):
             expected.append((self.all_totals[i] + 1) / 2)
-        return self.is_significant(expected)
+        return RankCollector.is_significant(self.all_ranks, expected)
 
     def get(self, ranks, totals, metric_str):
         if len(ranks) == 0:
             return Metric(0)
         if metric_str == 'mr':
-            value = 0
-            for r in ranks:
-                value = value + r
-            value = value / len(totals)
-        elif metric_str == 'mrg':
-            a = np.log(ranks)
-            value = np.exp(a.sum() / len(a))
-        elif metric_str == 'mrh':
+            value = np.sum(ranks) / len(totals)
+        if metric_str == 'wmr':
             value, divisor = 0, 0
             for i in range(len(ranks)):
-                value = value + totals[i] * math.log(ranks[i])
-                divisor = divisor + totals[i]
+                value += totals[i] * ranks[i]
+                divisor += totals[i]
+            value = value / divisor
+        elif metric_str == 'gmr':
+            a = np.log(ranks)
+            value = np.exp(a.sum() / len(a))
+        elif metric_str == 'wgmr':
+            value, divisor = 0, 0
+            for i in range(len(ranks)):
+                value += totals[i] * math.log(ranks[i])
+                divisor += totals[i]
             value = math.exp(value / divisor)
         return Metric(value)
 
@@ -281,12 +272,15 @@ class Metric():
         self.value = value
         self.cmp = cmp
 
-    # other is better than self
-    def is_improved(self, other):
-        if self.cmp == 'low':
-            return self.get() > other.get()
-        elif self.cmp == 'high':
-            return self.get() < other.get()
+    # Check whether this is improved by that.
+    @staticmethod
+    def is_improved(this, that):
+        if this.cmp != that.cmp:
+            raise ValueError('Comparison types of this ('+this.cmp+') and that ('+that.cmp+') are different')
+        if this.cmp == 'low':
+            return this.get() > that.get()
+        elif this.cmp == 'high':
+            return this.get() < that.get()
 
     def get(self):
         return self.value

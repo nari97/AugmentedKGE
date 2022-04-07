@@ -2,15 +2,14 @@ import torch
 import torch.nn as nn
 from Utils.Embedding import Embedding
 import os
-import Utils.NormUtils as NormUtils
+
 
 class Model(nn.Module):
-
     """
         Base class for all models to inherit
     """
 
-    def __init__(self, ent_tot, rel_tot, dims, model_name, inner_norm = False):
+    def __init__(self, ent_tot, rel_tot, dims, model_name):
         """
         Args:
             ent_tot (int): Total number of entites
@@ -21,16 +20,15 @@ class Model(nn.Module):
         self.ent_tot = ent_tot
         self.rel_tot = rel_tot
         self.dims = dims
-        self.norm_params = {"p" : 2, "dim" : -1, "maxnorm" : 1}
-        self.inner_norm = inner_norm
         self.model_name = model_name
         self.epoch = 0
-        self.embeddings = {"entity" : {}, "relation" : {}}
+        self.embeddings = {"entity": {}, "relation": {}}
+        self.embeddings_normalization = {"entity": {}, "relation": {}}
         self.ranks = None
         self.totals = None
         self.hyperparameters = None
-        self.pi_const = torch.Tensor([3.14159265358979323846])
-        
+        self.custom_constraints = []
+        self.scale_constraints = []
 
     def forward(self, data):
         """
@@ -42,30 +40,72 @@ class Model(nn.Module):
         Returns:
             score (Tensor): Tensor containing the scores for each triple
         """
-    
         head_emb = self.get_head_embeddings(data)
         tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
 
-        # if self.inner_norm:
-        #     head_emb, tail_emb, rel_emb = self.inner_normalize(head_emb, tail_emb, rel_emb)
+        return self.return_score(head_emb, rel_emb, tail_emb).flatten()
 
-        score = self.returnScore(head_emb,rel_emb,tail_emb).flatten()
+    def apply_normalization(self):
+        for emb_type in self.embeddings:
+            for name in self.embeddings[emb_type]:
+                emb = self.embeddings[emb_type][name]
+                norm_info = self.embeddings_normalization[emb_type][name]
 
-        return score
+                if norm_info['method'] is 'norm':
+                    p = norm_info['params']['p']
+                    dim = norm_info['params']['dim']
+                    # This is in place.
+                    emb.emb.data = torch.nn.functional.normalize(emb.emb.data, p, dim)
+                elif norm_info['method'] is None:
+                    pass
+                else:
+                    print('Warning! You specified a norm method not recognized: ', norm_info['method'],
+                          '; are you sure about this?')
+                    pass
 
-    def inner_normalize(self, head_emb, tail_emb, rel_emb):
-        for key in head_emb:
-            head_emb[key] = self.normalize(head_emb[key], "entity", key)
+    def register_scale_constraint(self, emb_type, name, p, z=1):
+        self.scale_constraints.append({'emb_type': emb_type, 'name': name, 'p': p, 'z': z})
 
-        for key in tail_emb:
-            tail_emb[key] = self.normalize(tail_emb[key], "entity", key)
+    # Gets the embedding and applies the constraint ||x||_y<=z
+    def scale_constraint(self, emb, p, z=1):
+        return nn.functional.normalize(emb, p) - z
 
-        for key in rel_emb:
-            rel_emb[key] = self.normalize(rel_emb[key], "relation", key)
+    def register_custom_constraint(self, c):
+        self.custom_constraints.append(c)
 
-        return head_emb, tail_emb, rel_emb
-                
+    # Apply the constraints as regularization (to be added to the loss) using either L1 or L2.
+    def regularization(self, data, reg_type='L2'):
+        head_emb = self.get_head_embeddings(data)
+        tail_emb = self.get_tail_embeddings(data)
+        rel_emb = self.get_relation_embeddings(data)
+
+        all_constraints = {'custom': self.custom_constraints, 'scale': self.scale_constraints}
+
+        reg, total = 0, 0
+        for key in all_constraints.keys():
+            for c in all_constraints[key]:
+                v = []
+                if key is 'custom':
+                    v.append(c(head_emb, rel_emb, tail_emb))
+                elif key is 'scale':
+                    if c['emb_type'] == 'entity':
+                        v.append(self.scale_constraint(head_emb[c['name']], c['p'], c['z']))
+                        v.append(self.scale_constraint(tail_emb[c['name']], c['p'], c['z']))
+                    elif c['emb_type'] == 'relation':
+                        v.append(self.scale_constraint(rel_emb[c['name']], c['p'], c['z']))
+
+                for x in v:
+                    if reg_type is 'L1':
+                        x = torch.abs(x)
+                    elif reg_type is 'L2':
+                        x = torch.pow(x, 2)
+                    reg += torch.mean(x)
+                    total += 1
+        if total > 0:
+            reg /= total
+        return reg
+
     def predict(self, data):
         """
         Calculate the scores for a given batch of triples during evaluation
@@ -76,13 +116,13 @@ class Model(nn.Module):
         Returns:
             score (Tensor): Tensor containing the scores for each triple
         """
-        
-        score = -self.forward(data)
+        head_emb = self.get_head_embeddings(data)
+        tail_emb = self.get_tail_embeddings(data)
+        rel_emb = self.get_relation_embeddings(data)
 
-        return score
+        return -self.return_score(head_emb, rel_emb, tail_emb, is_predict=True).flatten()
 
-
-    def returnScore(self, head_emb, rel_emb, tail_emb):
+    def return_score(self, head_emb, rel_emb, tail_emb):
         raise NotImplementedError
 
     def get_batch(self, data, type):
@@ -95,7 +135,6 @@ class Model(nn.Module):
         Returns:
             data: Tensor containing the indices of the head entities, relation or tail entities 
         """
-
         if type == "h":
             return data['batch_h']
         if type == "r":
@@ -103,9 +142,8 @@ class Model(nn.Module):
         if type == "t":
             return data['batch_t']
 
-    def create_embedding(self, dimension, emb_type, name, init = "xavier_uniform", init_params = [], normMethod = None, norm_params = []):
-        total = 0
-
+    def create_embedding(self, dimension, emb_type=None, name=None, register=True, init="xavier_uniform",
+                         init_params=[], norm_method=None, norm_params={"p": 2, "dim": -1}):
         if emb_type == "entity":
             total = self.ent_tot
         elif emb_type == "relation":
@@ -113,12 +151,18 @@ class Model(nn.Module):
         else:
             raise Exception("Type of embedding must be relation or entity")
 
-        self.embeddings[emb_type][name] = Embedding(total, dimension, emb_type, name, init, init_params, normMethod, norm_params)
+        emb = Embedding(total, dimension, emb_type, name, init, init_params)
+        if register:
+            self.embeddings[emb_type][name] = emb
+            self.embeddings_normalization[emb_type][name] = {'method': norm_method, 'params': norm_params}
+            self.register_parameter(emb_type + '_' + name, self.embeddings[emb_type][name].emb)
+        else:
+            return emb
 
-    
+    def get_embedding(self, emb_type, name):
+        return self.embeddings[emb_type][name]
 
     def get_head_embeddings(self, data):
-
         head_embeddings = {}
         for emb in self.embeddings["entity"]:
             head_embeddings[emb] = self.embeddings["entity"][emb].get_embedding(data["batch_h"])
@@ -141,57 +185,22 @@ class Model(nn.Module):
 
         return relation_embeddings
 
-    def normalize(self, embedding = None, type = None, name = None):
-
-        if self.inner_norm:
-            norm_params = self.embeddings[type][name].norm_params
-            normMethod = self.embeddings[type][name].normMethod
-
-            if "p" in norm_params:
-                p = norm_params["p"]
-            else:
-                p = 2
-
-            if "dim" in norm_params:
-                dim = norm_params["dim"]
-            else:
-                dim = -1
-
-            if "maxnorm" in norm_params:
-                maxnorm = norm_params["maxnorm"]
-            else:
-                maxnorm = 1
-
-
-            if normMethod == "norm":
-                embedding = NormUtils.normalize(embedding, p, dim)
-            elif normMethod == "clamp":
-                embedding = NormUtils.clamp_norm(embedding, p, dim, maxnorm=maxnorm)
-            else:
-                pass
-
-            return embedding
-
-        else:
-            for key1 in self.embeddings:
-                for key2 in self.embeddings[key1]:
-                    self.embeddings[key1][key2].normalize()
-
     def load_checkpoint(self, path):
-        dict = torch.load(os.path.join(path))
-        if 'epoch' in dict.keys():
-            self.epoch = dict.pop("epoch")
-        self.embeddings = dict.pop("embeddings")
-        self.ranks = dict.pop("ranks")
-        self.totals = dict.pop("totals")
-        self.hyperparameters = dict.pop("hyperparameters")
+        dic = torch.load(os.path.join(path))
+        if 'epoch' in dic.keys():
+            self.epoch = dic.pop("epoch")
+        self.embeddings = dic.pop("embeddings")
+        self.ranks = dic.pop("ranks")
+        self.totals = dic.pop("totals")
+        self.hyperparameters = dic.pop("hyperparameters")
 
         self.eval()
 
     def save_checkpoint(self, path, epoch=0):
-        dict = {"embeddings" : self.embeddings, "ranks" : self.ranks, "totals" : self.totals, "epoch" : epoch, "hyperparamters" : self.hyperparameters}
-        
-        torch.save(dict, path)
+        to_save = {"embeddings": self.embeddings, "ranks": self.ranks, "totals": self.totals,
+                   "epoch": epoch, "hyperparameters": self.hyperparameters}
+
+        torch.save(to_save, path)
 
     def set_params(self, params):
         self.hyperparameters = params
@@ -204,9 +213,3 @@ class Model(nn.Module):
         for p in self.hyperparameters:
             s = s + "_" + p + "_" + str(self.hyperparameters[p])
         return s
-
-    def register_params(self):
-
-        for key1 in self.embeddings:
-            for key2 in self.embeddings[key1]:
-                self.register_parameter(key1+"_"+key2, self.embeddings[key1][key2].emb.weight)
