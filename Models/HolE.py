@@ -1,47 +1,30 @@
 import torch
 from .Model import Model
 
-from Utils.NormUtils import clamp_norm
-import torch.nn.functional as F
 
 class HolE(Model):
 
-    def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
-        super(HolE, self).__init__(ent_total, rel_total, dims, "hole", inner_norm)
+    def __init__(self, ent_total, rel_total, dims):
+        super(HolE, self).__init__(ent_total, rel_total, dims, "hole")
 
-        self.create_embedding(self.dims, emb_type = "entity", name = "e", normMethod = "norm", norm_params = self.norm_params)
-        self.create_embedding(self.dims, emb_type = "relation", name = "r", normMethod = "norm", norm_params= self.norm_params)
+        self.create_embedding(self.dims, emb_type="entity", name="e")
+        self.create_embedding(self.dims, emb_type="relation", name="r")
     
-        self.register_params()
+        self.register_scale_constraint(emb_type="entity", name="e", p=2)
+        self.register_scale_constraint(emb_type="relation", name="r", p=2)
         
+    def _calc(self, h, r, t):
+        # Last term in Eq. 13 says e_t(r * e_h), where a*b=F-1(F(a) x F(b)), where x is the Hadamard product.
+        fh = torch.fft.rfft(h, dim=-1)
+        fr = torch.fft.rfft(r, dim=-1)
+        return torch.sum(t * torch.fft.irfft(fr * fh, dim=-1, n=r.shape[-1]), dim=-1, keepdim=False)
 
-    def _calc(self, h,r,t):
-        fourierH = torch.fft.rfft(h, dim = -1)
-        fourierT = torch.fft.rfft(t, dim = -1)
-      
-        conjH = torch.conj(fourierH)
-      
-        inv = torch.fft.irfft(conjH*fourierT, dim = -1)
-      
-        if r.shape[1]>inv.shape[1]:
-            r = r[:, :inv.shape[1]]
-        elif inv.shape[1]>r.shape[1]:
-            inv = inv[:, :r.shape[1]]
-       
-        answer = torch.sum(r*inv, dim = -1)
-      
-        return answer
-
-    def returnScore(self, head_emb, rel_emb, tail_emb):
-
+    def return_score(self, head_emb, rel_emb, tail_emb, is_predict=False):
         h = head_emb["e"]
         t = tail_emb["e"]
         r = rel_emb["r"]
 
-
-        score = self._calc(h,r,t).flatten()
-
-        return score
+        return self._calc(h, r, t)
 
 
 

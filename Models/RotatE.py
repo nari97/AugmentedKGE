@@ -1,69 +1,32 @@
+import math
 import torch
 from .Model import Model
-from Utils.Embedding import Embedding
-import torch.nn.functional as F
-from Utils.NormUtils import normalize
 
 class RotatE(Model):
 
-    def __init__(self, ent_total, rel_total, dims, norm = 2, inner_norm = False):
-        super(RotatE, self).__init__(ent_total, rel_total, dims, "rotate", inner_norm)
+    def __init__(self, ent_total, rel_total, dims, norm=1):
+        super(RotatE, self).__init__(ent_total, rel_total, dims, "rotate")
 
+        self.pnorm = norm
+        self.create_embedding(self.dims, emb_type="entity", name="e_real")
+        self.create_embedding(self.dims, emb_type="entity", name="e_img")
+        self.create_embedding(self.dims, emb_type="relation", name="r_abs")
+        self.create_embedding(self.dims, emb_type="relation", name="r_phase",
+                              init="uniform", init_params=[0, 2 * math.pi])
 
-        self.dim_e = self.dims*2
-        self.dim_r = self.dims 
+    def _calc(self, h_real, h_img, t_real, t_img, r_abs, r_phase):
+        hc = torch.view_as_complex(torch.stack((h_real, h_img), dim=-1))
+        tc = torch.view_as_complex(torch.stack((t_real, t_img), dim=-1))
+        rc = torch.view_as_complex(torch.stack((r_abs*torch.cos(r_phase), r_abs*torch.sin(r_phase)), dim=-1))
+        return -torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)
 
-        self.create_embedding(self.dim_e, emb_type = "entity", name = "e", normMethod = None, norm_params = self.norm_params, init = "xavier_uniform")
-        self.create_embedding(self.dim_r, emb_type = "relation", name = "r", normMethod = None, norm_params= self.norm_params, init = "uniform", init_params=[0, 2*self.pi_const.item()])
+    def return_score(self, head_emb, rel_emb, tail_emb, is_predict=False):
+        h_real = head_emb["e_real"]
+        h_img = head_emb["e_img"]
+        t_real = tail_emb["e_real"]
+        t_img = tail_emb["e_img"]
 
-        self.register_params()
+        r_abs = rel_emb["r_abs"]
+        r_phase = rel_emb["r_phase"]
 
-
-
-        
-    def multiply(self, a, b):
-        #print (a.shape)
-        #print (b.shape)
-        x = a[:,:,0]
-        y = a[:,:,1]
-        u = b[:,:,0]
-        v = b[:,:,1]
-
-        a = x*u - y*v
-        b = x*v + y*u
-        c = torch.stack((a,b), dim = -1)
-      
-        return c
-
-    def _calc(self, h, r, t):
-        
-        th = h.view(h.shape[0], self.dims, -1)
-        tt = t.view(t.shape[0], self.dims, -1)      
-      
-        
-        real = torch.cos(r)
-        img = torch.sin(r)
-
-        tr = torch.stack((real, img), dim = -1)
-        
-        #print (th.shape, tr.shape)
-        inner = self.multiply(th, tr) - tt
-        inner = inner.reshape(inner.shape[0], -1)
-
-        data = -torch.norm(inner, dim = -1, p = 2)
-
-        return data
-
-    def returnScore(self, head_emb, rel_emb, tail_emb):
-
-        h = head_emb["e"]
-        t = tail_emb["e"]
-        r = rel_emb["r"]
-
-        score = self._calc(h,r,t).flatten()
-
-        return score
-
-
-
-
+        return self._calc(h_real, h_img, t_real, t_img, r_abs, r_phase)
