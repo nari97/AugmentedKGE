@@ -5,8 +5,8 @@ from .Loss import Loss
 
 class MarginLoss(Loss):
 
-    def __init__(self, model, margin=1e-1, criterion=None):
-        super(MarginLoss, self).__init__(model, is_pairwise=True)
+    def __init__(self, model, margin=1e-1, criterion=None, reg_type='L2'):
+        super(MarginLoss, self).__init__(model, is_pairwise=True, reg_type='L2')
         self.loss = nn.MarginRankingLoss(margin)
         self.criterion = criterion
 

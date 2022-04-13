@@ -5,8 +5,8 @@ from .Loss import Loss
 
 class BCELoss(Loss):
 
-    def __init__(self, model, with_logits=False, margin=None):
-        super(BCELoss, self).__init__(model, is_pairwise=False)
+    def __init__(self, model, with_logits=False, margin=None, reg_type='L2'):
+        super(BCELoss, self).__init__(model, is_pairwise=False, reg_type='L2')
 
         self.margin = margin
 
