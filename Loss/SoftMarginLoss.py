@@ -4,8 +4,8 @@ from .Loss import Loss
 
 class SoftMarginLoss(Loss):
 
-    def __init__(self, model, margin=None):
-        super(SoftMarginLoss, self).__init__(model, is_pairwise=False)
+    def __init__(self, model, margin=None, reg_type='L2'):
+        super(SoftMarginLoss, self).__init__(model, is_pairwise=False, reg_type=reg_type)
         self.loss = nn.SoftMarginLoss()
         self.margin = margin
 

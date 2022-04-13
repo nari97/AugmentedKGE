@@ -4,6 +4,7 @@ from Train.Trainer import Trainer
 from Utils import ModelUtils
 from Utils import LossUtils
 import torch
+import torch.optim as optim
 import time
 import os
 
@@ -19,33 +20,48 @@ def get_params(index, total_points):
                     return model_name, dataset, '', point
                 current += 1
 
+
+
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'hole', 6, '', 0
+    model_name, dataset, split_prefix, point = 'quate', 6, '', 0
+
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
 
-    validation_epochs = 10
+    validation_epochs = 25
     train_times = 500
 
-    use_gpu = True
+    use_gpu = False
 
-    corruption_mode = "LCWA"
+    # TODO Change to LCWA!
+    corruption_mode = "Global"
 
     parameters = {}
     parameters["batch_size"] = 1000
-    parameters["nr"] = 100
+    parameters["nr"] = 5
     parameters["trial_index"] = 1
-    parameters["inner_norm"] = False
-    parameters["norm"] = True
     parameters["dim"] = 5
-    parameters["dime"] = 5
-    parameters["dimr"] = 5
-    parameters["lr"] = 0.6164507232989961
-    parameters["wd"] = 0.011878624460305654
-    parameters["m"] = 0.511354367248714
-    parameters["gamma"] = 2
+    parameters["dime"] = 2
+    parameters["dimr"] = 3
+
+    parameters["lr"] = None
+
+    # TODO Testing regularization
+    parameters["lmbda"] = 1e-5
+    # TODO Normalization of lambda: https://arxiv.org/pdf/1711.05101.pdf (Appendix B.1)
+
+    # TODO This is L2 regularization!
+    #   https://towardsdatascience.com/weight-decay-and-its-peculiar-effects-66e0aee3e7b8
+    #   See also: https://github.com/zeke-xie/stable-weight-decay-regularization
+    # If you set weight decay, you are using L2 regularization without control.
+    parameters["weight_decay"] = None
+    parameters["momentum"] = None
+    parameters["opt_method"] = "adam"
+
+    parameters["gamma"] = 1e-4
+
     parameters["pnorm"] = 2
 
     dataset_name = ""
@@ -70,26 +86,27 @@ def run():
 
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
-    train_manager = TripleManager(path, splits=[split_prefix+"train"], batch_size=parameters["batch_size"],
-                                  neg_rate=parameters["nr"],  corruption_mode=corruption_mode)
+    train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=parameters["batch_size"],
+                                  neg_rate=parameters["nr"], corruption_mode=corruption_mode)
     parameters["ent_total"] = train_manager.entityTotal
     parameters["rel_total"] = train_manager.relationTotal
     print("Parameters:", parameters)
-    
+
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
     print("Model name : ", mu.model_name)
-    loss = LossUtils.getLoss(gamma = parameters["gamma"], model = mu)
-    
-    validation = Evaluator(TripleManager(path, splits=[split_prefix+"valid"],
-                batch_size=parameters["batch_size"], neg_rate=parameters["nr"], corruption_mode=corruption_mode),
+    loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu)
+
+    validation = Evaluator(TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
+                                         batch_size=parameters["batch_size"], neg_rate=parameters["nr"],
+                                         corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min, use_gpu=use_gpu)
-    
+
     end = time.perf_counter()
     print("Initialization time: " + str(end - start))
 
     start = time.perf_counter()
-    checkpoint_dir=folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(point)
+    checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(point)
 
     init_epoch = 0
     # There is a checkpoint, let's load it!
@@ -97,12 +114,61 @@ def run():
         loss.model = torch.load(checkpoint_dir + ".ckpt")
         init_epoch = loss.model.epoch
 
+
+    # load valid function.
+    def load_valid():
+        valid = None
+        # There is a validation model, let's load it!
+        if os.path.exists(checkpoint_dir + ".valid"):
+            valid = torch.load(checkpoint_dir + ".valid")
+        return valid
+
+
+
+    # Save valid function.
+    def save_valid():
+        torch.save(loss.model, os.path.join(checkpoint_dir + ".valid"))
+
+
+    # Save the current checkpoint.
+    def save_checkpoint():
+        torch.save(loss.model, os.path.join(checkpoint_dir + ".ckpt"))
+
+
+    # https://stackoverflow.com/questions/52494128/call-function-without-optional-arguments-if-they-are-none
+    # Note that lr is mandatory for SGD and the others do not have momentum.
+    optimargs = {k: v for k, v in dict(
+        lr=parameters["lr"],
+        weight_decay=parameters["weight_decay"],
+        momentum=parameters["momentum"], ).items() if v is not None}
+
+    optimizer = None
+    if parameters["opt_method"] == "adagrad":
+        optimizer = optim.Adagrad(
+            loss.parameters(),
+            **optimargs,
+        )
+    elif parameters["opt_method"] == "adadelta":
+        optimizer = optim.Adadelta(
+            loss.parameters(),
+            **optimargs,
+        )
+    elif parameters["opt_method"] == "adam":
+        optimizer = optim.Adam(
+            loss.parameters(),
+            **optimargs,
+        )
+    else:
+        optimizer = optim.SGD(
+            loss.parameters(),
+            **optimargs,
+        )
+
     # If this exists, we are done; otherwise, let's go for it.
     if not os.path.exists(checkpoint_dir + ".model"):
-        trainer = Trainer(model=loss, train=train_manager, validation=validation, train_times=train_times,
-                    alpha=parameters["lr"], weight_decay=parameters["wd"], momentum=parameters["m"], use_gpu=use_gpu,
-                    save_steps=validation_epochs, checkpoint_dir=checkpoint_dir, inner_norm=parameters["inner_norm"],
-                           opt_method='adam')
+        trainer = Trainer(loss=loss, train=train_manager, validation=validation, train_times=train_times, use_gpu=use_gpu,
+                          save_steps=validation_epochs, checkpoint_dir=checkpoint_dir, load_valid=load_valid,
+                          save_valid=save_valid, save_checkpoint=save_checkpoint, optimizer=optimizer, )
         trainer.run(init_epoch=init_epoch)
     else:
         print("Model already exists")
@@ -112,7 +178,7 @@ def run():
     # We are done! Rename checkpoint to model.
     if not os.path.exists(checkpoint_dir + ".model"):
         os.rename(checkpoint_dir + ".valid", checkpoint_dir + ".model")
-        os.remove(checkpoint_dir + ".ckpt")
+    os.remove(checkpoint_dir + ".ckpt")
 
 if __name__ == '__main__':
     run()

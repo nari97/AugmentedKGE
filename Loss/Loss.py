@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 
@@ -32,4 +33,8 @@ class Loss(nn.Module):
             loss_res = self.lossFn(score, data["batch_y"])
 
         # Apply regularization after loss.
-        return loss_res + self.lmbda*self.model.regularization(data)
+        reg = self.model.regularization(data)
+        if self.reg_type is 'L2':
+            reg = torch.pow(reg, 2)/2
+
+        return loss_res + self.lmbda*reg
