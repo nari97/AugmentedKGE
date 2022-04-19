@@ -18,14 +18,14 @@ class TransH(Model):
 
     """
 
-    def __init__(self, ent_total, rel_total, dims, norm=2):
+    def __init__(self, ent_total, rel_total, dims, use_gpu, norm=2):
         """
         Args:
             ent_total (int): Total number of entities
             rel_total (int): Total number of relations
             dim (int): Number of dimensions for embeddings
         """
-        super(TransH, self).__init__(ent_total, rel_total, dims, "transh")
+        super(TransH, self).__init__(ent_total, rel_total, dims, "transh", use_gpu)
 
         self.pnorm = norm
         self.create_embedding(self.dims, emb_type="entity", name="e")

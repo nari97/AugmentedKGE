@@ -24,16 +24,16 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'quate', 6, '', 0
+    model_name, dataset, split_prefix, point = 'transr', 6, '', 0
 
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
 
-    validation_epochs = 25
-    train_times = 500
+    validation_epochs = 5
+    train_times = 5
 
-    use_gpu = False
+    use_gpu = True
 
     # TODO Change to LCWA!
     corruption_mode = "Global"
@@ -92,7 +92,7 @@ def run():
     parameters["rel_total"] = train_manager.relationTotal
     print("Parameters:", parameters)
 
-    mu = ModelUtils.getModel(model_name, parameters)
+    mu = ModelUtils.getModel(model_name, parameters, use_gpu=use_gpu)
     mu.set_params(parameters)
     print("Model name : ", mu.model_name)
     loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu)
