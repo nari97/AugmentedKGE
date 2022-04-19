@@ -4,14 +4,14 @@ from Models.Model import Model
 
 
 class QuatE(Model):
-    def __init__(self, ent_total, rel_total, dims):
+    def __init__(self, ent_total, rel_total, dims, use_gpu):
         """
         Args:
             ent_total (int): Total number of entities
             rel_total (int): Total number of relations
             dims (int): Number of dimensions for embeddings
         """
-        super(QuatE, self).__init__(ent_total, rel_total, dims, "quate")
+        super(QuatE, self).__init__(ent_total, rel_total, dims, "quate", use_gpu)
 
         for component in ['a', 'b', 'c', 'd']:
             self.create_embedding(self.dims, emb_type="entity", name="e_" + component, init='kaiming_uniform')

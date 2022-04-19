@@ -12,11 +12,12 @@ from Models.TransR import TransR
 from Models.TorusE import TorusE
 
 
-def getModel(model_name, params):
+def getModel(model_name, params, use_gpu = False):
     """
     Gets the model object
 
     Args:
+        use_gpu (boolean): True indicates that GPU should be used
         model_name (str): Model name
         params (dict) : Dictionary containing the hyperparameters of the experiment
 
@@ -30,65 +31,77 @@ def getModel(model_name, params):
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
             dims=params["dim"],
-            norm=params["pnorm"],)
+            norm=params["pnorm"],
+            use_gpu=use_gpu,)
     elif model_name == "toruse":
         m = TorusE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
             dims=params["dim"],
-            norm=params["pnorm"],)
+            norm=params["pnorm"],
+            use_gpu=use_gpu,)
     elif model_name == "transh":
         m = TransH(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],)
+            dims=params["dim"],
+            use_gpu=use_gpu,)
     elif model_name == "transd":
         m = TransD(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
             dim_e=params["dime"],
-            dim_r=params["dimr"],)
+            dim_r=params["dimr"],
+            use_gpu=use_gpu,)
     elif model_name == "transr":
         m = TransR(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
             dim_e=params["dime"],
-            dim_r=params["dimr"],)
+            dim_r=params["dimr"],
+            use_gpu=use_gpu,)
     elif model_name == "distmult":
         m = DistMult(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],)
+            dims=params["dim"],
+            use_gpu=use_gpu,)
     elif model_name == "complex":
         m = ComplEx(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],)
+            dims=params["dim"],
+            use_gpu=use_gpu, )
     elif model_name == "hole":
         m = HolE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],)
+            dims=params["dim"],
+            use_gpu=use_gpu,)
     elif model_name == "simple":
         m = SimplE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"])
+            dims=params["dim"],
+            use_gpu=use_gpu,)
     elif model_name == "rotate":
         m = RotatE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],)
+            dims=params["dim"],
+            use_gpu=use_gpu,)
     elif model_name == "analogy":
         m = Analogy(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],)
+            dims=params["dim"],
+            use_gpu=use_gpu,)
     elif model_name == "quate":
         m = QuatE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],)
+            dims=params["dim"],
+            use_gpu=use_gpu,)
     elif model_name == "amie":
         m = Models.Amie()
 

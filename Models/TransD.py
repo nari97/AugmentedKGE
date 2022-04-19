@@ -16,7 +16,7 @@ class TransD(Model):
     TransD imposes contraints like :math:`||\mathbf{h}||_{2} \leq 1, ||\mathbf{t}||_{2} \leq 1, ||\mathbf{r}||_{2} \leq 1, ||h_{\\bot}||_{2} \leq 1` and :math:`||t_{\\bot}||_{2} \leq 1`
     """
 
-    def __init__(self, ent_total, rel_total, dim_e, dim_r, norm=2):
+    def __init__(self, ent_total, rel_total, dim_e, dim_r, use_gpu, norm=2):
         """
         Args:
             ent_total (int): Total number of entities
@@ -24,7 +24,7 @@ class TransD(Model):
             dim_e (int): Number of dimensions for entity embeddings
             dim_r (int): Number of dimensions for relation embeddings
         """
-        super(TransD, self).__init__(ent_total, rel_total, 0, "transd")
+        super(TransD, self).__init__(ent_total, rel_total, 0, "transd", use_gpu)
 
         self.dim_e = dim_e
         self.dim_r = dim_r
@@ -59,7 +59,7 @@ class TransD(Model):
         # ep changed into a row matrix, and rp changed into a column matrix.
         m = torch.matmul(rp.view(rp.shape[0], -1, 1), ep.view(ep.shape[0], 1, -1))
         # Identity matrix.
-        i = torch.eye(self.dim_r, self.dim_e)
+        i = torch.eye(self.dim_r, self.dim_e, device = e.device)
         # add i to every result in the batch size, multiply by vector and put it back to regular shape.
         return torch.matmul(m + i.repeat(ep.shape[0], 1, 1), e.view(ep.shape[0], -1, 1)).view(ep.shape[0], self.dim_r)
 

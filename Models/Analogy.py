@@ -3,14 +3,14 @@ from Models.Model import Model
 
 
 class Analogy(Model):
-    def __init__(self, ent_total, rel_total, dims):
+    def __init__(self, ent_total, rel_total, dims, use_gpu):
         """
         Args:
             ent_total (int): Total number of entities
             rel_total (int): Total number of relations
             dims (int): Number of dimensions for embeddings
         """
-        super(Analogy, self).__init__(ent_total, rel_total, dims, "analogy")
+        super(Analogy, self).__init__(ent_total, rel_total, dims, "analogy", use_gpu)
 
         self.create_embedding(self.dims, emb_type="entity", name="e")
         self.create_embedding(self.dims, emb_type="relation", name="r")
@@ -30,11 +30,12 @@ class Analogy(Model):
         #   0, 0, 0, 0, e
         # We split h and r in blocks of size 2 and compute the matrix multiplication in chunks.
 
+        device = h.device
         h_split = torch.split(h, 2, dim=1)
         r_split = torch.split(r, 2, dim=1)
 
         # This is to get -1 1 for each triple.
-        mask = torch.tensor([-1, 1]).repeat(h.size()[0], 1)
+        mask = torch.tensor([-1, 1], device=device).repeat(h.size()[0], 1)
 
         hr_mul = []
         for i in range(0, len(h_split)):
