@@ -57,13 +57,19 @@ class TransD(Model):
         # shape[0] is the batch size.
 
         # ep changed into a row matrix, and rp changed into a column matrix.
-        m = torch.matmul(rp.view(rp.shape[0], -1, 1), ep.view(ep.shape[0], 1, -1))
+        m = torch.matmul(rp.reshape(rp.shape[0], -1, 1), ep.reshape(ep.shape[0], 1, -1))
+
         # Identity matrix.
         i = torch.eye(self.dim_r, self.dim_e, device = e.device)
+
         # add i to every result in the batch size, multiply by vector and put it back to regular shape.
-        return torch.matmul(m + i.repeat(ep.shape[0], 1, 1), e.view(ep.shape[0], -1, 1)).view(ep.shape[0], self.dim_r)
+        #ans1 =  torch.matmul(m + i.repeat(ep.shape[0], 1, 1), e.view(ep.shape[0], -1, 1)).view(ep.shape[0], self.dim_r)
+        ans2 = torch.matmul(m + i, e.reshape(ep.shape[0], -1, 1)).reshape(ep.shape[0], self.dim_r)
+
+        return ans2
 
     def _calc(self, h, hp, r, rp, t, tp):
+        #print (h.device)
         return -torch.pow(torch.linalg.norm(
             self.get_et(h, hp, rp) + r - self.get_et(t, tp, rp), ord=self.pnorm, dim=-1), 2)
 

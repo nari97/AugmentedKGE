@@ -34,6 +34,13 @@ class Evaluator(object):
 
         return totals
 
+    def chunks(self, lst, n):
+        """Yield successive n-sized chunks from lst."""
+        result = []
+        for i in range(0, len(lst), n):
+            result.append(lst[i:i + n])
+        return result
+
     def evaluate(self, model, materialize=False, name = None, dataset = None):
         collector = RankCollector()
 
@@ -81,8 +88,21 @@ class Evaluator(object):
                 arrH[1+len(corruptedHeads):] = t.h
                 arrR[1+len(corruptedHeads):] = t.r
                 arrT[1+len(corruptedHeads):] = list(corruptedTails)
-                
-                scores = self.predict(arrH, arrR, arrT, model)
+
+                batch_size = 100
+                arrH_batches = self.chunks(arrH, batch_size)
+                arrR_batches = self.chunks(arrR, batch_size)
+                arrT_batches = self.chunks(arrT, batch_size)
+                #print ("Test : " ,len(arrT_batches))
+                scores = torch.Tensor()
+
+                for i in range(len(arrT_batches)):
+                    #print ("Batch: ", i)
+                    batch_score = self.predict(arrH_batches[i], arrR_batches[i], arrT_batches[i], model)
+                    scores = torch.concat((scores, batch_score))
+                #print ("Length of scores: " , len(scores), " Expected length: ", totalTriples)
+                #exit()
+                #scores = self.predict(arrH, arrR, arrT, model)
 
                 cHeads = scores[1:corruptedHeadsEnd]
                 cTails = scores[corruptedHeadsEnd:]
