@@ -46,10 +46,3 @@ def check_params(params):
 
     if flag:
         exit(0)
-
-#Figure this shit out
-def to_var(x, use_gpu):
-        if use_gpu:
-            return torch.LongTensor(x).cuda()
-        else:
-            return torch.LongTensor(x)

@@ -2,11 +2,12 @@ import torch
 from torch.autograd import Variable
 import time
 from .Evaluator import RankCollector
+from Utils import DeviceUtils
 
 
 class Trainer(object):
 
-    def __init__(self, loss=None, train=None, validation=None, train_times=1000, use_gpu=True, save_steps=None,
+    def __init__(self, loss=None, train=None, validation=None, train_times=1000, save_steps=None,
                  checkpoint_dir=None, load_valid=None, save_valid=None, save_checkpoint=None,
                  optimizer=None):
         self.train_times = train_times
@@ -16,7 +17,6 @@ class Trainer(object):
         self.loss = loss
         self.train = train
         self.validation = validation
-        self.use_gpu = use_gpu
         self.save_steps = save_steps
         self.checkpoint_dir = checkpoint_dir
         self.patient_count = 3
@@ -32,18 +32,18 @@ class Trainer(object):
 
         self.optimizer.zero_grad()
 
-        def to_var(x, use_gpu):
-            if use_gpu:
+        def to_var(x):
+            if DeviceUtils.use_gpu:
                 return Variable(torch.from_numpy(x).cuda())
             else:
                 return Variable(torch.from_numpy(x))
 
         # Inner norm happens in the forward of the Model.
         loss = self.loss({
-            'batch_h': to_var(data['batch_h'], self.use_gpu),
-            'batch_t': to_var(data['batch_t'], self.use_gpu),
-            'batch_r': to_var(data['batch_r'], self.use_gpu),
-            'batch_y': to_var(data['batch_y'], self.use_gpu)
+            'batch_h': to_var(data['batch_h']),
+            'batch_t': to_var(data['batch_t']),
+            'batch_r': to_var(data['batch_r']),
+            'batch_y': to_var(data['batch_y'])
         })
 
         loss.backward()
@@ -53,7 +53,7 @@ class Trainer(object):
         return loss
 
     def run(self, init_epoch=0):
-        if self.use_gpu:
+        if DeviceUtils.use_gpu:
             self.loss.cuda()
 
         # Get ranks and totals from the valid model.

@@ -4,8 +4,8 @@ from .Model import Model
 
 class RotatE(Model):
 
-    def __init__(self, ent_total, rel_total, dims, use_gpu, norm=1):
-        super(RotatE, self).__init__(ent_total, rel_total, dims, "rotate", use_gpu)
+    def __init__(self, ent_total, rel_total, dims, norm=1):
+        super(RotatE, self).__init__(ent_total, rel_total, dims, "rotate")
 
         self.pnorm = norm
         self.create_embedding(self.dims, emb_type="entity", name="e_real")

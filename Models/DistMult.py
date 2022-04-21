@@ -4,8 +4,8 @@ from .Model import Model
 
 class DistMult(Model):
 
-    def __init__(self, ent_total, rel_total, dims, use_gpu):
-        super(DistMult, self).__init__(ent_total, rel_total, dims, "distmult", use_gpu)
+    def __init__(self, ent_total, rel_total, dims):
+        super(DistMult, self).__init__(ent_total, rel_total, dims, "distmult")
 
         self.create_embedding(self.dims, emb_type="entity", name="e", norm_method="norm")
         self.create_embedding(self.dims, emb_type="relation", name="r")

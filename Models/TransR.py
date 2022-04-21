@@ -3,7 +3,7 @@ from Models.Model import Model
 
 
 class TransR(Model):
-    def __init__(self, ent_total, rel_total, dim_e, dim_r, use_gpu, norm=2):
+    def __init__(self, ent_total, rel_total, dim_e, dim_r, norm=2):
         """
         Args:
             ent_total (int): Total number of entities
@@ -11,7 +11,7 @@ class TransR(Model):
             dim_e (int): Number of dimensions for entity embeddings
             dim_r (int): Number of dimensions for relation embeddings
         """
-        super(TransR, self).__init__(ent_total, rel_total, 0, "transr", use_gpu)
+        super(TransR, self).__init__(ent_total, rel_total, 0, "transr")
 
         self.dim_e = dim_e
         self.dim_r = dim_r

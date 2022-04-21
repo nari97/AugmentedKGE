@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from Utils import DeviceUtils
 
 
 # Embedding redesign
@@ -9,7 +10,7 @@ class Embedding(nn.Module):
 
     """
 
-    def __init__(self, n_emb, n_dim, emb_type, name, use_gpu, init="xavier_uniform", init_params=[0, 1]):
+    def __init__(self, n_emb, n_dim, emb_type, name, init="xavier_uniform", init_params=[0, 1]):
         """Init function to create and initialize embeddings
 
         Args:
@@ -31,7 +32,6 @@ class Embedding(nn.Module):
         self.init = init
         self.init_params = init_params
         self.emb = None
-        self.use_gpu = use_gpu
         self.create_embedding()
         self.init_embedding()
 
@@ -39,15 +39,10 @@ class Embedding(nn.Module):
         """
         Creates an embedding based on the required size
         """
-        if self.use_gpu:
-            device = torch.device("cuda")
-        else:
-            device = torch.device("cpu")
-
         if type(self.n_dim) is tuple:
-            empty = torch.empty((self.n_emb, *self.n_dim), dtype=torch.float64, device = device)
+            empty = torch.empty((self.n_emb, *self.n_dim), dtype=torch.float64, device=DeviceUtils.get_device())
         else:
-            empty = torch.empty((self.n_emb, self.n_dim), dtype=torch.float64, device = device)
+            empty = torch.empty((self.n_emb, self.n_dim), dtype=torch.float64, device=DeviceUtils.get_device())
         self.emb = torch.nn.Parameter(empty)
 
     def init_embedding(self):

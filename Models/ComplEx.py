@@ -4,8 +4,8 @@ from .Model import Model
 
 class ComplEx(Model):
 
-    def __init__(self, ent_total, rel_total, dims, use_gpu):
-        super(ComplEx, self).__init__(ent_total, rel_total, dims, "complex", use_gpu)
+    def __init__(self, ent_total, rel_total, dims):
+        super(ComplEx, self).__init__(ent_total, rel_total, dims, "complex")
 
         self.create_embedding(self.dims, emb_type="entity", name="e_real")
         self.create_embedding(self.dims, emb_type="relation", name="r_real")

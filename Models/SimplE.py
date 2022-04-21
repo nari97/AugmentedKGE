@@ -4,8 +4,8 @@ from .Model import Model
 
 class SimplE(Model):
 
-    def __init__(self, ent_total, rel_total, dims, use_gpu):
-        super(SimplE, self).__init__(ent_total, rel_total, dims, "simple", use_gpu)
+    def __init__(self, ent_total, rel_total, dims):
+        super(SimplE, self).__init__(ent_total, rel_total, dims, "simple")
 
         self.create_embedding(self.dims, emb_type="entity", name="he")
         self.create_embedding(self.dims, emb_type="entity", name="te")

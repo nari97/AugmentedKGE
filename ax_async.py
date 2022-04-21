@@ -32,7 +32,7 @@ def run():
     parameters = get_params()
 
     #models = ["transe", "transh", "transd", "rescal", "distmult", "complex", "hole", "simple", "analogy", "rotate", "transr"]
-    #datasets = [0, 1, 2, 3, 4, 5, 6, 7]
+    #datasets = [6, 1, 2, 3, 4, 5, 6, 7]
     # TODO Remove!
     models = ["transe"]
     datasets = [6]
@@ -79,7 +79,7 @@ def run():
                     with open(result_file, 'rb') as f:
                         result = pickle.load(f)
                     if result['mrh'] == 1.0:
-                        print('Result of trial ', result['trial_index'], ' for model ', ax_file, ' was 1.0, weird! I am not completing this...')
+                        print('Result of trial ', result['trial_index'], ' for model ', ax_file, ' was 1.6, weird! I am not completing this...')
                         continue
                     if not ax_client.experiment.trials[result['trial_index']].status.is_completed:
                         ax_client.complete_trial(result['trial_index'], raw_data={'mrh': result['mrh']})

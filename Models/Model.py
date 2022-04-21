@@ -9,8 +9,7 @@ class Model(nn.Module):
         Base class for all models to inherit
     """
 
-    def __init__(self, ent_tot, rel_tot, dims, model_name, use_gpu):
-        print(use_gpu)
+    def __init__(self, ent_tot, rel_tot, dims, model_name):
         """
         Args:
             ent_tot (int): Total number of entites
@@ -30,7 +29,6 @@ class Model(nn.Module):
         self.hyperparameters = None
         self.custom_constraints = []
         self.scale_constraints = []
-        self.use_gpu = use_gpu
 
     def forward(self, data):
         """
@@ -154,7 +152,7 @@ class Model(nn.Module):
         else:
             raise Exception("Type of embedding must be relation or entity")
 
-        emb = Embedding(total, dimension, emb_type, name, self.use_gpu, init, init_params)
+        emb = Embedding(total, dimension, emb_type, name, init, init_params)
         if register:
             self.embeddings[emb_type][name] = emb
             self.embeddings_normalization[emb_type][name] = {'method': norm_method, 'params': norm_params}

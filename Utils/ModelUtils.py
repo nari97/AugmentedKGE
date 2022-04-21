@@ -12,12 +12,11 @@ from Models.TransR import TransR
 from Models.TorusE import TorusE
 
 
-def getModel(model_name, params, use_gpu = False):
+def getModel(model_name, params):
     """
     Gets the model object
 
     Args:
-        use_gpu (boolean): True indicates that GPU should be used
         model_name (str): Model name
         params (dict) : Dictionary containing the hyperparameters of the experiment
 
@@ -31,77 +30,65 @@ def getModel(model_name, params, use_gpu = False):
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
             dims=params["dim"],
-            norm=params["pnorm"],
-            use_gpu=use_gpu,)
+            norm=params["pnorm"],)
     elif model_name == "toruse":
         m = TorusE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
             dims=params["dim"],
-            norm=params["pnorm"],
-            use_gpu=use_gpu,)
+            norm=params["pnorm"],)
     elif model_name == "transh":
         m = TransH(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],
-            use_gpu=use_gpu,)
+            dims=params["dim"],)
     elif model_name == "transd":
         m = TransD(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
             dim_e=params["dime"],
-            dim_r=params["dimr"],
-            use_gpu=use_gpu,)
+            dim_r=params["dimr"],)
     elif model_name == "transr":
         m = TransR(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
             dim_e=params["dime"],
-            dim_r=params["dimr"],
-            use_gpu=use_gpu,)
+            dim_r=params["dimr"],)
     elif model_name == "distmult":
         m = DistMult(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],
-            use_gpu=use_gpu,)
+            dims=params["dim"],)
     elif model_name == "complex":
         m = ComplEx(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],
-            use_gpu=use_gpu, )
+            dims=params["dim"],)
     elif model_name == "hole":
         m = HolE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],
-            use_gpu=use_gpu,)
+            dims=params["dim"],)
     elif model_name == "simple":
         m = SimplE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],
-            use_gpu=use_gpu,)
+            dims=params["dim"],)
     elif model_name == "rotate":
         m = RotatE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],
-            use_gpu=use_gpu,)
+            dims=params["dim"],)
     elif model_name == "analogy":
         m = Analogy(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],
-            use_gpu=use_gpu,)
+            dims=params["dim"],)
     elif model_name == "quate":
         m = QuatE(
             ent_total=params["ent_total"],
             rel_total=params["rel_total"],
-            dims=params["dim"],
-            use_gpu=use_gpu,)
+            dims=params["dim"],)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -114,6 +101,10 @@ def getModel(model_name, params, use_gpu = False):
     # Low-dimensional hyperbolic knowledge graph embeddings
     # Hyperbolic entailment cones for learning hierarchical embeddings
     # Learning hierarchy-aware knowledge graph embeddings for link prediction
+    # Wen Zhang, Bibek Paudel, Wei Zhang, Abraham Bernstein, and Huajun Chen. 2019. Interaction embeddings for
+    #   prediction and explanation in knowledge graphs. In Proceedings of the 12th ACM International Conference on Web
+    #   Search and Data Mining
+    # Check this for latest: https://www.mdpi.com/2076-3417/12/8/3935
 
     # ConE: https://arxiv.org/pdf/2110.14923v2.pdf, https://github.com/snap-stanford/ConE/
     # This is mostly dealing with hierarchies, so it is necessary to know hierarchies between predicates in advanced.

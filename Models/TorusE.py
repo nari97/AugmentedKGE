@@ -4,8 +4,8 @@ from Models.Model import Model
 
 
 class TorusE(Model):
-    def __init__(self, ent_total, rel_total, dims, use_gpu, norm=2):
-        super(TorusE, self).__init__(ent_total, rel_total, dims, "toruse", use_gpu)
+    def __init__(self, ent_total, rel_total, dims, norm=2):
+        super(TorusE, self).__init__(ent_total, rel_total, dims, "toruse")
 
         self.pnorm = norm
         self.create_embedding(self.dims, emb_type="entity", name="e")

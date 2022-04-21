@@ -4,8 +4,8 @@ from .Model import Model
 
 class HolE(Model):
 
-    def __init__(self, ent_total, rel_total, dims, use_gpu):
-        super(HolE, self).__init__(ent_total, rel_total, dims, "hole", use_gpu)
+    def __init__(self, ent_total, rel_total, dims):
+        super(HolE, self).__init__(ent_total, rel_total, dims, "hole")
 
         self.create_embedding(self.dims, emb_type="entity", name="e")
         self.create_embedding(self.dims, emb_type="relation", name="r")

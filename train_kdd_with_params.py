@@ -3,64 +3,75 @@ from Train.Evaluator import Evaluator
 from Train.Trainer import Trainer
 from Utils import ModelUtils
 from Utils import LossUtils
-from Utils import DeviceUtils
 import torch
-import torch.optim as optim
 import time
 import os
+import sys
+import torch.optim as optim
+from Utils import DeviceUtils
 
 
-def get_params(index, total_points):
+def get_params(index):
     current = 0
-    for model_name in ['transe', 'transh', 'transd', 'distmult', 'complex', 'hole', 'simple', 'rotate']:
+    for model_name in ['transe', 'transh', 'transd', 'transr', 'distmult', 'complex', 'hole', 'simple', 'rotate',
+                       'analogy', 'quate', 'toruse']:
         for dataset in range(0, 8):
-            for point in range(0, total_points):
-                # This is the prefix to point to different splits. We have:
-                #   (empty): Original split
+            # This is the prefix to point to different splits. We have:
+            #   (empty): Original split
+            #   new_: The new split we did for WWW'21 using Kolmogorov-Smirnov
+            #   split_ks_zerofive_: Using KGSplit based on Kolmogorov-Smirnov
+            #   split_c_zerofive_: Using KGSplit based on Cucconi
+            for split_prefix in ['', 'split_ks_zerofive_', 'split_c_zerofive_']:
                 if current == index:
-                    return model_name, dataset, '', point
+                    return model_name, dataset, split_prefix
                 current += 1
 
 
 def run():
-    folder = ''
-    model_name, dataset, split_prefix, point = 'transd', 6, '', 0
+    folder = sys.argv[1]
+    index = int(sys.argv[2])
+
+    model_name, dataset, split_prefix = get_params(index)
+
+    # The Evaluator throws a memory error for TransD (all datasets) and TransR, YAGO3-10.
+    validation_batched = model_name is 'transd' or (model_name is 'transr' and dataset is 7)
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
 
-    validation_epochs = 5
-    train_times = 5
+    validation_epochs = 100
+    train_times = 5000
 
     DeviceUtils.use_gpu = False
 
-    # TODO Change to LCWA!
-    corruption_mode = "Global"
+    corruption_mode = "LCWA"
 
     parameters = {}
+    # Batch size
     parameters["batch_size"] = 1000
+
+    # Negative rate
     parameters["nr"] = 5
-    parameters["trial_index"] = 1
-    parameters["dim"] = 5
-    parameters["dime"] = 2
-    parameters["dimr"] = 3
 
+    # Embedding dimensions
+    parameters["dim"] = 75
+    parameters["dime"] = 75
+    parameters["dimr"] = 75
+
+    # Optimizer
     parameters["lr"] = None
-
-    # TODO Testing regularization
-    parameters["lmbda"] = 1e-5
-    # TODO Normalization of lambda: https://arxiv.org/pdf/1711.05101.pdf (Appendix B.1)
-
-    # TODO This is L2 regularization!
-    #   https://towardsdatascience.com/weight-decay-and-its-peculiar-effects-66e0aee3e7b8
-    #   See also: https://github.com/zeke-xie/stable-weight-decay-regularization
-    # If you set weight decay, you are using L2 regularization without control.
     parameters["weight_decay"] = None
     parameters["momentum"] = None
     parameters["opt_method"] = "adam"
 
+    # Regularization
+    parameters["lmbda"] = 1e-5
+    parameters["reg_type"] = 'L2'
+
+    # Margin
     parameters["gamma"] = 1e-4
 
+    # Norm used in score
     parameters["pnorm"] = 2
 
     dataset_name = ""
@@ -81,7 +92,8 @@ def run():
     if dataset == 7:
         dataset_name = "YAGO3-10"
 
-    print("Model:", model_name, "; Dataset:", dataset_name, "; Corruption:", corruption_mode)
+    print("Model:", model_name, "; Dataset:", dataset_name, "; Index:", index,
+          "; Corruption:", corruption_mode, '; Parameters: ', parameters)
 
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
@@ -94,19 +106,19 @@ def run():
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
     print("Model name : ", mu.model_name)
-    loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu)
+    loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu, reg_type=parameters["reg_type"])
 
     validation = Evaluator(TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
                                          batch_size=parameters["batch_size"], neg_rate=parameters["nr"],
                                          corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min,
-                           batched=True)
+                           batched=validation_batched)
 
     end = time.perf_counter()
     print("Initialization time: " + str(end - start))
 
     start = time.perf_counter()
-    checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(point)
+    checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(index)
 
     init_epoch = 0
     # There is a checkpoint, let's load it!
@@ -138,23 +150,8 @@ def run():
         momentum=parameters["momentum"], ).items() if v is not None}
 
     optimizer = None
-    if parameters["opt_method"] == "adagrad":
-        optimizer = optim.Adagrad(
-            loss.parameters(),
-            **optimargs,
-        )
-    elif parameters["opt_method"] == "adadelta":
-        optimizer = optim.Adadelta(
-            loss.parameters(),
-            **optimargs,
-        )
-    elif parameters["opt_method"] == "adam":
+    if parameters["opt_method"] == "adam":
         optimizer = optim.Adam(
-            loss.parameters(),
-            **optimargs,
-        )
-    else:
-        optimizer = optim.SGD(
             loss.parameters(),
             **optimargs,
         )
@@ -173,7 +170,7 @@ def run():
     # We are done! Rename checkpoint to model.
     if not os.path.exists(checkpoint_dir + ".model"):
         os.rename(checkpoint_dir + ".valid", checkpoint_dir + ".model")
-    os.remove(checkpoint_dir + ".ckpt")
+        os.remove(checkpoint_dir + ".ckpt")
 
 
 if __name__ == '__main__':

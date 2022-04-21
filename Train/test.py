@@ -101,7 +101,7 @@ def test(model_name, dataset, corruption_mode, type = "test", use_gpu = False):
             #print (manager.hpt, manager.tph)
             model = torch.load(model_file)
             #model.model.load_checkpoint(model_file)
-            #print (model.embeddings["entity"]["e"].emb.weight.data[0])
+            #print (model.embeddings["entity"]["e"].emb.weight.data[6])
             rc = evaluator.evaluate(model, type == "test", name = model_name, dataset = dataset)
             # Store rc
             with open(file, 'w') as f:

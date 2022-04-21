@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
 from .Loss import Loss
+from Utils import DeviceUtils
 
 
 class BCELoss(Loss):
 
     def __init__(self, model, with_logits=False, margin=None, reg_type='L2'):
-        super(BCELoss, self).__init__(model, is_pairwise=False, reg_type='L2')
+        super(BCELoss, self).__init__(model, is_pairwise=False, reg_type=reg_type)
 
         self.margin = margin
 
@@ -22,5 +23,4 @@ class BCELoss(Loss):
 
         # Change from -1 to 0.
         targets[targets == -1] = 0
-        # TODO CUDA for targets?
-        return self.loss(scores, targets.to(torch.float64))
+        return self.loss(scores, targets.to(torch.float64, device=DeviceUtils.get_device()))

@@ -2,17 +2,17 @@ import torch
 import numpy as np
 import math
 from scipy.stats import wilcoxon
-from Utils.utils import to_var
+from Utils import DeviceUtils
 
 
 class Evaluator(object):
 
     """ This can be either the validator or tester depending on the manager used. E"""
-    def __init__(self, manager=None, use_gpu=False, rel_anomaly_max=.75, rel_anomaly_min=0):
+    def __init__(self, manager=None, rel_anomaly_max=.75, rel_anomaly_min=0, batched=False):
         self.manager = manager
-        self.use_gpu = use_gpu
         self.rel_anomaly_max = rel_anomaly_max
         self.rel_anomaly_min = rel_anomaly_min
+        self.batched = batched
 
     def get_totals(self):
         totals = []
@@ -34,7 +34,7 @@ class Evaluator(object):
 
         return totals
 
-    def evaluate(self, model, materialize=False, name = None, dataset = None):
+    def evaluate(self, model, materialize=False, name=None, dataset=None):
         collector = RankCollector()
 
         is_nan_cnt, total = 0, 0
@@ -81,8 +81,19 @@ class Evaluator(object):
                 arrH[1+len(corruptedHeads):] = t.h
                 arrR[1+len(corruptedHeads):] = t.r
                 arrT[1+len(corruptedHeads):] = list(corruptedTails)
-                
-                scores = self.predict(arrH, arrR, arrT, model)
+
+                if not self.batched:
+                    scores = self.predict(arrH, arrR, arrT, model)
+                else:
+                    batch_size = 25
+                    arrH_batches = np.array_split(arrH, batch_size)
+                    arrR_batches = np.array_split(arrR, batch_size)
+                    arrT_batches = np.array_split(arrT, batch_size)
+                    scores = torch.Tensor()
+
+                    for i in range(len(arrT_batches)):
+                        batch_score = self.predict(arrH_batches[i], arrR_batches[i], arrT_batches[i], model)
+                        scores = torch.concat((scores, batch_score))
 
                 cHeads = scores[1:corruptedHeadsEnd]
                 cTails = scores[corruptedHeadsEnd:]
@@ -124,10 +135,16 @@ class Evaluator(object):
         return (2*less + eq + 1)/2
 
     def predict(self, arrH, arrR, arrT, model):
+        def to_var(x):
+            if DeviceUtils.use_gpu:
+                return torch.LongTensor(x).cuda()
+            else:
+                return torch.LongTensor(x)
+
         return model.predict({
-            'batch_h': to_var(arrH, self.use_gpu),
-            'batch_r': to_var(arrR, self.use_gpu),
-            'batch_t': to_var(arrT, self.use_gpu),
+            'batch_h': to_var(arrH),
+            'batch_r': to_var(arrR),
+            'batch_t': to_var(arrT),
             'mode': 'normal'
         })
 
