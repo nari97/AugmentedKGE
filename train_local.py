@@ -24,7 +24,7 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'transd', 6, '', 0
+    model_name, dataset, split_prefix, point = 'transr', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
@@ -32,7 +32,7 @@ def run():
     validation_epochs = 5
     train_times = 5
 
-    DeviceUtils.use_gpu = False
+    DeviceUtils.use_gpu = True
 
     # TODO Change to LCWA!
     corruption_mode = "Global"

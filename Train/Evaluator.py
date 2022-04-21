@@ -6,8 +6,8 @@ from Utils import DeviceUtils
 
 
 class Evaluator(object):
-
     """ This can be either the validator or tester depending on the manager used. E"""
+
     def __init__(self, manager=None, rel_anomaly_max=.75, rel_anomaly_min=0, batched=False):
         self.manager = manager
         self.rel_anomaly_max = rel_anomaly_max
@@ -51,20 +51,20 @@ class Evaluator(object):
 
         for r in relations.keys():
             total += 1
-            #print (str(r) + ":Started")
+            # print (str(r) + ":Started")
             if materialize:
                 neg_triples = {}
             for t in relations[r]:
                 corruptedHeads = self.manager.get_corrupted(t.h, t.r, t.t, "head")
                 corruptedTails = self.manager.get_corrupted(t.h, t.r, t.t, "tail")
-                
+
                 if materialize:
                     for hp in corruptedHeads:
                         self.add_triple(neg_triples, hp, t.r, t.t, 0)
-                        
+
                     for tp in corruptedTails:
                         self.add_triple(neg_triples, t.h, t.r, tp, 0)
-                        
+
                 totalTriples = 1 + len(corruptedHeads) + len(corruptedTails)
                 arrH = np.zeros(totalTriples, dtype=np.int64)
                 arrR = np.zeros(totalTriples, dtype=np.int64)
@@ -72,15 +72,15 @@ class Evaluator(object):
 
                 arrH[0], arrR[0], arrT[0] = t.h, t.r, t.t
 
-                arrH[1:1+len(corruptedHeads)] = list(corruptedHeads)
-                arrR[1:1+len(corruptedHeads)] = t.r
-                arrT[1:1+len(corruptedHeads)] = t.t
+                arrH[1:1 + len(corruptedHeads)] = list(corruptedHeads)
+                arrR[1:1 + len(corruptedHeads)] = t.r
+                arrT[1:1 + len(corruptedHeads)] = t.t
 
-                corruptedHeadsEnd = 1+len(corruptedHeads)
+                corruptedHeadsEnd = 1 + len(corruptedHeads)
 
-                arrH[1+len(corruptedHeads):] = t.h
-                arrR[1+len(corruptedHeads):] = t.r
-                arrT[1+len(corruptedHeads):] = list(corruptedTails)
+                arrH[1 + len(corruptedHeads):] = t.h
+                arrR[1 + len(corruptedHeads):] = t.r
+                arrT[1 + len(corruptedHeads):] = list(corruptedTails)
 
                 if not self.batched:
                     scores = self.predict(arrH, arrR, arrT, model)
@@ -89,7 +89,7 @@ class Evaluator(object):
                     arrH_batches = np.array_split(arrH, batch_size)
                     arrR_batches = np.array_split(arrR, batch_size)
                     arrT_batches = np.array_split(arrT, batch_size)
-                    scores = torch.Tensor()
+                    scores = torch.tensor([],device=DeviceUtils.get_device())
 
                     for i in range(len(arrT_batches)):
                         batch_score = self.predict(arrH_batches[i], arrR_batches[i], arrT_batches[i], model)
@@ -97,8 +97,8 @@ class Evaluator(object):
 
                 cHeads = scores[1:corruptedHeadsEnd]
                 cTails = scores[corruptedHeadsEnd:]
-                
-                rankhLess, ranktLess = torch.sum(scores[0]>cHeads).item(), torch.sum(scores[0]>cTails).item()
+
+                rankhLess, ranktLess = torch.sum(scores[0] > cHeads).item(), torch.sum(scores[0] > cTails).item()
                 rankhEq, ranktEq = 1 + torch.sum(scores[0] == cHeads).item(), 1 + torch.sum(scores[0] == cTails).item()
 
                 # If it is NaN, rank last!
@@ -106,33 +106,34 @@ class Evaluator(object):
                     is_nan_cnt += 1
                     rankhLess, ranktLess = len(cHeads), len(cTails)
                     rankhEq, ranktEq = 1, 1
-                
+
                 if materialize:
                     for i in range(1, totalTriples):
                         if scores[0] >= scores[i]:
                             self.add_triple(neg_triples, arrH[i], arrR[i], arrT[i], 1)
 
-                collector.update_rank(self.frac_rank(rankhLess, rankhEq), rankhEq>1, len(corruptedHeads),
-                           self.frac_rank(ranktLess, ranktEq), ranktEq>1, len(corruptedTails), t.r, self.manager.relation_anomaly[t.r])
-  
+                collector.update_rank(self.frac_rank(rankhLess, rankhEq), rankhEq > 1, len(corruptedHeads),
+                                      self.frac_rank(ranktLess, ranktEq), ranktEq > 1, len(corruptedTails), t.r,
+                                      self.manager.relation_anomaly[t.r])
+
             if materialize:
                 for p in neg_triples.keys():
                     collector.update_total_unique_triples(r)
-                    
+
                     if neg_triples[p][1] > 0:
                         collector.update_unique_materialized(r)
 
         # TODO Remove!
-        print('IsNaN (%):', is_nan_cnt/total)
+        print('IsNaN (%):', is_nan_cnt / total)
         return collector
 
     def add_triple(self, tree, h, r, t, i):
         if (h, t) not in tree.keys():
-             tree[(h, t)] = np.array((0, 0))
+            tree[(h, t)] = np.array((0, 0))
         tree[(h, t)][i] = tree[(h, t)][i] + 1
 
     def frac_rank(self, less, eq):
-        return (2*less + eq + 1)/2
+        return (2 * less + eq + 1) / 2
 
     def predict(self, arrH, arrR, arrT, model):
         def to_var(x):
@@ -147,6 +148,7 @@ class Evaluator(object):
             'batch_t': to_var(arrT),
             'mode': 'normal'
         })
+
 
 class RankCollector():
     def __init__(self):
@@ -175,10 +177,10 @@ class RankCollector():
             rc.all_ties.append(self.all_ties[i])
 
             if self.all_rels[i] in self.unique_triples_materialized.keys() \
-            and self.all_rels[i] not in rc.unique_triples_materialized.keys():
+                    and self.all_rels[i] not in rc.unique_triples_materialized.keys():
                 rc.unique_triples_materialized[self.all_rels[i]] = self.unique_triples_materialized[self.all_rels[i]]
             if self.all_rels[i] in self.total_unique_triples.keys() \
-            and self.all_rels[i] not in rc.total_unique_triples.keys():
+                    and self.all_rels[i] not in rc.total_unique_triples.keys():
                 rc.total_unique_triples[self.all_rels[i]] = self.total_unique_triples[self.all_rels[i]]
         return rc
 
@@ -194,7 +196,7 @@ class RankCollector():
         print('Current metric: ', current_metric.get(), '; Previous metric: ', previous.get_metric().get())
         print('Previous is better than current: ', Metric.is_improved(current_metric, previous.get_metric()))
         try:
-           print('Is significant: ', RankCollector.is_significant(self.all_ranks, previous.all_ranks))
+            print('Is significant: ', RankCollector.is_significant(self.all_ranks, previous.all_ranks))
         except ValueError as err:
             print('Is significant error: ', err)
         print('Expected: ', previous.get_expected().get())
@@ -230,21 +232,21 @@ class RankCollector():
     def get_ranks_below_expected(self):
         below = []
         for i in range(len(self.all_totals)):
-            below.append(self.all_ranks[i] > (self.all_totals[i]+1)/2)
+            below.append(self.all_ranks[i] > (self.all_totals[i] + 1) / 2)
         return below
 
     def update_unique_materialized(self, r):
         if r not in self.unique_triples_materialized.keys():
             self.unique_triples_materialized[r] = 0
-        self.unique_triples_materialized[r] = self.unique_triples_materialized[r]+1
+        self.unique_triples_materialized[r] = self.unique_triples_materialized[r] + 1
 
     def update_total_unique_triples(self, r):
         if r not in self.total_unique_triples.keys():
             self.total_unique_triples[r] = 0
-        self.total_unique_triples[r] = self.total_unique_triples[r]+1
+        self.total_unique_triples[r] = self.total_unique_triples[r] + 1
 
     def get_expected(self, metric_str="mr"):
-        expected=[]
+        expected = []
         for i in range(len(self.all_totals)):
             expected.append((self.all_totals[i] + 1) / 2)
         return self.get(expected, self.all_totals, metric_str)
@@ -284,6 +286,7 @@ class RankCollector():
             value = math.exp(value / divisor)
         return Metric(value)
 
+
 class Metric():
     def __init__(self, value, cmp='low'):
         self.value = value
@@ -293,7 +296,7 @@ class Metric():
     @staticmethod
     def is_improved(this, that):
         if this.cmp != that.cmp:
-            raise ValueError('Comparison types of this ('+this.cmp+') and that ('+that.cmp+') are different')
+            raise ValueError('Comparison types of this (' + this.cmp + ') and that (' + that.cmp + ') are different')
         if this.cmp == 'low':
             return this.get() > that.get()
         elif this.cmp == 'high':
