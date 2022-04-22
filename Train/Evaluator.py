@@ -34,7 +34,7 @@ class Evaluator(object):
 
         return totals
 
-    def evaluate(self, model, materialize=False, name=None, dataset=None):
+    def evaluate(self, model, materialize=False):
         collector = RankCollector()
 
         is_nan_cnt, total = 0, 0

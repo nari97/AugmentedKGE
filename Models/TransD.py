@@ -59,7 +59,7 @@ class TransD(Model):
         # ep changed into a row matrix, and rp changed into a column matrix.
         m = torch.matmul(rp.view(rp.shape[0], -1, 1), ep.view(ep.shape[0], 1, -1))
         # Identity matrix.
-        i = torch.eye(self.dim_r, self.dim_e, device = e.device)
+        i = torch.eye(self.dim_r, self.dim_e, device=e.device)
         # add i to every result in the batch size, multiply by vector and put it back to regular shape.
         return torch.matmul(m + i, e.view(ep.shape[0], -1, 1)).view(ep.shape[0], self.dim_r)
 

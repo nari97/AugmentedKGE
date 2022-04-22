@@ -34,7 +34,4 @@ class Loss(nn.Module):
 
         # Apply regularization after loss.
         reg = torch.tensor([self.model.regularization(data)], device = score.device)
-        if reg is not 0 and self.reg_type is 'L2':
-            reg = torch.pow(reg, 2) / 2
-
         return loss_res + self.lmbda * reg

@@ -100,8 +100,12 @@ class Model(nn.Module):
                         x = torch.abs(x)
                     elif reg_type is 'L2':
                         x = torch.pow(x, 2)
-                    reg += torch.mean(x)
+                    reg += torch.sum(x)
                     total += 1
+
+        # See https://towardsdatascience.com/understanding-the-scaling-of-l%C2%B2-regularization-in-the-context-of-neural-networks-e3d25f8b50db
+        if reg_type is 'L2':
+            reg = .5*reg
         if total > 0:
             reg /= total
 
