@@ -2,7 +2,6 @@ import torch
 from torch.autograd import Variable
 import time
 from .Evaluator import RankCollector
-from Utils import DeviceUtils
 
 
 class Trainer(object):
@@ -33,10 +32,7 @@ class Trainer(object):
         self.optimizer.zero_grad()
 
         def to_var(x):
-            if DeviceUtils.use_gpu:
-                return Variable(torch.from_numpy(x).cuda())
-            else:
-                return Variable(torch.from_numpy(x))
+            return torch.LongTensor(x)
 
         # Inner norm happens in the forward of the Model.
         loss = self.loss({
@@ -53,9 +49,6 @@ class Trainer(object):
         return loss
 
     def run(self, init_epoch=0):
-        if DeviceUtils.use_gpu:
-            self.loss.cuda()
-
         # Get ranks and totals from the valid model.
         collector = None
 

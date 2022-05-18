@@ -24,13 +24,12 @@ class TransD(Model):
             dim_e (int): Number of dimensions for entity embeddings
             dim_r (int): Number of dimensions for relation embeddings
         """
-        super(TransD, self).__init__(ent_total, rel_total, 0, "transd")
-
+        super(TransD, self).__init__(ent_total, rel_total)
         self.dim_e = dim_e
         self.dim_r = dim_r
-
         self.pnorm = norm
 
+    def initialize_model(self):
         self.create_embedding(self.dim_e, emb_type="entity", name="e")
         self.create_embedding(self.dim_e, emb_type="entity", name="ep")
         self.create_embedding(self.dim_r, emb_type="relation", name="r")
@@ -54,14 +53,15 @@ class TransD(Model):
         return torch.linalg.norm(self.get_et(t, tp, rp), ord=2) - epsilon
 
     def get_et(self, e, ep, rp):
-        # shape[6] is the batch size.
-
-        # ep changed into a row matrix, and rp changed into a column matrix.
-        m = torch.matmul(rp.view(rp.shape[0], -1, 1), ep.view(ep.shape[0], 1, -1))
         # Identity matrix.
         i = torch.eye(self.dim_r, self.dim_e, device=e.device)
+        batch_size = ep.shape[0]
+
+        # ep changed into a row matrix, and rp changed into a column matrix.
+        m = torch.matmul(rp.view(batch_size, -1, 1), ep.view(batch_size, 1, -1))
+
         # add i to every result in the batch size, multiply by vector and put it back to regular shape.
-        return torch.matmul(m + i, e.view(ep.shape[0], -1, 1)).view(ep.shape[0], self.dim_r)
+        return torch.matmul(m + i, e.view(batch_size, -1, 1)).view(batch_size, self.dim_r)
 
     def _calc(self, h, hp, r, rp, t, tp):
         return -torch.pow(torch.linalg.norm(

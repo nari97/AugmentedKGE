@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from .Loss import Loss
-from Utils import DeviceUtils
 
 
 class BCELoss(Loss):
@@ -23,4 +22,4 @@ class BCELoss(Loss):
 
         # Change from -1 to 0.
         targets[targets == -1] = 0
-        return self.loss(scores, targets.to(dtype = torch.float64, device=DeviceUtils.get_device()))
+        return self.loss(scores, targets.to(dtype=torch.float64))

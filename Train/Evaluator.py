@@ -2,7 +2,6 @@ import torch
 import numpy as np
 import math
 from scipy.stats import wilcoxon
-from Utils import DeviceUtils
 
 
 class Evaluator(object):
@@ -89,7 +88,7 @@ class Evaluator(object):
                     arrH_batches = np.array_split(arrH, batch_size)
                     arrR_batches = np.array_split(arrR, batch_size)
                     arrT_batches = np.array_split(arrT, batch_size)
-                    scores = torch.tensor([],device=DeviceUtils.get_device())
+                    scores = torch.tensor([])
 
                     for i in range(len(arrT_batches)):
                         batch_score = self.predict(arrH_batches[i], arrR_batches[i], arrT_batches[i], model)
@@ -137,10 +136,7 @@ class Evaluator(object):
 
     def predict(self, arrH, arrR, arrT, model):
         def to_var(x):
-            if DeviceUtils.use_gpu:
-                return torch.LongTensor(x).cuda()
-            else:
-                return torch.LongTensor(x)
+            return torch.LongTensor(x)
 
         return model.predict({
             'batch_h': to_var(arrH),

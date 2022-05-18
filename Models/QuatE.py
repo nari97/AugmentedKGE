@@ -4,18 +4,14 @@ from Models.Model import Model
 
 
 class QuatE(Model):
-    def __init__(self, ent_total, rel_total, dims):
-        """
-        Args:
-            ent_total (int): Total number of entities
-            rel_total (int): Total number of relations
-            dims (int): Number of dimensions for embeddings
-        """
-        super(QuatE, self).__init__(ent_total, rel_total, dims, "quate")
+    def __init__(self, ent_total, rel_total, dim):
+        super(QuatE, self).__init__(ent_total, rel_total)
+        self.dim = dim
 
+    def initialize_model(self):
         for component in ['a', 'b', 'c', 'd']:
-            self.create_embedding(self.dims, emb_type="entity", name="e_" + component, init='kaiming_uniform')
-            self.create_embedding(self.dims, emb_type="relation", name="r_" + component, init='kaiming_uniform')
+            self.create_embedding(self.dim, emb_type="entity", name="e_" + component, init='kaiming_uniform')
+            self.create_embedding(self.dim, emb_type="relation", name="r_" + component, init='kaiming_uniform')
 
             self.register_scale_constraint(emb_type="entity", name="e_" + component, p=2)
             self.register_scale_constraint(emb_type="relation", name="r_" + component, p=2)
@@ -23,22 +19,22 @@ class QuatE(Model):
         # Special initialization: normalized quaternion with scalar component equal to zero.
 
         # Create embeddings but do not register.
-        q_img_e = (self.create_embedding(self.dims, emb_type="entity", register=False, init=None).emb.data,
-               self.create_embedding(self.dims, emb_type="entity", register=False, init='kaiming_uniform').emb.data,
-               self.create_embedding(self.dims, emb_type="entity", register=False, init='kaiming_uniform').emb.data,
-               self.create_embedding(self.dims, emb_type="entity", register=False, init='kaiming_uniform').emb.data)
+        q_img_e = (self.create_embedding(self.dim, emb_type="entity", register=False, init=None).emb.data,
+               self.create_embedding(self.dim, emb_type="entity", register=False, init='kaiming_uniform').emb.data,
+               self.create_embedding(self.dim, emb_type="entity", register=False, init='kaiming_uniform').emb.data,
+               self.create_embedding(self.dim, emb_type="entity", register=False, init='kaiming_uniform').emb.data)
         q_img_norm_e = self.quat_norm(q_img_e)
 
-        q_img_r = (self.create_embedding(self.dims, emb_type="relation", register=False, init=None).emb.data,
-               self.create_embedding(self.dims, emb_type="relation", register=False, init='kaiming_uniform').emb.data,
-               self.create_embedding(self.dims, emb_type="relation", register=False, init='kaiming_uniform').emb.data,
-               self.create_embedding(self.dims, emb_type="relation", register=False, init='kaiming_uniform').emb.data)
+        q_img_r = (self.create_embedding(self.dim, emb_type="relation", register=False, init=None).emb.data,
+               self.create_embedding(self.dim, emb_type="relation", register=False, init='kaiming_uniform').emb.data,
+               self.create_embedding(self.dim, emb_type="relation", register=False, init='kaiming_uniform').emb.data,
+               self.create_embedding(self.dim, emb_type="relation", register=False, init='kaiming_uniform').emb.data)
         q_img_norm_r = self.quat_norm(q_img_r)
 
         # Embeddings between -pi and pi.
-        theta_e = self.create_embedding(self.dims, emb_type="entity", register=False,
+        theta_e = self.create_embedding(self.dim, emb_type="entity", register=False,
                                         init='uniform', init_params=[-math.pi, math.pi]).emb.data
-        theta_r = self.create_embedding(self.dims, emb_type="relation", register=False,
+        theta_r = self.create_embedding(self.dim, emb_type="relation", register=False,
                                         init='uniform', init_params=[-math.pi, math.pi]).emb.data
 
         for idx, component in enumerate(['a', 'b', 'c', 'd']):

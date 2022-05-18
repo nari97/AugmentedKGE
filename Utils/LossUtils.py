@@ -17,23 +17,29 @@ def getLoss(model, gamma=0, reg_type='L2'):
             loss: Loss function selected according to model
     """
 
-    model_name = model.model_name
+    kwargs = {"model": model, "reg_type": reg_type, "margin" : gamma}
+
+    model_name = model.get_model_name()
     if model_name == "transe" or model_name == "transh" or model_name == "transd" or model_name == "transr" or \
             model_name == "toruse":
-        loss = MarginLoss(model=model, margin=gamma, reg_type=reg_type)
+        loss = MarginLoss(**kwargs)
         print ('Loss : Margin Loss')
     elif model_name == 'distmult' or model_name == 'hole':
-        loss = MarginLoss(model=model, margin=gamma, criterion=nn.Sigmoid(), reg_type=reg_type)
+        kwargs.update({"criterion": nn.Sigmoid()})
+        loss = MarginLoss(**kwargs)
         print ('Loss : Margin Sigmoid Loss')
     elif model_name == "rotate":
-        loss = SoftMarginLoss(model=model, margin=gamma, reg_type=reg_type)
+        loss = SoftMarginLoss(**kwargs)
         print ('Loss: Soft Margin Loss with gamma: ', gamma)
     elif model_name == "analogy" or model_name == "quate" or model_name == "simple":
-        loss = SoftMarginLoss(model=model, reg_type=reg_type)
+        kwargs.pop('margin')
+        loss = SoftMarginLoss(**kwargs)
         print('Loss: Soft Margin Loss')
-    elif model_name == "complex":
+    elif model_name == "complex" or model_name == "tucker":
+        kwargs.pop('margin')
+        kwargs.update({"with_logits": True})
         print ('Loss : BCE Loss with logits')
-        loss = BCELoss(model=model, with_logits=True, reg_type=reg_type)
+        loss = BCELoss(**kwargs)
     else:
         pass
 

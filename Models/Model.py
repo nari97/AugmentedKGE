@@ -9,7 +9,7 @@ class Model(nn.Module):
         Base class for all models to inherit
     """
 
-    def __init__(self, ent_tot, rel_tot, dims, model_name):
+    def __init__(self, ent_tot, rel_tot):
         """
         Args:
             ent_tot (int): Total number of entites
@@ -19,16 +19,25 @@ class Model(nn.Module):
 
         self.ent_tot = ent_tot
         self.rel_tot = rel_tot
-        self.dims = dims
-        self.model_name = model_name
+        self.use_gpu = False
+
         self.epoch = 0
-        self.embeddings = {"entity": {}, "relation": {}}
-        self.embeddings_normalization = {"entity": {}, "relation": {}}
+        self.embeddings = {"entity": {}, "relation": {}, "global" : {}}
+        self.embeddings_normalization = {"entity": {}, "relation": {}, "global" : {}}
         self.ranks = None
         self.totals = None
         self.hyperparameters = None
         self.custom_constraints = []
         self.scale_constraints = []
+
+    def set_use_gpu(self, use_gpu):
+        self.use_gpu = use_gpu
+
+    def get_model_name(self):
+        return type(self).__name__.lower()
+
+    def initialize_model(self):
+        raise NotImplementedError
 
     def forward(self, data):
         """
@@ -44,7 +53,19 @@ class Model(nn.Module):
         tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
 
-        return self.return_score(head_emb, rel_emb, tail_emb).flatten()
+        # Move to GPU?
+        if self.use_gpu:
+            for emb in [head_emb, tail_emb, rel_emb]:
+                for name in emb.keys():
+                    emb[name] = self.move_to_gpu(emb[name])
+
+        scores = self.return_score(head_emb, rel_emb, tail_emb)
+
+        # Put back to CPU?
+        if self.use_gpu:
+            scores = scores.cpu()
+
+        return scores.flatten()
 
     def apply_normalization(self):
         for emb_type in self.embeddings:
@@ -153,6 +174,8 @@ class Model(nn.Module):
             total = self.ent_tot
         elif emb_type == "relation":
             total = self.rel_tot
+        elif emb_type == "global":
+            total = 1
         else:
             raise Exception("Type of embedding must be relation or entity")
 
@@ -164,6 +187,9 @@ class Model(nn.Module):
         else:
             return emb
 
+    def move_to_gpu(self, emb):
+        return emb.to(torch.device('cuda'))
+
     def get_embedding(self, emb_type, name):
         return self.embeddings[emb_type][name]
 
@@ -171,7 +197,6 @@ class Model(nn.Module):
         head_embeddings = {}
         for emb in self.embeddings["entity"]:
             head_embeddings[emb] = self.embeddings["entity"][emb].get_embedding(data["batch_h"])
-
         return head_embeddings
 
     def get_tail_embeddings(self, data):
@@ -212,9 +237,3 @@ class Model(nn.Module):
 
     def get_params(self):
         return self.hyperparameters
-
-    def get_name(self):
-        s = self.model_name
-        for p in self.hyperparameters:
-            s = s + "_" + p + "_" + str(self.hyperparameters[p])
-        return s

@@ -11,13 +11,12 @@ class TransR(Model):
             dim_e (int): Number of dimensions for entity embeddings
             dim_r (int): Number of dimensions for relation embeddings
         """
-        super(TransR, self).__init__(ent_total, rel_total, 0, "transr")
-
+        super(TransR, self).__init__(ent_total, rel_total)
         self.dim_e = dim_e
         self.dim_r = dim_r
-
         self.pnorm = norm
 
+    def initialize_model(self):
         self.create_embedding(self.dim_e, emb_type="entity", name="e")
         self.create_embedding(self.dim_r, emb_type="relation", name="r")
         self.create_embedding((self.dim_e, self.dim_r), emb_type="relation", name="mr")
@@ -38,8 +37,9 @@ class TransR(Model):
         return torch.linalg.norm(self.get_er(t, mr), ord=2) - epsilon
 
     def get_er(self, e, mr):
+        batch_size = e.shape[0]
         # Change e into a row matrix, multiply and get final result as dim_r
-        return torch.matmul(e.view(e.shape[0], 1, -1), mr).view(mr.shape[0], self.dim_r)
+        return torch.matmul(e.view(batch_size, 1, -1), mr).view(batch_size, self.dim_r)
 
     def _calc(self, h, r, mr, t):
         return -torch.linalg.norm(self.get_er(h, mr) + r - self.get_er(t, mr), ord=self.pnorm, dim=-1)

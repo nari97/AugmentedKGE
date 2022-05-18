@@ -10,6 +10,7 @@ from Models.TransE import TransE
 from Models.TransH import TransH
 from Models.TransR import TransR
 from Models.TorusE import TorusE
+from Models.TuckER import TuckER
 
 
 def getModel(model_name, params):
@@ -24,71 +25,41 @@ def getModel(model_name, params):
         m (Model): Instantiated model object
     """
 
+    kwargs = {"ent_total":params["ent_total"], "rel_total":params["rel_total"]}
+    if model_name == "transd" or model_name == "transr" or model_name == "tucker":
+        kwargs.update({"dim_e":params["dime"], "dim_r":params["dimr"]})
+    else:
+        kwargs.update({"dim": params["dim"]})
+    if model_name == "transe" or model_name == "toruse":
+        kwargs.update({"norm": params["pnorm"]})
+
     m = None
     if model_name == "transe":
-        m = TransE(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],
-            norm=params["pnorm"],)
+        m = TransE(**kwargs)
     elif model_name == "toruse":
-        m = TorusE(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],
-            norm=params["pnorm"],)
+        m = TorusE(**kwargs)
     elif model_name == "transh":
-        m = TransH(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],)
+        m = TransH(**kwargs)
     elif model_name == "transd":
-        m = TransD(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dim_e=params["dime"],
-            dim_r=params["dimr"],)
+        m = TransD(**kwargs)
     elif model_name == "transr":
-        m = TransR(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dim_e=params["dime"],
-            dim_r=params["dimr"],)
+        m = TransR(**kwargs)
+    elif model_name == "tucker":
+        m = TuckER(**kwargs)
     elif model_name == "distmult":
-        m = DistMult(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],)
+        m = DistMult(**kwargs)
     elif model_name == "complex":
-        m = ComplEx(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],)
+        m = ComplEx(**kwargs)
     elif model_name == "hole":
-        m = HolE(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],)
+        m = HolE(**kwargs)
     elif model_name == "simple":
-        m = SimplE(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],)
+        m = SimplE(**kwargs)
     elif model_name == "rotate":
-        m = RotatE(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],)
+        m = RotatE(**kwargs)
     elif model_name == "analogy":
-        m = Analogy(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],)
+        m = Analogy(**kwargs)
     elif model_name == "quate":
-        m = QuatE(
-            ent_total=params["ent_total"],
-            rel_total=params["rel_total"],
-            dims=params["dim"],)
+        m = QuatE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -96,7 +67,6 @@ def getModel(model_name, params):
 
 
     # TODO
-    # Tucker: Tucker: Tensor factorization for knowledge graph completion
     # Multi-relational poincaré graph embeddings
     # Low-dimensional hyperbolic knowledge graph embeddings
     # Hyperbolic entailment cones for learning hierarchical embeddings

@@ -18,19 +18,21 @@ class TransH(Model):
 
     """
 
-    def __init__(self, ent_total, rel_total, dims, norm=2):
+    def __init__(self, ent_total, rel_total, dim, norm=2):
         """
         Args:
             ent_total (int): Total number of entities
             rel_total (int): Total number of relations
             dim (int): Number of dimensions for embeddings
         """
-        super(TransH, self).__init__(ent_total, rel_total, dims, "transh")
-
+        super(TransH, self).__init__(ent_total, rel_total)
+        self.dim = dim
         self.pnorm = norm
-        self.create_embedding(self.dims, emb_type="entity", name="e")
-        self.create_embedding(self.dims, emb_type="relation", name="r")
-        self.create_embedding(self.dims, emb_type="relation", name="w_r", norm_method="norm")
+
+    def initialize_model(self):
+        self.create_embedding(self.dim, emb_type="entity", name="e")
+        self.create_embedding(self.dim, emb_type="relation", name="r")
+        self.create_embedding(self.dim, emb_type="relation", name="w_r", norm_method="norm")
 
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_custom_constraint(self.orthogonal_constraint)

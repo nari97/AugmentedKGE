@@ -3,7 +3,6 @@ from Train.Evaluator import Evaluator
 from Train.Trainer import Trainer
 from Utils import ModelUtils
 from Utils import LossUtils
-from Utils import DeviceUtils
 import torch
 import torch.optim as optim
 import time
@@ -24,17 +23,16 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'transr', 6, '', 0
+    model_name, dataset, split_prefix, point = 'tucker', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
 
-    validation_epochs = 5
-    train_times = 5
+    validation_epochs = 100
+    train_times = 500
 
-    DeviceUtils.use_gpu = True
+    use_gpu = False
 
-    # TODO Change to LCWA!
     corruption_mode = "Global"
 
     parameters = {}
@@ -42,7 +40,7 @@ def run():
     parameters["nr"] = 5
     parameters["trial_index"] = 1
     parameters["dim"] = 5
-    parameters["dime"] = 2
+    parameters["dime"] = 5
     parameters["dimr"] = 3
 
     parameters["lr"] = None
@@ -93,14 +91,16 @@ def run():
 
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
-    print("Model name : ", mu.model_name)
+    mu.set_use_gpu(use_gpu)
+    print("Model name : ", mu.get_model_name())
+
     loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu)
 
     validation = Evaluator(TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
                                          batch_size=parameters["batch_size"], neg_rate=parameters["nr"],
                                          corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min,
-                           batched=True)
+                           batched=False)
 
     end = time.perf_counter()
     print("Initialization time: " + str(end - start))
@@ -109,10 +109,14 @@ def run():
     checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(point)
 
     init_epoch = 0
+
     # There is a checkpoint, let's load it!
     if os.path.exists(checkpoint_dir + ".ckpt"):
         loss.model = torch.load(checkpoint_dir + ".ckpt")
         init_epoch = loss.model.epoch
+    else:
+        # Initialize model from scratch
+        loss.model.initialize_model()
 
     # load valid function.
     def load_valid():
@@ -173,7 +177,7 @@ def run():
     # We are done! Rename checkpoint to model.
     if not os.path.exists(checkpoint_dir + ".model"):
         os.rename(checkpoint_dir + ".valid", checkpoint_dir + ".model")
-    os.remove(checkpoint_dir + ".ckpt")
+        os.remove(checkpoint_dir + ".ckpt")
 
 
 if __name__ == '__main__':

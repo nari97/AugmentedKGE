@@ -4,12 +4,14 @@ from Models.Model import Model
 
 
 class TorusE(Model):
-    def __init__(self, ent_total, rel_total, dims, norm=2):
-        super(TorusE, self).__init__(ent_total, rel_total, dims, "toruse")
-
+    def __init__(self, ent_total, rel_total, dim, norm=2):
+        super(TorusE, self).__init__(ent_total, rel_total)
+        self.dim = dim
         self.pnorm = norm
-        self.create_embedding(self.dims, emb_type="entity", name="e")
-        self.create_embedding(self.dims, emb_type="relation", name="r")
+
+    def initialize_model(self):
+        self.create_embedding(self.dim, emb_type="entity", name="e")
+        self.create_embedding(self.dim, emb_type="relation", name="r")
 
     def _calc(self, h, r, t):
         # From here: https://github.com/TakumaE/TorusE/blob/master/models.py

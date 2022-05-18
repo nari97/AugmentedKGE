@@ -3,14 +3,15 @@ from .Model import Model
 
 
 class ComplEx(Model):
+    def __init__(self, ent_total, rel_total, dim):
+        super(ComplEx, self).__init__(ent_total, rel_total)
+        self.dim = dim
 
-    def __init__(self, ent_total, rel_total, dims):
-        super(ComplEx, self).__init__(ent_total, rel_total, dims, "complex")
-
-        self.create_embedding(self.dims, emb_type="entity", name="e_real")
-        self.create_embedding(self.dims, emb_type="relation", name="r_real")
-        self.create_embedding(self.dims, emb_type="entity", name="e_img")
-        self.create_embedding(self.dims, emb_type="relation", name="r_img")
+    def initialize_model(self):
+        self.create_embedding(self.dim, emb_type="entity", name="e_real")
+        self.create_embedding(self.dim, emb_type="relation", name="r_real")
+        self.create_embedding(self.dim, emb_type="entity", name="e_img")
+        self.create_embedding(self.dim, emb_type="relation", name="r_img")
 
         self.register_scale_constraint(emb_type="entity", name="e_real", p=2)
         self.register_scale_constraint(emb_type="entity", name="e_img", p=2)

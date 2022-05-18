@@ -8,7 +8,6 @@ import time
 import os
 import sys
 import torch.optim as optim
-from Utils import DeviceUtils
 
 
 def get_params(index):
@@ -42,7 +41,7 @@ def run():
     validation_epochs = 100
     train_times = 5000
 
-    DeviceUtils.use_gpu = False
+    use_gpu = False
 
     corruption_mode = "LCWA"
 
@@ -105,14 +104,15 @@ def run():
 
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
-    print("Model name : ", mu.model_name)
+    mu.set_use_gpu(use_gpu)
+    print("Model name : ", mu.get_model_name())
+
     loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu, reg_type=parameters["reg_type"])
 
     validation = Evaluator(TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
                                          batch_size=parameters["batch_size"], neg_rate=parameters["nr"],
                                          corruption_mode=corruption_mode),
-                           rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min,
-                           batched=validation_batched)
+                           rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min, batched=validation_batched)
 
     end = time.perf_counter()
     print("Initialization time: " + str(end - start))
@@ -125,6 +125,9 @@ def run():
     if os.path.exists(checkpoint_dir + ".ckpt"):
         loss.model = torch.load(checkpoint_dir + ".ckpt")
         init_epoch = loss.model.epoch
+    else:
+        # Initialize model from scratch
+        loss.model.initialize_model()
 
     # load valid function.
     def load_valid():

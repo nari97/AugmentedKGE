@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from Utils import DeviceUtils
 
 
 # Embedding redesign
@@ -40,9 +39,9 @@ class Embedding(nn.Module):
         Creates an embedding based on the required size
         """
         if type(self.n_dim) is tuple:
-            empty = torch.empty((self.n_emb, *self.n_dim), dtype=torch.float64, device=DeviceUtils.get_device())
+            empty = torch.empty((self.n_emb, *self.n_dim), dtype=torch.float64)
         else:
-            empty = torch.empty((self.n_emb, self.n_dim), dtype=torch.float64, device=DeviceUtils.get_device())
+            empty = torch.empty((self.n_emb, self.n_dim), dtype=torch.float64)
         self.emb = torch.nn.Parameter(empty)
 
     def init_embedding(self):

@@ -11,7 +11,7 @@ class TransE(Model):
 
     TransE enforces additional constraints :math:`||\mathbf{h}||_{2} = 1` and :math:`||\mathbf{t}||_{2} = 1`.
     """
-    def __init__(self, ent_total, rel_total, dims, norm=2):
+    def __init__(self, ent_total, rel_total, dim, norm=2):
         """
         Args:
             ent_total (int): Total number of entities
@@ -19,11 +19,13 @@ class TransE(Model):
             dims (int): Number of dimensions for embeddings
             norm (int): L1 or L2 norm. Default: 2
         """
-        super(TransE, self).__init__(ent_total, rel_total, dims, "transe")
-
+        super(TransE, self).__init__(ent_total, rel_total)
+        self.dim = dim
         self.pnorm = norm
-        self.create_embedding(self.dims, emb_type="entity", name="e", norm_method="norm")
-        self.create_embedding(self.dims, emb_type="relation", name="r")
+
+    def initialize_model(self):
+        self.create_embedding(self.dim, emb_type="entity", name="e", norm_method="norm")
+        self.create_embedding(self.dim, emb_type="relation", name="r")
 
     def _calc(self, h, r, t):
         return -torch.linalg.norm(h + r - t, dim=-1, ord=self.pnorm)

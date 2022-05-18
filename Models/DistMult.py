@@ -4,11 +4,13 @@ from .Model import Model
 
 class DistMult(Model):
 
-    def __init__(self, ent_total, rel_total, dims):
-        super(DistMult, self).__init__(ent_total, rel_total, dims, "distmult")
+    def __init__(self, ent_total, rel_total, dim):
+        super(DistMult, self).__init__(ent_total, rel_total)
+        self.dim = dim
 
-        self.create_embedding(self.dims, emb_type="entity", name="e", norm_method="norm")
-        self.create_embedding(self.dims, emb_type="relation", name="r")
+    def initialize_model(self):
+        self.create_embedding(self.dim, emb_type="entity", name="e", norm_method="norm")
+        self.create_embedding(self.dim, emb_type="relation", name="r")
 
         self.register_scale_constraint(emb_type="relation", name="r", p=2)
         

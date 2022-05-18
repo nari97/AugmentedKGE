@@ -4,13 +4,15 @@ from .Model import Model
 
 class SimplE(Model):
 
-    def __init__(self, ent_total, rel_total, dims):
-        super(SimplE, self).__init__(ent_total, rel_total, dims, "simple")
+    def __init__(self, ent_total, rel_total, dim):
+        super(SimplE, self).__init__(ent_total, rel_total)
+        self.dim = dim
 
-        self.create_embedding(self.dims, emb_type="entity", name="he")
-        self.create_embedding(self.dims, emb_type="entity", name="te")
-        self.create_embedding(self.dims, emb_type="relation", name="r")
-        self.create_embedding(self.dims, emb_type="relation", name="r_inv")
+    def initialize_model(self):
+        self.create_embedding(self.dim, emb_type="entity", name="he")
+        self.create_embedding(self.dim, emb_type="entity", name="te")
+        self.create_embedding(self.dim, emb_type="relation", name="r")
+        self.create_embedding(self.dim, emb_type="relation", name="r_inv")
 
         self.register_scale_constraint(emb_type="entity", name="he", p=2)
         self.register_scale_constraint(emb_type="entity", name="te", p=2)
