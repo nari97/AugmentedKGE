@@ -4,8 +4,6 @@ import torch
 import time
 import sys
 import glob
-import os
-import jsonpickle
 import math
 
 
@@ -94,66 +92,70 @@ def run():
     models = []
     collectors = []
 
-    # This is only one file.
-    for model_file in glob.glob(folder + "Model/" + str(dataset) + "/" + model_name+ "_" + split_prefix + "_" + str(index) + ".model"):
-        model = torch.load(model_file)
-        rc = evaluator.evaluate(model, materialize=False)
+    with torch.no_grad():
+        # This is only one file.
+        for model_file in glob.glob(folder + "Model/" + str(dataset) + "/" + model_name+ "_" + split_prefix + "_" + str(index) + ".model"):
+            model = torch.load(model_file)
 
-        models.append(model_file)
-        collectors.append(rc)
+            rc = evaluator.evaluate(model, materialize=False)
+            # Remove from GPU once we are done!
+            model.remove_from_gpu()
 
-    end = time.perf_counter()
-    print("Time elapsed to load collectors:", str(end - start))
+            models.append(model_file)
+            collectors.append(rc)
 
-    start = time.perf_counter()
+        end = time.perf_counter()
+        print("Time elapsed to load collectors:", str(end - start))
 
-    for k in evaluators.keys():
-        ev = evaluators[k]
-        current_models = []
-        current_collectors = []
+        start = time.perf_counter()
 
-        for i in range(len(models)):
-            rc = collectors[i].prune(ev['rel_anomaly_max'], ev['rel_anomaly_min'])
-            if len(rc.all_ranks) == 0:
+        for k in evaluators.keys():
+            ev = evaluators[k]
+            current_models = []
+            current_collectors = []
+
+            for i in range(len(models)):
+                rc = collectors[i].prune(ev['rel_anomaly_max'], ev['rel_anomaly_min'])
+                if len(rc.all_ranks) == 0:
+                    continue
+                current_models.append(models[i])
+                current_collectors.append(rc)
+
+            print("Evaluator:", k, "; Remaining models:", len(current_collectors))
+
+            max, max_model, max_collector = -math.inf, None, None
+            for i in range(len(current_collectors)):
+                imetric = current_collectors[i].get_metric(metric_str=ev['metric_str'])
+                imodel = current_models[i]
+
+                print("Model:", imodel)
+                current = 1.0 - (imetric.get()/current_collectors[i].get_expected(metric_str=ev['metric_str']).get())
+                if current > max:
+                    max = current
+                    max_model = imodel
+                    max_collector = current_collectors[i]
+
+            if max_model is None:
+                print('No models!')
                 continue
-            current_models.append(models[i])
-            current_collectors.append(rc)
 
-        print("Evaluator:", k, "; Remaining models:", len(current_collectors))
-
-        max, max_model, max_collector = -math.inf, None, None
-        for i in range(len(current_collectors)):
-            imetric = current_collectors[i].get_metric(metric_str=ev['metric_str'])
-            imodel = current_models[i]
-
-            print("Model:", imodel)
-            current = 1.0 - (imetric.get()/current_collectors[i].get_expected(metric_str=ev['metric_str']).get())
-            if current > max:
-                max = current
-                max_model = imodel
-                max_collector = current_collectors[i]
-
-        if max_model is None:
-            print('No models!')
-            continue
-
-        print("Best model:", max_model)
-        print("Metric:", max_collector.get_metric(metric_str=ev['metric_str']).get())
-        print("Expected:", max_collector.get_expected(metric_str=ev['metric_str']).get())
-        print("Adjusted metric: ", max)
-        if type == "test":
-            #print("Unique triples materialized:", max_collector.unique_triples_materialized,
-            #      " out of: ", max_collector.total_unique_triples)
-            #print("Total unique triples materialized:", sum(max_collector.unique_triples_materialized.values()),
-            #      " out of: ", sum(max_collector.total_unique_triples.values()), '; Percentage: ',
-            #      sum(max_collector.unique_triples_materialized.values())/sum(max_collector.total_unique_triples.values()))
-            print("Ties: ", max_collector.all_ties.count(True),
-                  " out of: ", len(max_collector.all_ties), '; Pencentage: ',
-                  max_collector.all_ties.count(True)/len(max_collector.all_ties))
-            print("Ranks below expected: ", max_collector.get_ranks_below_expected().count(True),
-                  " out of: ", len(max_collector.all_ranks), '; Pencentage: ',
-                  max_collector.get_ranks_below_expected().count(True)/len(max_collector.all_ranks))
-        print()
+            print("Best model:", max_model)
+            print("Metric:", max_collector.get_metric(metric_str=ev['metric_str']).get())
+            print("Expected:", max_collector.get_expected(metric_str=ev['metric_str']).get())
+            print("Adjusted metric: ", max)
+            if type == "test":
+                #print("Unique triples materialized:", max_collector.unique_triples_materialized,
+                #      " out of: ", max_collector.total_unique_triples)
+                #print("Total unique triples materialized:", sum(max_collector.unique_triples_materialized.values()),
+                #      " out of: ", sum(max_collector.total_unique_triples.values()), '; Percentage: ',
+                #      sum(max_collector.unique_triples_materialized.values())/sum(max_collector.total_unique_triples.values()))
+                print("Ties: ", max_collector.all_ties.count(True),
+                      " out of: ", len(max_collector.all_ties), '; Pencentage: ',
+                      max_collector.all_ties.count(True)/len(max_collector.all_ties))
+                print("Ranks below expected: ", max_collector.get_ranks_below_expected().count(True),
+                      " out of: ", len(max_collector.all_ranks), '; Pencentage: ',
+                      max_collector.get_ranks_below_expected().count(True)/len(max_collector.all_ranks))
+            print()
 
     end = time.perf_counter()
     print("Time elapsed to check models:", str(end - start))

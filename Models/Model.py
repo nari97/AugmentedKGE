@@ -29,6 +29,8 @@ class Model(nn.Module):
         self.hyperparameters = None
         self.custom_constraints = []
         self.scale_constraints = []
+        self.current_batch = None
+        self.current_global_embeddings = {}
 
     def set_use_gpu(self, use_gpu):
         self.use_gpu = use_gpu
@@ -37,6 +39,9 @@ class Model(nn.Module):
         return type(self).__name__.lower()
 
     def initialize_model(self):
+        raise NotImplementedError
+
+    def get_default_loss(self):
         raise NotImplementedError
 
     def forward(self, data):
@@ -50,22 +55,43 @@ class Model(nn.Module):
             score (Tensor): Tensor containing the scores for each triple
         """
         head_emb = self.get_head_embeddings(data)
-        tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
+        tail_emb = self.get_tail_embeddings(data)
+        self.get_global_embeddings()
 
+        self.current_batch = (head_emb, rel_emb, tail_emb)
+
+        self.embeddings_to_gpu()
+        scores = self.return_score().flatten()
+        self.embeddings_to_cpu()
+
+        return scores
+
+    def embeddings_to_gpu(self):
         # Move to GPU?
         if self.use_gpu:
+            (head_emb, rel_emb, tail_emb) = self.current_batch
             for emb in [head_emb, tail_emb, rel_emb]:
                 for name in emb.keys():
                     emb[name] = self.move_to_gpu(emb[name])
+            self.current_batch = (head_emb, rel_emb, tail_emb)
 
-        scores = self.return_score(head_emb, rel_emb, tail_emb)
+            for name in self.current_global_embeddings.keys():
+                self.current_global_embeddings[name] = self.move_to_gpu(self.current_global_embeddings[name])
 
-        # Put back to CPU?
+    def embeddings_to_cpu(self):
         if self.use_gpu:
-            scores = scores.cpu()
+            (head_emb, rel_emb, tail_emb) = self.current_batch
+            for emb in [head_emb, tail_emb, rel_emb]:
+                for name in emb.keys():
+                    emb[name] = self.move_to_cpu(emb[name])
+            self.current_batch = None
 
-        return scores.flatten()
+            for name in self.current_global_embeddings.keys():
+                self.current_global_embeddings[name] = self.move_to_cpu(self.current_global_embeddings[name])
+            self.current_global_embeddings = {}
+
+            torch.cuda.empty_cache()
 
     def apply_normalization(self):
         for emb_type in self.embeddings:
@@ -143,30 +169,19 @@ class Model(nn.Module):
             score (Tensor): Tensor containing the scores for each triple
         """
         head_emb = self.get_head_embeddings(data)
-        tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
+        tail_emb = self.get_tail_embeddings(data)
+        self.get_global_embeddings()
 
-        return -self.return_score(head_emb, rel_emb, tail_emb, is_predict=True).flatten()
+        self.current_batch = (head_emb, rel_emb, tail_emb)
+        self.embeddings_to_gpu()
+        scores = -self.return_score(is_predict=True).flatten()
+        self.embeddings_to_cpu()
 
-    def return_score(self, head_emb, rel_emb, tail_emb):
+        return scores
+
+    def return_score(self):
         raise NotImplementedError
-
-    def get_batch(self, data, type):
-        """
-        Retrieves the head, relation or tail indices from the given data
-
-        Args:
-            data (Tensor): Tensor containing the batch of triples for which scores are to be calculated
-
-        Returns:
-            data: Tensor containing the indices of the head entities, relation or tail entities 
-        """
-        if type == "h":
-            return data['batch_h']
-        if type == "r":
-            return data['batch_r']
-        if type == "t":
-            return data['batch_t']
 
     def create_embedding(self, dimension, emb_type=None, name=None, register=True, init="xavier_uniform",
                          init_params=[], norm_method=None, norm_params={"p": 2, "dim": -1}):
@@ -190,8 +205,17 @@ class Model(nn.Module):
     def move_to_gpu(self, emb):
         return emb.to(torch.device('cuda'))
 
+    def move_to_cpu(self, emb):
+        return emb.to(torch.device('cpu'))
+
     def get_embedding(self, emb_type, name):
         return self.embeddings[emb_type][name]
+
+    def get_global_embeddings(self):
+        self.current_global_embeddings = {}
+        for emb in self.embeddings["global"]:
+            self.current_global_embeddings[emb] = self.embeddings["global"][emb].emb
+        return self.current_global_embeddings
 
     def get_head_embeddings(self, data):
         head_embeddings = {}

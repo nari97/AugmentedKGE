@@ -16,12 +16,15 @@ class TuckER(Model):
         self.dim_e = dim_e
         self.dim_r = dim_r
 
+    def get_default_loss(self):
+        return 'bce'
+
     def initialize_model(self):
         self.create_embedding(self.dim_e, emb_type="entity", name="e")
         self.create_embedding(self.dim_r, emb_type="relation", name="r")
         self.create_embedding((self.dim_e, self.dim_r, self.dim_e), emb_type="global", name="w")
 
-    def _calc(self, h, r, t, w, is_predict=False):
+    def _calc(self, h, r, t, w, is_predict):
         batch_size = h.shape[0]
 
         # This changes from (batch_size, dim_e/dim_r) to (batch_size, 1, dim_e/dim_r)
@@ -54,11 +57,12 @@ class TuckER(Model):
 
         return scores
 
-    def return_score(self, head_emb, rel_emb, tail_emb, is_predict=False):
+    def return_score(self, is_predict=False):
+        (head_emb, rel_emb, tail_emb) = self.current_batch
+
         h = head_emb["e"]
         t = tail_emb["e"]
         r = rel_emb["r"]
-        w = self.get_embedding("global", "w").emb
-        w = w.to(h.device)
+        w = self.current_global_embeddings["w"]
 
         return self._calc(h, r, t, w, is_predict)

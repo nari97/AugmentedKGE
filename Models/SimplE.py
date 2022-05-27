@@ -8,6 +8,9 @@ class SimplE(Model):
         super(SimplE, self).__init__(ent_total, rel_total)
         self.dim = dim
 
+    def get_default_loss(self):
+        return 'soft'
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="he")
         self.create_embedding(self.dim, emb_type="entity", name="te")
@@ -25,7 +28,9 @@ class SimplE(Model):
     def _calc_ingr(self, h, r, t):
         return torch.sum(h * r * t, -1)
 
-    def return_score(self, head_emb, rel_emb, tail_emb, is_predict=False):
+    def return_score(self, is_predict=False):
+        (head_emb, rel_emb, tail_emb) = self.current_batch
+
         hei = head_emb["he"]
         hej = tail_emb["he"]
         tei = head_emb["te"]

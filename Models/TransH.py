@@ -29,6 +29,9 @@ class TransH(Model):
         self.dim = dim
         self.pnorm = norm
 
+    def get_default_loss(self):
+        return 'margin'
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e")
         self.create_embedding(self.dim, emb_type="relation", name="r")
@@ -47,7 +50,9 @@ class TransH(Model):
         tt = t - torch.sum(w_r * t, dim=-1, keepdim=True) * w_r
         return -torch.pow(torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm), 2)
 
-    def return_score(self, head_emb, rel_emb, tail_emb, is_predict=False):
+    def return_score(self, is_predict=False):
+        (head_emb, rel_emb, tail_emb) = self.current_batch
+
         h = head_emb["e"]
         t = tail_emb["e"]
         r = rel_emb["r"]

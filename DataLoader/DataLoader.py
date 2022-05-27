@@ -76,6 +76,7 @@ class DataLoader(object):
         self.domRanCompatible = {}
         self.ranDomCompatible = {}
         self.ranRanCompatible = {}
+        self.triple_count_by_pred = {}
 
         self.relationTotal = 0
         relationPath = path + "relation2id.txt"
@@ -134,6 +135,8 @@ class DataLoader(object):
                 if r not in self.tailDict:
                     self.tailDict[r] = {}
                     self.range[r] = set()
+                if r not in self.triple_count_by_pred:
+                    self.triple_count_by_pred[r] = 0
 
                 if t not in self.headDict[r]:
                     self.headDict[r][t] = set()
@@ -144,6 +147,8 @@ class DataLoader(object):
                 self.tailDict[r][h].add(t)
                 self.domain[r].add(h)
                 self.range[r].add(t)
+
+                self.triple_count_by_pred[r] += 1
 
                 triple = Triple(h, r, t)
                 list.append(triple)

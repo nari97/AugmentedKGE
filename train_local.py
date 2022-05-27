@@ -23,7 +23,7 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'tucker', 6, '', 0
+    model_name, dataset, split_prefix, point = 'murp', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
@@ -87,11 +87,15 @@ def run():
                                   neg_rate=parameters["nr"], corruption_mode=corruption_mode)
     parameters["ent_total"] = train_manager.entityTotal
     parameters["rel_total"] = train_manager.relationTotal
+    parameters["pred_count"] = train_manager.triple_count_by_pred
+    parameters["pred_loc_count"] = train_manager.triple_count_by_pred_loc
     print("Parameters:", parameters)
+
+    # Only for TransSparse; either share or separate
+    parameters["sparse_type"] = 'share'
 
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
-    mu.set_use_gpu(use_gpu)
     print("Model name : ", mu.get_model_name())
 
     loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu)
@@ -117,6 +121,7 @@ def run():
     else:
         # Initialize model from scratch
         loss.model.initialize_model()
+    mu.set_use_gpu(use_gpu)
 
     # load valid function.
     def load_valid():

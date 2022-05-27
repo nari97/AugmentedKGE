@@ -8,6 +8,9 @@ class QuatE(Model):
         super(QuatE, self).__init__(ent_total, rel_total)
         self.dim = dim
 
+    def get_default_loss(self):
+        return 'soft'
+
     def initialize_model(self):
         for component in ['a', 'b', 'c', 'd']:
             self.create_embedding(self.dim, emb_type="entity", name="e_" + component, init='kaiming_uniform')
@@ -70,7 +73,9 @@ class QuatE(Model):
         return torch.sum(hr_a * t_a, -1) + torch.sum(hr_b * t_b, -1) + \
             torch.sum(hr_c * t_c, -1) + torch.sum(hr_d * t_d, -1)
 
-    def return_score(self, head_emb, rel_emb, tail_emb, is_predict=False):
+    def return_score(self, is_predict=False):
+        (head_emb, rel_emb, tail_emb) = self.current_batch
+
         (h_a, h_b, h_c, h_d) = (head_emb["e_a"], head_emb["e_b"], head_emb["e_c"], head_emb["e_d"])
         (t_a, t_b, t_c, t_d) = (tail_emb["e_a"], tail_emb["e_b"], tail_emb["e_c"], tail_emb["e_d"])
         (r_a, r_b, r_c, r_d) = (rel_emb["r_a"], rel_emb["r_b"], rel_emb["r_c"], rel_emb["r_d"])

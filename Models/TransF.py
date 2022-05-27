@@ -1,24 +1,22 @@
 import torch
-from .Model import Model
+from Models.Model import Model
 
 
-class DistMult(Model):
-
+class TransF(Model):
+    # The authors propose their modification over several models; we selected TransE.
     def __init__(self, ent_total, rel_total, dim):
-        super(DistMult, self).__init__(ent_total, rel_total)
+        super(TransF, self).__init__(ent_total, rel_total)
         self.dim = dim
 
     def get_default_loss(self):
-        return 'margin_sigmoid'
+        return 'margin'
 
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e", norm_method="norm")
         self.create_embedding(self.dim, emb_type="relation", name="r")
 
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
-        
     def _calc(self, h, r, t):
-        return torch.sum(h * r * t, -1)
+        return torch.sum((h+r)*t + h*(t-r), -1)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

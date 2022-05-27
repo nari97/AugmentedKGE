@@ -1,5 +1,4 @@
 import torch
-from torch.autograd import Variable
 import time
 from .Evaluator import RankCollector
 
@@ -59,30 +58,31 @@ class Trainer(object):
             collector.load(prev_valid.ranks, prev_valid.totals)
             
         for epoch in range(init_epoch+1, self.train_times+1):
-            if self.save_steps and self.checkpoint_dir and epoch > 0 and epoch % self.save_steps == 0:
-                if self.validation is not None:
-                    start = time.perf_counter()
-                    new_collector = self.validation.evaluate(self.loss.model)
-                    end = time.perf_counter()
-                    print("Validation metric: ", new_collector.get_metric().get(), "; Time:", end-start)
+            with torch.no_grad():
+                if self.save_steps and self.checkpoint_dir and epoch > 0 and epoch % self.save_steps == 0:
+                    if self.validation is not None:
+                        start = time.perf_counter()
+                        new_collector = self.validation.evaluate(self.loss.model)
+                        end = time.perf_counter()
+                        print("Validation metric: ", new_collector.get_metric().get(), "; Time:", end-start)
 
-                # If the new collector did not significantly improve the previous one or random, stop!
-                if new_collector.stop_train(collector):
-                    print('Previous metric value:', collector.get_metric().get(), " was not improved and is significant")
-                    self.finished = True
-                    break
-                else:
-                    # If we are not finished, save model as .valid and save totals and ranks
-                    self.loss.model.epoch = epoch
-                    self.loss.model.ranks = new_collector.all_ranks
-                    self.loss.model.totals = new_collector.all_totals
+                    # If the new collector did not significantly improve the previous one or random, stop!
+                    if new_collector.stop_train(collector):
+                        print('Previous metric value:', collector.get_metric().get(), " was not improved and is significant")
+                        self.finished = True
+                        break
+                    else:
+                        # If we are not finished, save model as .valid and save totals and ranks
+                        self.loss.model.epoch = epoch
+                        self.loss.model.ranks = new_collector.all_ranks
+                        self.loss.model.totals = new_collector.all_totals
 
-                    # Save validation model.
-                    self.save_valid()
+                        # Save validation model.
+                        self.save_valid()
 
-                    # Update the collector and keep going
-                    collector = new_collector
-                    print("Epoch %d has finished, saving..." % epoch)
+                        # Update the collector and keep going
+                        collector = new_collector
+                        print("Epoch %d has finished, saving..." % epoch)
 
             if epoch < self.train_times:
                 res = 0.0

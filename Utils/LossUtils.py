@@ -4,7 +4,7 @@ from Loss.SoftMarginLoss import SoftMarginLoss
 import torch.nn as nn
 
 
-def getLoss(model, gamma=0, reg_type='L2'):
+def getLoss(model, loss_str=None, gamma=0, reg_type='L2'):
     """
         Gets the loss function based on model
 
@@ -19,23 +19,24 @@ def getLoss(model, gamma=0, reg_type='L2'):
 
     kwargs = {"model": model, "reg_type": reg_type, "margin" : gamma}
 
-    model_name = model.get_model_name()
-    if model_name == "transe" or model_name == "transh" or model_name == "transd" or model_name == "transr" or \
-            model_name == "toruse":
+    if loss_str is None:
+        loss_str = model.get_default_loss()
+
+    if loss_str is 'margin':
         loss = MarginLoss(**kwargs)
         print ('Loss : Margin Loss')
-    elif model_name == 'distmult' or model_name == 'hole':
+    elif loss_str is 'margin_sigmoid':
         kwargs.update({"criterion": nn.Sigmoid()})
         loss = MarginLoss(**kwargs)
         print ('Loss : Margin Sigmoid Loss')
-    elif model_name == "rotate":
+    elif loss_str is 'soft_margin':
         loss = SoftMarginLoss(**kwargs)
         print ('Loss: Soft Margin Loss with gamma: ', gamma)
-    elif model_name == "analogy" or model_name == "quate" or model_name == "simple":
+    elif loss_str is 'soft':
         kwargs.pop('margin')
         loss = SoftMarginLoss(**kwargs)
         print('Loss: Soft Margin Loss')
-    elif model_name == "complex" or model_name == "tucker":
+    elif loss_str is 'bce':
         kwargs.pop('margin')
         kwargs.update({"with_logits": True})
         print ('Loss : BCE Loss with logits')

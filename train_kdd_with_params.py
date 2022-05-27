@@ -104,7 +104,6 @@ def run():
 
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
-    mu.set_use_gpu(use_gpu)
     print("Model name : ", mu.get_model_name())
 
     loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu, reg_type=parameters["reg_type"])
@@ -128,6 +127,7 @@ def run():
     else:
         # Initialize model from scratch
         loss.model.initialize_model()
+    mu.set_use_gpu(use_gpu)
 
     # load valid function.
     def load_valid():

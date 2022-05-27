@@ -42,11 +42,18 @@ class TripleManager():
         self.tripleList = []
         headEntities, tailEntities = set(), set()
         self.headDict, self.tailDict, dom, ran = {}, {}, {}, {}
+        self.triple_count_by_pred = {}
 
         for s in splits:
             loader = DataLoader(path, s)
             self.entityTotal = loader.entityTotal
             self.relationTotal = loader.relationTotal
+
+            for r in loader.triple_count_by_pred:
+                if r not in self.triple_count_by_pred:
+                    self.triple_count_by_pred[r] = {}
+                    self.triple_count_by_pred[r]['global'] = 0
+                self.triple_count_by_pred[r]['global'] += loader.triple_count_by_pred[r]
 
             loaders = loaders + [loader]
             # The triples are only the ones in the first loader. The other loaders are just for filtering existing
@@ -83,10 +90,19 @@ class TripleManager():
                         ran[r] = set()
                     ran[r] = ran[r].union(loader.getRange()[r])
 
+        # This is domain/range
+        self.triple_count_by_pred_loc = {}
+        for r in self.headDict:
+            self.triple_count_by_pred_loc[r] = {}
+            self.triple_count_by_pred_loc[r]['domain'] = len(self.headDict[r])
+        for r in self.tailDict:
+            if r not in self.triple_count_by_pred_loc:
+                self.triple_count_by_pred_loc[r] = {}
+            self.triple_count_by_pred_loc[r]['range'] = len(self.tailDict[r])
+
         self.allHeadEntities = headEntities
         self.allTailEntities = tailEntities
        
-        
         if self.use_bern:
             # tph: the average number of tail entities per head entity
             # hpt: the average number of head entities per tail entity

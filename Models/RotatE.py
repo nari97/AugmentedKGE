@@ -10,6 +10,9 @@ class RotatE(Model):
         self.dim = dim
         self.pnorm = norm
 
+    def get_default_loss(self):
+        return 'soft_margin'
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e_real")
         self.create_embedding(self.dim, emb_type="entity", name="e_img")
@@ -23,7 +26,9 @@ class RotatE(Model):
         rc = torch.view_as_complex(torch.stack((r_abs * torch.cos(r_phase), r_abs * torch.sin(r_phase)), dim=-1))
         return -torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)
 
-    def return_score(self, head_emb, rel_emb, tail_emb, is_predict=False):
+    def return_score(self, is_predict=False):
+        (head_emb, rel_emb, tail_emb) = self.current_batch
+
         h_real = head_emb["e_real"]
         h_img = head_emb["e_img"]
         t_real = tail_emb["e_real"]

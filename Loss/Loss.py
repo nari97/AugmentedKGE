@@ -33,5 +33,5 @@ class Loss(nn.Module):
             loss_res = self.lossFn(score, data["batch_y"])
 
         # Apply regularization after loss.
-        reg = torch.tensor([self.model.regularization(data)], device = score.device)
+        reg = torch.tensor([self.model.regularization(data)], device=score.device)
         return loss_res + self.lmbda * reg
