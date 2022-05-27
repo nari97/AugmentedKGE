@@ -21,7 +21,7 @@ class MuRP(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r")
         self.create_embedding(self.dim, emb_type="relation", name="R")
 
-        # This is mandatory so tanh and atanh functions are not applied over a number greater than one.
+        # Not mentioned in the original paper.
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_scale_constraint(emb_type="relation", name="r", p=2)
 

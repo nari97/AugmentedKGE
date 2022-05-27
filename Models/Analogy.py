@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from Models.Model import Model
 
@@ -23,9 +24,7 @@ class Analogy(Model):
         # Not mentioned in the original paper.
         #self.register_scale_constraint(emb_type="entity", name="e", p=2)
 
-    def _calc(self, h, r, t):
-        # We wish to multiply h times the block-diagonal matrix as follows:
-        # h = [h1, h2, h3, h4, h5]
+    def get_matrix(self, r):
         # r = [a, b, c, d, e]
         # r as a block-diagonal matrix:
         #   a, b, 0, 0, 0
@@ -33,24 +32,25 @@ class Analogy(Model):
         #   0, 0, c, d, 0
         #   0, 0,-d, c, 0
         #   0, 0, 0, 0, e
-        # We split h and r in blocks of size 2 and compute the matrix multiplication in chunks.
+        even_indexes = torch.LongTensor(np.arange(0, self.dim, 2))
+        odd_indexes = torch.LongTensor(np.arange(1, self.dim, 2))
 
-        h_split = torch.split(h, 2, dim=1)
-        r_split = torch.split(r, 2, dim=1)
+        r_diag = r[:, even_indexes].repeat_interleave(2, dim=1)
 
-        # This is to get -1 1 for each triple.
-        mask = torch.tensor([-1, 1], device=h.device).repeat(h.size()[0], 1)
+        if r_diag.shape[1] != self.dim:
+            # Get rid of the last position.
+            r_diag = r_diag[:,:self.dim]
 
-        hr_mul = []
-        for i in range(0, len(h_split)):
-            hs, rs = h_split[i], r_split[i]
+        r_u = r[:, odd_indexes].repeat_interleave(2, dim=1)
+        # Get rid of the last position.
+        r_u = r_u[:,:self.dim - 1]
 
-            # If rs has two components, e.g., a b, we need to multiply a b and -b a, in that order.
-            hr_mul.append(torch.sum(hs * rs, dim=1))
-            if rs.size()[1] == 2:
-                hr_mul.append(torch.sum(hs * mask * torch.fliplr(rs), dim=1))
+        r_l = r_u*-1
 
-        return torch.sum(torch.stack(hr_mul,dim=1) * t, dim=1)
+        return torch.diag_embed(r_diag) + torch.diag_embed(r_u, offset=1) + torch.diag_embed(r_l, offset=-1)
+
+    def _calc(self, h, r, t):
+        return torch.sum(torch.bmm(self.get_matrix(r), h.view(-1, self.dim, 1)).view(-1, self.dim) * t, dim=1)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

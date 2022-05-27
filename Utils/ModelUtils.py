@@ -1,4 +1,6 @@
 from Models.Analogy import Analogy
+from Models.AttE import AttE
+from Models.AttH import AttH
 from Models.ComplEx import ComplEx
 from Models.CrossE import CrossE
 from Models.DistMult import DistMult
@@ -13,6 +15,7 @@ from Models.RotatE import RotatE
 from Models.SimplE import SimplE
 from Models.STransE import STransE
 from Models.TransA import TransA
+from Models.TransAt import TransAt
 from Models.TransD import TransD
 from Models.TransE import TransE
 from Models.TransF import TransF
@@ -93,6 +96,12 @@ def getModel(model_name, params):
         m = MuRP(**kwargs)
     elif model_name == "mure":
         m = MuRE(**kwargs)
+    elif model_name == "atte":
+        m = AttE(**kwargs)
+    elif model_name == "atth":
+        m = AttH(**kwargs)
+    elif model_name == "transat":
+        m = TransAt(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
