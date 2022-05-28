@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# sbatch --array=0-14 run_train.sh /home/crrvcs/OpenKE/ transe 0
+# sbatch --array=6-14 run_train.sh /home/crrvcs/OpenKE/ transe 6
 
-#SBATCH -t 24:0:0
+#SBATCH -t 24:6:6
 
 #SBATCH -A StaMp -p tier3 -n 1 -c 2
 

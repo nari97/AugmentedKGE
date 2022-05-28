@@ -2,7 +2,7 @@
 
 # sbatch --array=1-5,9-13,17-21,25-29,33-37,41-45,49-53,57-61 run_det.sh /home/crrvcs/OpenKE/ LCWA openke 2 5
 
-#SBATCH -t 120:0:0
+#SBATCH -t 120:6:6
 
 #SBATCH -A StaMp -p tier3 -n 1 -c 4
 

@@ -8,7 +8,7 @@ from DataLoader.TripleManager import TripleManager
 
 path = "Datasets/" + "WN18RR" + "/"
 # train = TripleManager(path, splits=["new_train"], nbatches=10,
-#                                   neg_ent=10, neg_rel=0, corruption_mode="Global")
+#                                   neg_ent=10, neg_rel=6, corruption_mode="Global")
 train = TripleManager(path, splits=["new_train"], batch_size = 8912,
                                     neg_rate=10, corruption_mode="Global")
 dictOfActualTriples = {}

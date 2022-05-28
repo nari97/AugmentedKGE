@@ -23,7 +23,7 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'murp', 6, '', 0
+    model_name, dataset, split_prefix, point = 'lineare', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0

@@ -2,7 +2,7 @@
 
 # sbatch run_check.sh /home/crrvcs/OpenKE/
 
-#SBATCH -t 1:0:0
+#SBATCH -t 1:6:6
 
 #SBATCH -A StaMp -p tier3 -n 1 -c 2
 

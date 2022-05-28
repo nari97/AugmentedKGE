@@ -1,6 +1,7 @@
 import math
 import torch
 from Models.Model import Model
+from Utils import QuaternionUtils
 
 
 class QuatE(Model):
@@ -49,25 +50,15 @@ class QuatE(Model):
                 e.emb.data = e.emb.data * torch.sin(theta_e) * q_img_norm_e[idx]
                 r.emb.data = r.emb.data * torch.sin(theta_r) * q_img_norm_r[idx]
 
-    # Hamilton product
-    def ham_prod(self, x_1, x_2):
-        (a_1, b_1, c_1, d_1) = x_1
-        (a_2, b_2, c_2, d_2) = x_2
-
-        return (a_1 * a_2 - b_1 * b_2 - c_1 * c_2 - d_1 * d_2,
-                a_1 * b_2 + b_1 * a_2 + c_1 * d_2 - d_1 * c_2,
-                a_1 * c_2 - b_1 * d_2 + c_1 * a_2 + d_1 * b_2,
-                a_1 * d_2 + b_1 * c_2 - c_1 * b_2 + d_1 * a_2)
-
     # Normalize quaternion
     def quat_norm(self, x):
         (x_a, x_b, x_c, x_d) = x
-        den = torch.sqrt(torch.pow(x_a, 2) + torch.pow(x_b, 2) + torch.pow(x_c, 2) + torch.pow(x_d, 2))
+        den = QuaternionUtils.quat_norm(x)
         return x_a / den, x_b / den, x_c / den, x_d / den
 
     def _calc(self, h, r, t):
         # h * r_normalized
-        (hr_a, hr_b, hr_c, hr_d) = self.ham_prod(h, self.quat_norm(r))
+        (hr_a, hr_b, hr_c, hr_d) = QuaternionUtils.hamilton_product(h, self.quat_norm(r))
         (t_a, t_b, t_c, t_d) = t
 
         return torch.sum(hr_a * t_a, -1) + torch.sum(hr_b * t_b, -1) + \

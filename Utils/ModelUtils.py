@@ -4,14 +4,18 @@ from Models.AttH import AttH
 from Models.ComplEx import ComplEx
 from Models.CrossE import CrossE
 from Models.DistMult import DistMult
+from Models.DensE import DensE
 from Models.HAKE import HAKE
 from Models.HolE import HolE
+from Models.LineaRE import LineaRE
 from Models.ManifoldE import ManifoldE
 from Models.MuRE import MuRE
 from Models.MuRP import MuRP
+from Models.NagE import NagE
 from Models.QuatE import QuatE
 from Models.RESCAL import RESCAL
 from Models.RotatE import RotatE
+from Models.RotatE3D import RotatE3D
 from Models.SimplE import SimplE
 from Models.STransE import STransE
 from Models.TransA import TransA
@@ -102,18 +106,21 @@ def getModel(model_name, params):
         m = AttH(**kwargs)
     elif model_name == "transat":
         m = TransAt(**kwargs)
+    elif model_name == "dense":
+        m = DensE(**kwargs)
+    elif model_name == "nage":
+        m = NagE(**kwargs)
+    elif model_name == "rotate3d":
+        m = RotatE3D(**kwargs)
+    elif model_name == "lineare":
+        m = LineaRE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
     return m
 
 
-    # TODO
-    # Hyperbolic entailment cones for learning hierarchical embeddings
-    # Check this for latest: https://www.mdpi.com/2076-3417/12/8/3935
-
-    # ConE: https://arxiv.org/pdf/2110.14923v2.pdf, https://github.com/snap-stanford/ConE/
-    # This is mostly dealing with hierarchies, so it is necessary to know hierarchies between predicates in advanced.
+    # TODO: https://github.com/xinguoxia/KGE
 
     # Neural networks
     # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf

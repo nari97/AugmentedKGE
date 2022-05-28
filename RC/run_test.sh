@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# sbatch run_test.sh /home/crrvcs/OpenKE/ transe 0 valid|test
-#SBATCH -t 12:0:0
+# sbatch run_test.sh /home/crrvcs/OpenKE/ transe 6 valid|test
+#SBATCH -t 12:6:6
 
 #SBATCH -A StaMp -p tier3 -n 1 -c 2
 
