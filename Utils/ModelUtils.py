@@ -1,10 +1,12 @@
 from Models.Analogy import Analogy
 from Models.AttE import AttE
 from Models.AttH import AttH
+from Models.BoxE import BoxE
 from Models.ComplEx import ComplEx
 from Models.CrossE import CrossE
 from Models.DistMult import DistMult
 from Models.DensE import DensE
+from Models.GCOTE import GCOTE
 from Models.HAKE import HAKE
 from Models.HolE import HolE
 from Models.LineaRE import LineaRE
@@ -12,6 +14,7 @@ from Models.ManifoldE import ManifoldE
 from Models.MuRE import MuRE
 from Models.MuRP import MuRP
 from Models.NagE import NagE
+from Models.QuatDE import QuatDE
 from Models.QuatE import QuatE
 from Models.RESCAL import RESCAL
 from Models.RotatE import RotatE
@@ -47,11 +50,14 @@ def getModel(model_name, params):
         kwargs.update({"dim_e":params["dime"], "dim_r":params["dimr"]})
     else:
         kwargs.update({"dim": params["dim"]})
-    if model_name == "transe" or model_name == "toruse" or model_name == "stranse" or model_name == "transsparse":
+    if model_name == "transe" or model_name == "toruse" or model_name == "stranse" or model_name == "transsparse" or \
+        model_name == "boxe":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"],
                        "type": params["sparse_type"]})
+    if model_name == "gcote":
+        kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
 
     m = None
     if model_name == "transe":
@@ -114,6 +120,12 @@ def getModel(model_name, params):
         m = RotatE3D(**kwargs)
     elif model_name == "lineare":
         m = LineaRE(**kwargs)
+    elif model_name == "gcote":
+        m = GCOTE(**kwargs)
+    elif model_name == "quatde":
+        m = QuatDE(**kwargs)
+    elif model_name == "boxe":
+        m = BoxE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -121,6 +133,7 @@ def getModel(model_name, params):
 
 
     # TODO: https://github.com/xinguoxia/KGE
+    # ConE (https://arxiv.org/pdf/2110.14923v2.pdf) works with hierarchies that can be pre-computed, see Appendix H.
 
     # Neural networks
     # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf

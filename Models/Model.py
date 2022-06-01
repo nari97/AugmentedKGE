@@ -30,6 +30,7 @@ class Model(nn.Module):
         self.custom_constraints = []
         self.scale_constraints = []
         self.current_batch = None
+        self.current_data = None
         self.current_global_embeddings = {}
 
     def set_use_gpu(self, use_gpu):
@@ -45,24 +46,28 @@ class Model(nn.Module):
         raise NotImplementedError
 
     def forward(self, data):
-        """
-        Calculate the scores for the given batch of triples
+        return self.get_scores(data)
 
-        Args:
-            data (Tensor): Tensor containing the batch of triples for which scores are to be calculated
-
-        Returns:
-            score (Tensor): Tensor containing the scores for each triple
+    def get_scores(self, data, is_predict=False):
         """
+                Calculate the scores for the given batch of triples
+
+                Args:
+                    data (Tensor): Tensor containing the batch of triples for which scores are to be calculated
+
+                Returns:
+                    score (Tensor): Tensor containing the scores for each triple
+                """
         head_emb = self.get_head_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
         tail_emb = self.get_tail_embeddings(data)
         self.get_global_embeddings()
 
         self.current_batch = (head_emb, rel_emb, tail_emb)
+        self.current_data = data
 
         self.embeddings_to_gpu()
-        scores = self.return_score().flatten()
+        scores = self.return_score(is_predict=is_predict).flatten()
         self.embeddings_to_cpu()
 
         return scores
@@ -86,6 +91,7 @@ class Model(nn.Module):
                 for name in emb.keys():
                     emb[name] = self.move_to_cpu(emb[name])
             self.current_batch = None
+            self.current_data = None
 
             for name in self.current_global_embeddings.keys():
                 self.current_global_embeddings[name] = self.move_to_cpu(self.current_global_embeddings[name])
@@ -159,26 +165,7 @@ class Model(nn.Module):
         return reg
 
     def predict(self, data):
-        """
-        Calculate the scores for a given batch of triples during evaluation
-
-        Args:
-            data (Tensor): Tensor containing the batch of triples for which scores are to be calculated
-
-        Returns:
-            score (Tensor): Tensor containing the scores for each triple
-        """
-        head_emb = self.get_head_embeddings(data)
-        rel_emb = self.get_relation_embeddings(data)
-        tail_emb = self.get_tail_embeddings(data)
-        self.get_global_embeddings()
-
-        self.current_batch = (head_emb, rel_emb, tail_emb)
-        self.embeddings_to_gpu()
-        scores = -self.return_score(is_predict=True).flatten()
-        self.embeddings_to_cpu()
-
-        return scores
+        return self.get_scores(data, is_predict=True)
 
     def return_score(self):
         raise NotImplementedError
@@ -225,18 +212,14 @@ class Model(nn.Module):
 
     def get_tail_embeddings(self, data):
         tail_embeddings = {}
-
         for emb in self.embeddings["entity"]:
             tail_embeddings[emb] = self.embeddings["entity"][emb].get_embedding(data["batch_t"])
-
         return tail_embeddings
 
     def get_relation_embeddings(self, data):
         relation_embeddings = {}
-
         for emb in self.embeddings["relation"]:
             relation_embeddings[emb] = self.embeddings["relation"][emb].get_embedding(data["batch_r"])
-
         return relation_embeddings
 
     def load_checkpoint(self, path):

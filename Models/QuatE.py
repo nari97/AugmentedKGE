@@ -50,19 +50,9 @@ class QuatE(Model):
                 e.emb.data = e.emb.data * torch.sin(theta_e) * q_img_norm_e[idx]
                 r.emb.data = r.emb.data * torch.sin(theta_r) * q_img_norm_r[idx]
 
-    # Normalize quaternion
-    def quat_norm(self, x):
-        (x_a, x_b, x_c, x_d) = x
-        den = QuaternionUtils.quat_norm(x)
-        return x_a / den, x_b / den, x_c / den, x_d / den
-
     def _calc(self, h, r, t):
-        # h * r_normalized
-        (hr_a, hr_b, hr_c, hr_d) = QuaternionUtils.hamilton_product(h, self.quat_norm(r))
-        (t_a, t_b, t_c, t_d) = t
-
-        return torch.sum(hr_a * t_a, -1) + torch.sum(hr_b * t_b, -1) + \
-            torch.sum(hr_c * t_c, -1) + torch.sum(hr_d * t_d, -1)
+        return QuaternionUtils.inner_product(
+            QuaternionUtils.hamilton_product(h, QuaternionUtils.normalize_quaternion(r)), t)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

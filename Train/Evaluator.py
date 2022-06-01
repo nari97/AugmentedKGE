@@ -88,11 +88,14 @@ class Evaluator(object):
                     arrH_batches = np.array_split(arrH, batch_size)
                     arrR_batches = np.array_split(arrR, batch_size)
                     arrT_batches = np.array_split(arrT, batch_size)
-                    scores = torch.tensor([])
+                    scores = None
 
                     for i in range(len(arrT_batches)):
                         batch_score = self.predict(arrH_batches[i], arrR_batches[i], arrT_batches[i], model)
-                        scores = torch.concat((scores, batch_score))
+                        if scores is None:
+                            scores = batch_score
+                        else:
+                            scores = torch.concat((scores, batch_score))
 
                 cHeads = scores[1:corruptedHeadsEnd]
                 cTails = scores[corruptedHeadsEnd:]

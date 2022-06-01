@@ -100,7 +100,7 @@ def run():
                                   neg_rate=parameters["nr"], corruption_mode=corruption_mode)
     parameters["ent_total"] = train_manager.entityTotal
     parameters["rel_total"] = train_manager.relationTotal
-    print("Parameters:", parameters)
+    # TODO Add extra parameters here!
 
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
@@ -113,10 +113,6 @@ def run():
                                          corruption_mode=corruption_mode),
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min, batched=validation_batched)
 
-    end = time.perf_counter()
-    print("Initialization time: " + str(end - start))
-
-    start = time.perf_counter()
     checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(index)
 
     init_epoch = 0
@@ -128,6 +124,11 @@ def run():
         # Initialize model from scratch
         loss.model.initialize_model()
     mu.set_use_gpu(use_gpu)
+
+    end = time.perf_counter()
+    print("Initialization time: " + str(end - start))
+
+    start = time.perf_counter()
 
     # load valid function.
     def load_valid():

@@ -23,7 +23,7 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'lineare', 6, '', 0
+    model_name, dataset, split_prefix, point = 'boxe', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
@@ -81,6 +81,10 @@ def run():
 
     print("Model:", model_name, "; Dataset:", dataset_name, "; Corruption:", corruption_mode)
 
+    # Only for TransSparse; either share or separate
+    parameters["sparse_type"] = 'share'
+    print("Parameters:", parameters)
+
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
     train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=parameters["batch_size"],
@@ -89,10 +93,10 @@ def run():
     parameters["rel_total"] = train_manager.relationTotal
     parameters["pred_count"] = train_manager.triple_count_by_pred
     parameters["pred_loc_count"] = train_manager.triple_count_by_pred_loc
-    print("Parameters:", parameters)
+    parameters["head_context"] = train_manager.headDict
+    parameters["tail_context"] = train_manager.tailDict
 
-    # Only for TransSparse; either share or separate
-    parameters["sparse_type"] = 'share'
+
 
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
@@ -106,10 +110,6 @@ def run():
                            rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min,
                            batched=False)
 
-    end = time.perf_counter()
-    print("Initialization time: " + str(end - start))
-
-    start = time.perf_counter()
     checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(point)
 
     init_epoch = 0
@@ -122,6 +122,11 @@ def run():
         # Initialize model from scratch
         loss.model.initialize_model()
     mu.set_use_gpu(use_gpu)
+
+    end = time.perf_counter()
+    print("Initialization time: " + str(end - start))
+
+    start = time.perf_counter()
 
     # load valid function.
     def load_valid():
