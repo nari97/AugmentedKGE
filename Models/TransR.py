@@ -29,15 +29,15 @@ class TransR(Model):
         self.register_custom_constraint(self.h_constraint)
         self.register_custom_constraint(self.t_constraint)
 
-    def h_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
+    def h_constraint(self, head_emb, rel_emb, tail_emb):
         h = head_emb["e"]
         mr = rel_emb["mr"]
-        return torch.linalg.norm(self.get_er(h, mr), ord=2) - epsilon
+        return self.max_clamp(torch.linalg.norm(self.get_er(h, mr), dim=-1, ord=2), 1)
 
-    def t_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
+    def t_constraint(self, head_emb, rel_emb, tail_emb, z=1):
         t = tail_emb["e"]
         mr = rel_emb["mr"]
-        return torch.linalg.norm(self.get_er(t, mr), ord=2) - epsilon
+        return self.max_clamp(torch.linalg.norm(self.get_er(t, mr), dim=-1, ord=2), 1)
 
     def get_er(self, e, mr):
         batch_size = e.shape[0]

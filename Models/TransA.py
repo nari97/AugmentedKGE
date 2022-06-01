@@ -24,8 +24,8 @@ class TransA(Model):
         # Make sure it is symmetric and positive.
         return torch.abs(torch.bmm(w, torch.transpose(w, 1, 2)))
 
-    def frob_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
-        return torch.linalg.matrix_norm(self.get_matrix(rel_emb["w"]), ord='fro') - epsilon
+    def frob_constraint(self, head_emb, rel_emb, tail_emb):
+        return self.max_clamp(torch.linalg.matrix_norm(self.get_matrix(rel_emb["w"]), ord='fro'), 1)
 
     def _calc(self, h, r, t, w):
         batch_size = h.shape[0]

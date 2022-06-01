@@ -23,15 +23,15 @@ class STransE(Model):
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_scale_constraint(emb_type="relation", name="r", p=2)
 
-    def h_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
+    def h_constraint(self, head_emb, rel_emb, tail_emb):
         h = head_emb["e"]
         w = rel_emb["wr1"]
-        return torch.linalg.norm(self.get_et(w, h), ord=2) - epsilon
+        return self.max_clamp(torch.linalg.norm(self.get_et(w, h), dim=-1, ord=2), 1)
 
-    def t_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
+    def t_constraint(self, head_emb, rel_emb, tail_emb):
         t = tail_emb["e"]
         w = rel_emb["wr2"]
-        return torch.linalg.norm(self.get_et(w, t), ord=2) - epsilon
+        return self.max_clamp(torch.linalg.norm(self.get_et(w, t), dim=-1, ord=2), 1)
 
     def get_et(self, w, e):
         batch_size = e.shape[0]

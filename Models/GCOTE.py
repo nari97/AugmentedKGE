@@ -33,17 +33,17 @@ class GCOTE(Model):
 
         nk = vv.size(1)
         uu = torch.zeros_like(vv, device=vv.device)
-        uu[:, :, 0] = vv[:, :, 0].clone()
+        uu[:, :, 0] += vv[:, :, 0]
         for k in range(1, nk):
-            vk = vv[:, k].clone()
+            vk = vv[:, k]
             uk = 0
             for j in range(0, k):
-                uj = uu[:, :, j].clone()
+                uj = vv[:, :, j]
                 uk = uk + projection(uj, vk)
-            uu[:, :, k] = vk - uk
+            uu[:, :, k] += vk - uk
         for k in range(nk):
-            uk = uu[:, :, k].clone()
-            uu[:, :, k] = uk / uk.norm()
+            uk = vv[:, :, k]
+            uu[:, :, k] += uk / uk.norm()
         return uu
 
     # Equation 2.
@@ -60,9 +60,9 @@ class GCOTE(Model):
 
         # Compute distances.
         scores = torch.zeros(batch_size, device=h[0].device)
-        for k in range(0, self.k):
-            scores += torch.linalg.norm(self.proj_t(s[k], m[k], h[k]).view(-1, self.dim) - t[k], dim=-1, ord=2)
-            scores += torch.linalg.norm(self.proj_h(s[k], m[k], t[k]).view(-1, self.dim) - h[k], dim=-1, ord=2)
+        #for k in range(0, self.k):
+        #    scores += torch.linalg.norm(self.proj_t(s[k], m[k], h[k]).view(-1, self.dim) - t[k], dim=-1, ord=2)
+        #    scores += torch.linalg.norm(self.proj_h(s[k], m[k], t[k]).view(-1, self.dim) - h[k], dim=-1, ord=2)
 
         # Compute context.
         for k in range(0, self.k):

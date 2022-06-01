@@ -19,6 +19,7 @@ from Models.QuatE import QuatE
 from Models.RESCAL import RESCAL
 from Models.RotatE import RotatE
 from Models.RotatE3D import RotatE3D
+from Models.RotPro import RotPro
 from Models.SimplE import SimplE
 from Models.STransE import STransE
 from Models.TransA import TransA
@@ -126,6 +127,8 @@ def getModel(model_name, params):
         m = QuatDE(**kwargs)
     elif model_name == "boxe":
         m = BoxE(**kwargs)
+    elif model_name == "rotpro":
+        m = RotPro(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 

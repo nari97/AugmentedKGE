@@ -28,6 +28,7 @@ class Model(nn.Module):
         self.totals = None
         self.hyperparameters = None
         self.custom_constraints = []
+        self.custom_extra_losses = []
         self.scale_constraints = []
         self.current_batch = None
         self.current_data = None
@@ -105,11 +106,22 @@ class Model(nn.Module):
                 emb = self.embeddings[emb_type][name]
                 norm_info = self.embeddings_normalization[emb_type][name]
 
-                if norm_info['method'] is 'norm':
+                if norm_info['method'] == 'norm':
                     p = norm_info['params']['p']
                     dim = norm_info['params']['dim']
                     # This is in place.
                     emb.emb.data = torch.nn.functional.normalize(emb.emb.data, p, dim)
+                elif norm_info['method'] == 'rescaling':
+                    a = norm_info['params']['a']
+                    b = norm_info['params']['b']
+
+                    # This is in place.
+                    min, max = emb.emb.data.min(1, keepdim=True)[0], emb.emb.data.max(1, keepdim=True)[0]
+                    emb.emb.data -= min
+                    emb.emb.data /= (max - min)
+
+                    emb.emb.data *= b - a
+                    emb.emb.data += a
                 elif norm_info['method'] is None:
                     pass
                 else:
@@ -122,10 +134,28 @@ class Model(nn.Module):
 
     # Gets the embedding and applies the constraint ||x||_y<=z
     def scale_constraint(self, emb, p, z=1):
-        return nn.functional.normalize(emb, p) - z
+        return self.max_clamp(torch.linalg.norm(emb, dim=-1, ord=p), z)
+
+    def max_clamp(self, x, z):
+        return x.clamp(max=z)
 
     def register_custom_constraint(self, c):
         self.custom_constraints.append(c)
+
+    def register_custom_extra_loss(self, l):
+        self.custom_extra_losses.append(l)
+
+    def apply_extra_losses(self, data):
+        head_emb = self.get_head_embeddings(data)
+        tail_emb = self.get_tail_embeddings(data)
+        rel_emb = self.get_relation_embeddings(data)
+
+        loss = 0
+        for l in self.custom_extra_losses:
+            current_loss = l(head_emb, rel_emb, tail_emb)
+            loss += torch.sum(current_loss)
+
+        return loss
 
     # Apply the constraints as regularization (to be added to the loss) using either L1 or L2.
     def regularization(self, data, reg_type='L2'):
@@ -154,7 +184,7 @@ class Model(nn.Module):
                     elif reg_type is 'L2':
                         x = torch.pow(x, 2)
                     reg += torch.sum(x)
-                    total += 1
+                    total += len(x)
 
         # See https://towardsdatascience.com/understanding-the-scaling-of-l%C2%B2-regularization-in-the-context-of-neural-networks-e3d25f8b50db
         if reg_type is 'L2':

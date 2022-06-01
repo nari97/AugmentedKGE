@@ -40,10 +40,10 @@ class TransH(Model):
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_custom_constraint(self.orthogonal_constraint)
 
-    def orthogonal_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
+    def orthogonal_constraint(self, head_emb, rel_emb, tail_emb):
         r = rel_emb["r"]
         wr = rel_emb["w_r"]
-        return torch.abs(torch.sum(wr * r))/torch.linalg.norm(r, ord=2) - epsilon
+        return self.max_clamp(torch.abs(torch.sum(wr * r, dim=-1))/torch.linalg.norm(r, dim=-1, ord=2), 1)
 
     def _calc(self, h, r, t, w_r):
         ht = h - torch.sum(w_r * h, dim=-1, keepdim=True) * w_r

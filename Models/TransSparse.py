@@ -60,7 +60,7 @@ class TransSparse(Model):
             # The matrix should be sparse!
             torch.nn.functional.dropout(matrix, p=deg, training=True, inplace=True)
 
-    def h_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
+    def h_constraint(self, head_emb, rel_emb, tail_emb):
         h = head_emb["e"]
 
         if self.type is 'share':
@@ -69,9 +69,9 @@ class TransSparse(Model):
             name = 'mh'
 
         m = rel_emb[name]
-        return torch.linalg.norm(self.get_et(m, h), ord=2) - epsilon
+        return self.max_clamp(torch.linalg.norm(self.get_et(m, h), dim=-1, ord=2), 1)
 
-    def t_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
+    def t_constraint(self, head_emb, rel_emb, tail_emb):
         t = tail_emb["e"]
 
         if self.type is 'share':
@@ -80,7 +80,7 @@ class TransSparse(Model):
             name = 'mt'
 
         m = rel_emb[name]
-        return torch.linalg.norm(self.get_et(m, t), ord=2) - epsilon
+        return self.max_clamp(torch.linalg.norm(self.get_et(m, t), dim=-1, ord=2), 1)
 
     def get_et(self, m, e):
         batch_size = e.shape[0]

@@ -19,8 +19,8 @@ class RESCAL(Model):
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_custom_constraint(self.frob_constraint)
 
-    def frob_constraint(self, head_emb, rel_emb, tail_emb, epsilon=1e-5):
-        return torch.linalg.matrix_norm(rel_emb["r"], ord='fro') - epsilon
+    def frob_constraint(self, head_emb, rel_emb, tail_emb):
+        return self.max_clamp(torch.linalg.matrix_norm(rel_emb["r"], ord='fro'), 1)
 
     def _calc(self, h, r, t):
         batch_size = h.shape[0]
