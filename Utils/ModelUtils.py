@@ -11,6 +11,7 @@ from Models.HAKE import HAKE
 from Models.HolE import HolE
 from Models.LineaRE import LineaRE
 from Models.ManifoldE import ManifoldE
+from Models.MDE import MDE
 from Models.MuRE import MuRE
 from Models.MuRP import MuRP
 from Models.NagE import NagE
@@ -28,6 +29,7 @@ from Models.TransD import TransD
 from Models.TransE import TransE
 from Models.TransF import TransF
 from Models.TransH import TransH
+from Models.TransM import TransM
 from Models.TransR import TransR
 from Models.TransSparse import TransSparse
 from Models.TorusE import TorusE
@@ -54,9 +56,10 @@ def getModel(model_name, params):
     if model_name == "transe" or model_name == "toruse" or model_name == "stranse" or model_name == "transsparse" or \
         model_name == "boxe":
         kwargs.update({"norm": params["pnorm"]})
+    if model_name == "transsparse" or model_name == "transm":
+        kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
     if model_name == "transsparse":
-        kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"],
-                       "type": params["sparse_type"]})
+        kwargs.update({"type": params["sparse_type"]})
     if model_name == "gcote":
         kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
 
@@ -129,6 +132,10 @@ def getModel(model_name, params):
         m = BoxE(**kwargs)
     elif model_name == "rotpro":
         m = RotPro(**kwargs)
+    elif model_name == "mde":
+        m = MDE(**kwargs)
+    elif model_name == "transm":
+        m = TransM(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 

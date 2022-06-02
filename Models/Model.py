@@ -216,8 +216,7 @@ class Model(nn.Module):
             self.embeddings[emb_type][name] = emb
             self.embeddings_normalization[emb_type][name] = {'method': norm_method, 'params': norm_params}
             self.register_parameter(emb_type + '_' + name, self.embeddings[emb_type][name].emb)
-        else:
-            return emb
+        return emb
 
     def move_to_gpu(self, emb):
         return emb.to(torch.device('cuda'))
