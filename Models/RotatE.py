@@ -16,14 +16,14 @@ class RotatE(Model):
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e_real")
         self.create_embedding(self.dim, emb_type="entity", name="e_img")
-        self.create_embedding(self.dim, emb_type="relation", name="r_abs")
+        # |r|=1 entails that the absolute part of r is 1.
         self.create_embedding(self.dim, emb_type="relation", name="r_phase",
                               init="uniform", init_params=[0, 2 * math.pi])
 
-    def _calc(self, h_real, h_img, t_real, t_img, r_abs, r_phase):
+    def _calc(self, h_real, h_img, r_phase, t_real, t_img):
         hc = torch.view_as_complex(torch.stack((h_real, h_img), dim=-1))
         tc = torch.view_as_complex(torch.stack((t_real, t_img), dim=-1))
-        rc = torch.view_as_complex(torch.stack((r_abs * torch.cos(r_phase), r_abs * torch.sin(r_phase)), dim=-1))
+        rc = torch.view_as_complex(torch.stack((torch.cos(r_phase), torch.sin(r_phase)), dim=-1))
         return -torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
@@ -34,7 +34,6 @@ class RotatE(Model):
         t_real = tail_emb["e_real"]
         t_img = tail_emb["e_img"]
 
-        r_abs = rel_emb["r_abs"]
         r_phase = rel_emb["r_phase"]
 
-        return self._calc(h_real, h_img, t_real, t_img, r_abs, r_phase)
+        return self._calc(h_real, h_img, r_phase, t_real, t_img)

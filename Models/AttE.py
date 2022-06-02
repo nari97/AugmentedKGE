@@ -2,7 +2,6 @@ import math
 import numpy as np
 import torch
 from Models.Model import Model
-from Utils import PoincareUtils
 
 
 # https://github.com/tensorflow/neural-structured-learning/blob/master/research/kg_hyp_emb/models/hyperbolic.py#L116

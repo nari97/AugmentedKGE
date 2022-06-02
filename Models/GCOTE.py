@@ -60,9 +60,9 @@ class GCOTE(Model):
 
         # Compute distances.
         scores = torch.zeros(batch_size, device=h[0].device)
-        #for k in range(0, self.k):
-        #    scores += torch.linalg.norm(self.proj_t(s[k], m[k], h[k]).view(-1, self.dim) - t[k], dim=-1, ord=2)
-        #    scores += torch.linalg.norm(self.proj_h(s[k], m[k], t[k]).view(-1, self.dim) - h[k], dim=-1, ord=2)
+        for k in range(0, self.k):
+            scores += torch.linalg.norm(self.proj_t(s[k], m[k], h[k]).view(-1, self.dim) - t[k], dim=-1, ord=2)
+            scores += torch.linalg.norm(self.proj_h(s[k], m[k], t[k]).view(-1, self.dim) - h[k], dim=-1, ord=2)
 
         # Compute context.
         for k in range(0, self.k):

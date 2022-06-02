@@ -2,6 +2,7 @@ from Models.Analogy import Analogy
 from Models.AttE import AttE
 from Models.AttH import AttH
 from Models.BoxE import BoxE
+from Models.CombinE import CombinE
 from Models.ComplEx import ComplEx
 from Models.CrossE import CrossE
 from Models.DistMult import DistMult
@@ -9,12 +10,14 @@ from Models.DensE import DensE
 from Models.GCOTE import GCOTE
 from Models.HAKE import HAKE
 from Models.HolE import HolE
+from Models.KG2E import KG2E
 from Models.LineaRE import LineaRE
 from Models.ManifoldE import ManifoldE
 from Models.MDE import MDE
 from Models.MuRE import MuRE
 from Models.MuRP import MuRP
 from Models.NagE import NagE
+from Models.pRotatE import pRotatE
 from Models.QuatDE import QuatDE
 from Models.QuatE import QuatE
 from Models.RESCAL import RESCAL
@@ -27,7 +30,9 @@ from Models.TransA import TransA
 from Models.TransAt import TransAt
 from Models.TransD import TransD
 from Models.TransE import TransE
+from Models.TransEFT import TransEFT
 from Models.TransF import TransF
+from Models.TransGate import TransGate
 from Models.TransH import TransH
 from Models.TransM import TransM
 from Models.TransR import TransR
@@ -136,6 +141,16 @@ def getModel(model_name, params):
         m = MDE(**kwargs)
     elif model_name == "transm":
         m = TransM(**kwargs)
+    elif model_name == "protate":
+        m = pRotatE(**kwargs)
+    elif model_name == "transgate":
+        m = TransGate(**kwargs)
+    elif model_name == "combine":
+        m = CombinE(**kwargs)
+    elif model_name == "kg2e":
+        m = KG2E(**kwargs)
+    elif model_name == "transeft":
+        m = TransEFT(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
