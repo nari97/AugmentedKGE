@@ -149,11 +149,11 @@ class Model(nn.Module):
         head_emb = self.get_head_embeddings(data)
         tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
+        pos_neg = data["batch_y"]
 
         loss = 0
         for l in self.custom_extra_losses:
-            current_loss = l(head_emb, rel_emb, tail_emb)
-            loss += torch.sum(current_loss)
+            loss += l(head_emb, rel_emb, tail_emb, pos_neg)
 
         return loss
 

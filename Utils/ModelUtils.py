@@ -1,4 +1,5 @@
 from Models.Analogy import Analogy
+from Models.AprilE import AprilE
 from Models.AttE import AttE
 from Models.AttH import AttH
 from Models.BoxE import BoxE
@@ -9,17 +10,24 @@ from Models.DistMult import DistMult
 from Models.DensE import DensE
 from Models.GCOTE import GCOTE
 from Models.HAKE import HAKE
+from Models.HARotatE import HARotatE
 from Models.HolE import HolE
+from Models.HyperKG import HyperKG
 from Models.KG2E import KG2E
 from Models.LineaRE import LineaRE
+from Models.lppTransE import lppTransE
+from Models.MAKR import MAKR
 from Models.ManifoldE import ManifoldE
 from Models.MDE import MDE
+from Models.MRotatE import MRotatE
 from Models.MuRE import MuRE
 from Models.MuRP import MuRP
 from Models.NagE import NagE
 from Models.pRotatE import pRotatE
+from Models.PairRE import PairRE
 from Models.QuatDE import QuatDE
 from Models.QuatE import QuatE
+from Models.RatE import RatE
 from Models.RESCAL import RESCAL
 from Models.RotatE import RotatE
 from Models.RotatE3D import RotatE3D
@@ -31,10 +39,12 @@ from Models.TransAt import TransAt
 from Models.TransD import TransD
 from Models.TransE import TransE
 from Models.TransEFT import TransEFT
+from Models.TransERS import TransERS
 from Models.TransF import TransF
 from Models.TransGate import TransGate
 from Models.TransH import TransH
 from Models.TransM import TransM
+from Models.TransMS import TransMS
 from Models.TransR import TransR
 from Models.TransSparse import TransSparse
 from Models.TorusE import TorusE
@@ -59,7 +69,9 @@ def getModel(model_name, params):
     else:
         kwargs.update({"dim": params["dim"]})
     if model_name == "transe" or model_name == "toruse" or model_name == "stranse" or model_name == "transsparse" or \
-        model_name == "boxe":
+        model_name == "boxe" or model_name == "makr" or model_name == "transms" or model_name == "transers" or \
+            model_name == "lpptranse" or model_name == "transeft" or model_name == "transm" or model_name == "mde" or \
+            model_name == "combine" or model_name == "transgate" or model_name == "transat" or model_name == "aprile":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse" or model_name == "transm":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
@@ -151,6 +163,26 @@ def getModel(model_name, params):
         m = KG2E(**kwargs)
     elif model_name == "transeft":
         m = TransEFT(**kwargs)
+    elif model_name == "lpptranse":
+        m = lppTransE(**kwargs)
+    elif model_name == "transers":
+        m = TransERS(**kwargs)
+    elif model_name == "transms":
+        m = TransMS(**kwargs)
+    elif model_name == "makr":
+        m = MAKR(**kwargs)
+    elif model_name == "aprile":
+        m = AprilE(**kwargs)
+    elif model_name == "rate":
+        m = RatE(**kwargs)
+    elif model_name == "hyperkg":
+        m = HyperKG(**kwargs)
+    elif model_name == "mrotate":
+        m = MRotatE(**kwargs)
+    elif model_name == "harotate":
+        m = HARotatE(**kwargs)
+    elif model_name == "pairre":
+        m = PairRE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -159,6 +191,11 @@ def getModel(model_name, params):
 
     # TODO: https://github.com/xinguoxia/KGE
     # ConE (https://arxiv.org/pdf/2110.14923v2.pdf) works with hierarchies that can be pre-computed, see Appendix H.
+    # ITransF: https://aclanthology.org/P17-1088.pdf
+    # TransC (requires instanceOf and subclassOf triples): https://aclanthology.org/D18-1222.pdf
+    # KEC (requires concepts): https://www.sciencedirect.com/science/article/pii/S0950705118304945
+    # ConnectE (requires type info): https://www.sciencedirect.com/science/article/abs/pii/S0950705120301921
+    # TransRHS (requires subrelationOf): https://doi.org/10.24963/ijcai.2020/413
 
     # Neural networks
     # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf

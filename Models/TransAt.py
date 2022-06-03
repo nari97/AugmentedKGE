@@ -20,11 +20,16 @@ class TransAt(Model):
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_scale_constraint(emb_type="relation", name="r", p=2)
 
+    # TODO The original paper defines a special loss function using "capable" and "non-capable" head and tail entities.
+    #  Capable is defined as: head (tail) entities in triples related to relation r to constitute head (tail) candidate
+    #  set for relation r. In our framework, capable are those coming from TCLCWA and non-capable are the rest. Thus,
+    #  we do not implement this option.
+
     def proj(self, a, x):
         return a*x
 
     def _calc(self, h, r, rh, rt, t):
-        # The orignal paper does not use norm but, then, the output are not scores.
+        # The original paper does not use norm but, then, the output are not scores.
         return -torch.linalg.norm(self.proj(torch.sigmoid(rh), h) + r - self.proj(torch.sigmoid(rt), t),
                                   dim=-1, ord=self.pnorm)
 

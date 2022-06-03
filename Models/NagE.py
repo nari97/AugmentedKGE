@@ -1,7 +1,6 @@
 import math
 import torch
 from Models.Model import Model
-from Utils import QuaternionUtils
 
 
 class NagE(Model):

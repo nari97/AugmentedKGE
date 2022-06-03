@@ -13,8 +13,7 @@ class MarginLoss(Loss):
     def lossFn(self, p_score, n_score):
         # We wish the positives to have a larger value than negatives, this is because our predict
         #   function changes the sign of the score!
-        targets = torch.empty((len(p_score), 1))
-        targets = nn.init.constant_(targets, 1)
+        targets = torch.ones((len(p_score), 1))
         if p_score.is_cuda:
             targets = targets.cuda()
         if self.criterion is not None:

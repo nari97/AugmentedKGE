@@ -30,8 +30,8 @@ class RotPro(Model):
         self.register_custom_extra_loss(self.penalty_loss)
 
     # Equation 10.
-    def penalty_loss(self, head_emb, rel_emb, tail_emb, alpha=.25):
-        return (self.apply_penalty(rel_emb["a"]) + self.apply_penalty(rel_emb["b"])) * alpha
+    def penalty_loss(self, head_emb, rel_emb, tail_emb, pos_neg, alpha=.25):
+        return torch.sum((self.apply_penalty(rel_emb["a"]) + self.apply_penalty(rel_emb["b"])) * alpha)
 
     # Check: https://github.com/tewiSong/Rot-Pro/blob/main/codes/model.py#L420
     def apply_penalty(self, x, gamma=.00005, beta=1.5):
