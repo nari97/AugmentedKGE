@@ -40,20 +40,6 @@ class TransD(Model):
 
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_scale_constraint(emb_type="relation", name="r", p=2)
-        self.register_custom_constraint(self.h_constraint)
-        self.register_custom_constraint(self.t_constraint)
-
-    def h_constraint(self, head_emb, rel_emb, tail_emb):
-        h = head_emb["e"]
-        hp = head_emb["ep"]
-        rp = rel_emb["rp"]
-        return self.max_clamp(torch.linalg.norm(self.get_et(h, hp, rp), dim=-1, ord=2), 1)
-
-    def t_constraint(self, head_emb, rel_emb, tail_emb):
-        t = tail_emb["e"]
-        tp = tail_emb["ep"]
-        rp = rel_emb["rp"]
-        return self.max_clamp(torch.linalg.norm(self.get_et(t, tp, rp), dim=-1, ord=2), 1)
 
     def get_et(self, e, ep, rp):
         # Identity matrix.
@@ -66,9 +52,15 @@ class TransD(Model):
         # add i to every result in the batch size, multiply by vector and put it back to regular shape.
         return torch.matmul(m + i, e.view(batch_size, -1, 1)).view(batch_size, self.dim_r)
 
-    def _calc(self, h, hp, r, rp, t, tp):
-        return -torch.pow(torch.linalg.norm(
-            self.get_et(h, hp, rp) + r - self.get_et(t, tp, rp), ord=self.pnorm, dim=-1), 2)
+    def _calc(self, h, hp, r, rp, t, tp, is_predict):
+        ht = self.get_et(h, hp, rp)
+        tt = self.get_et(t, tp, rp)
+
+        if not is_predict:
+            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(ht, dim=-1, ord=2), 1))
+            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(tt, dim=-1, ord=2), 1))
+
+        return -torch.pow(torch.linalg.norm(ht + r - tt, ord=self.pnorm, dim=-1), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
@@ -80,4 +72,4 @@ class TransD(Model):
         r = rel_emb["r"]
         rp = rel_emb["rp"]
 
-        return self._calc(h, hp, r, rp, t, tp)
+        return self._calc(h, hp, r, rp, t, tp, is_predict)

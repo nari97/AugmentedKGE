@@ -26,7 +26,7 @@ class Trainer(object):
 
     def train_one_step(self, data):
         # Apply normalization.
-        self.loss.model.apply_normalization()
+        self.loss.model.start_batch()
 
         self.optimizer.zero_grad()
 
@@ -44,6 +44,8 @@ class Trainer(object):
         loss.backward()
 
         self.optimizer.step()
+
+        self.loss.model.end_batch()
 
         return loss
 

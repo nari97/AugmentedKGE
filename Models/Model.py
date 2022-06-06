@@ -30,6 +30,8 @@ class Model(nn.Module):
         self.custom_constraints = []
         self.custom_extra_losses = []
         self.scale_constraints = []
+        # These constraints are executed once for the current batch.
+        self.onthefly_constraints = []
         self.current_batch = None
         self.current_data = None
         self.current_global_embeddings = {}
@@ -100,6 +102,14 @@ class Model(nn.Module):
 
             torch.cuda.empty_cache()
 
+    # This is called before starting the batch and gradients.
+    def start_batch(self):
+        self.apply_normalization()
+
+    # This is called when the batch is done.
+    def end_batch(self):
+        pass
+
     def apply_normalization(self):
         for emb_type in self.embeddings:
             for name in self.embeddings[emb_type]:
@@ -163,7 +173,8 @@ class Model(nn.Module):
         tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
 
-        all_constraints = {'custom': self.custom_constraints, 'scale': self.scale_constraints}
+        all_constraints = {'custom': self.custom_constraints, 'scale': self.scale_constraints,
+                           'onthefly': self.onthefly_constraints}
 
         reg, total = 0, 0
         for key in all_constraints.keys():
@@ -177,6 +188,8 @@ class Model(nn.Module):
                         v.append(self.scale_constraint(tail_emb[c['name']], c['p'], c['z']))
                     elif c['emb_type'] == 'relation':
                         v.append(self.scale_constraint(rel_emb[c['name']], c['p'], c['z']))
+                elif key is 'onthefly':
+                    v.append(c)
 
                 for x in v:
                     if reg_type is 'L1':
@@ -186,9 +199,12 @@ class Model(nn.Module):
                     reg += torch.sum(x)
                     total += len(x)
 
+        # Clear on-the-fly constraints.
+        self.onthefly_constraints = []
+
         # See https://towardsdatascience.com/understanding-the-scaling-of-l%C2%B2-regularization-in-the-context-of-neural-networks-e3d25f8b50db
         if reg_type is 'L2':
-            reg = .5*reg
+            reg = .5 * reg
         if total > 0:
             reg /= total
 

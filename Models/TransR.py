@@ -26,26 +26,21 @@ class TransR(Model):
 
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_scale_constraint(emb_type="relation", name="r", p=2)
-        self.register_custom_constraint(self.h_constraint)
-        self.register_custom_constraint(self.t_constraint)
-
-    def h_constraint(self, head_emb, rel_emb, tail_emb):
-        h = head_emb["e"]
-        mr = rel_emb["mr"]
-        return self.max_clamp(torch.linalg.norm(self.get_er(h, mr), dim=-1, ord=2), 1)
-
-    def t_constraint(self, head_emb, rel_emb, tail_emb, z=1):
-        t = tail_emb["e"]
-        mr = rel_emb["mr"]
-        return self.max_clamp(torch.linalg.norm(self.get_er(t, mr), dim=-1, ord=2), 1)
 
     def get_er(self, e, mr):
         batch_size = e.shape[0]
         # Change e into a row matrix, multiply and get final result as dim_r
         return torch.matmul(e.view(batch_size, 1, -1), mr).view(batch_size, self.dim_r)
 
-    def _calc(self, h, r, mr, t):
-        return -torch.linalg.norm(self.get_er(h, mr) + r - self.get_er(t, mr), ord=self.pnorm, dim=-1)
+    def _calc(self, h, r, mr, t, is_predict):
+        hr = self.get_er(h, mr)
+        tr = self.get_er(t, mr)
+
+        if not is_predict:
+            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(hr, dim=-1, ord=2), 1))
+            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(tr, dim=-1, ord=2), 1))
+
+        return -torch.linalg.norm(hr + r - tr, ord=self.pnorm, dim=-1)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
@@ -55,4 +50,4 @@ class TransR(Model):
         r = rel_emb["r"]
         mr = rel_emb["mr"]
 
-        return self._calc(h, r, mr, t)
+        return self._calc(h, r, mr, t, is_predict)

@@ -6,6 +6,7 @@ from Models.BoxE import BoxE
 from Models.CombinE import CombinE
 from Models.ComplEx import ComplEx
 from Models.CrossE import CrossE
+from Models.CyclE import CyclE
 from Models.DistMult import DistMult
 from Models.DensE import DensE
 from Models.GCOTE import GCOTE
@@ -13,6 +14,7 @@ from Models.HAKE import HAKE
 from Models.HARotatE import HARotatE
 from Models.HolE import HolE
 from Models.HyperKG import HyperKG
+from Models.GTrans import GTrans
 from Models.KG2E import KG2E
 from Models.LineaRE import LineaRE
 from Models.lppTransE import lppTransE
@@ -29,11 +31,13 @@ from Models.QuatDE import QuatDE
 from Models.QuatE import QuatE
 from Models.RatE import RatE
 from Models.RESCAL import RESCAL
+from Models.ReflectE import ReflectE
 from Models.RotatE import RotatE
 from Models.RotatE3D import RotatE3D
 from Models.RotPro import RotPro
 from Models.SimplE import SimplE
 from Models.STransE import STransE
+from Models.StructurE import StructurE
 from Models.TransA import TransA
 from Models.TransAt import TransAt
 from Models.TransD import TransD
@@ -71,13 +75,14 @@ def getModel(model_name, params):
     if model_name == "transe" or model_name == "toruse" or model_name == "stranse" or model_name == "transsparse" or \
         model_name == "boxe" or model_name == "makr" or model_name == "transms" or model_name == "transers" or \
             model_name == "lpptranse" or model_name == "transeft" or model_name == "transm" or model_name == "mde" or \
-            model_name == "combine" or model_name == "transgate" or model_name == "transat" or model_name == "aprile":
+            model_name == "combine" or model_name == "transgate" or model_name == "transat" or \
+            model_name == "aprile" or model_name == "cycle" or model_name == "reflecte" or model_name == "structure":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse" or model_name == "transm":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
     if model_name == "transsparse":
         kwargs.update({"type": params["sparse_type"]})
-    if model_name == "gcote":
+    if model_name == "gcote" or model_name == "gtrans":
         kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
 
     m = None
@@ -183,6 +188,14 @@ def getModel(model_name, params):
         m = HARotatE(**kwargs)
     elif model_name == "pairre":
         m = PairRE(**kwargs)
+    elif model_name == "cycle":
+        m = CyclE(**kwargs)
+    elif model_name == "reflecte":
+        m = ReflectE(**kwargs)
+    elif model_name == "structure":
+        m = StructurE(**kwargs)
+    elif model_name == "gtrans":
+        m = GTrans(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 

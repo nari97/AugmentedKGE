@@ -48,9 +48,6 @@ class TransSparse(Model):
             for r in self.sparse_degrees:
                 self.make_sparse(e.emb[r], self.sparse_degrees[r][loc])
 
-            self.register_custom_constraint(self.h_constraint)
-            self.register_custom_constraint(self.t_constraint)
-
         self.register_scale_constraint(emb_type="entity", name="e", p=2)
         self.register_scale_constraint(emb_type="relation", name="r", p=2)
 
@@ -60,36 +57,20 @@ class TransSparse(Model):
             # The matrix should be sparse!
             torch.nn.functional.dropout(matrix, p=deg, training=True, inplace=True)
 
-    def h_constraint(self, head_emb, rel_emb, tail_emb):
-        h = head_emb["e"]
-
-        if self.type is 'share':
-            name = 'm'
-        elif self.type is 'separate':
-            name = 'mh'
-
-        m = rel_emb[name]
-        return self.max_clamp(torch.linalg.norm(self.get_et(m, h), dim=-1, ord=2), 1)
-
-    def t_constraint(self, head_emb, rel_emb, tail_emb):
-        t = tail_emb["e"]
-
-        if self.type is 'share':
-            name = 'm'
-        elif self.type is 'separate':
-            name = 'mt'
-
-        m = rel_emb[name]
-        return self.max_clamp(torch.linalg.norm(self.get_et(m, t), dim=-1, ord=2), 1)
-
     def get_et(self, m, e):
         batch_size = e.shape[0]
         #  multiply by vector and put it back to regular shape.
         return torch.matmul(m, e.view(batch_size, -1, 1)).view(batch_size, self.dim_r)
 
-    def _calc(self, h, mh, r, t, mt):
-        return -torch.pow(torch.linalg.norm(
-            self.get_et(mh, h) + r - self.get_et(mt, t), ord=self.pnorm, dim=-1), 2)
+    def _calc(self, h, mh, r, t, mt, is_predict):
+        ht = self.get_et(mh, h)
+        tt = self.get_et(mt, t)
+
+        if not is_predict:
+            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(ht, dim=-1, ord=2), 1))
+            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(tt, dim=-1, ord=2), 1))
+
+        return -torch.pow(torch.linalg.norm(ht + r - tt, ord=self.pnorm, dim=-1), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
@@ -105,4 +86,4 @@ class TransSparse(Model):
             mh = rel_emb["mh"]
             mt = rel_emb["mt"]
 
-        return self._calc(h, mh, r, t, mt)
+        return self._calc(h, mh, r, t, mt, is_predict)
