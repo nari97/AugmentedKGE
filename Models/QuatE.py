@@ -17,8 +17,8 @@ class QuatE(Model):
             self.create_embedding(self.dim, emb_type="entity", name="e_" + component, init='kaiming_uniform')
             self.create_embedding(self.dim, emb_type="relation", name="r_" + component, init='kaiming_uniform')
 
-            self.register_scale_constraint(emb_type="entity", name="e_" + component, p=2)
-            self.register_scale_constraint(emb_type="relation", name="r_" + component, p=2)
+            self.register_scale_constraint(emb_type="entity", name="e_" + component)
+            self.register_scale_constraint(emb_type="relation", name="r_" + component)
 
         # Special initialization: normalized quaternion with scalar component equal to zero.
 

@@ -22,8 +22,8 @@ class MuRP(Model):
         self.create_embedding(self.dim, emb_type="relation", name="R")
 
         # Not mentioned in the original paper.
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r")
 
     def _calc_train(self, h, bh, r, R, t, bt):
         return -torch.linalg.norm(R*h - t+r, dim=-1, ord=2) + bh.flatten() + bt.flatten()

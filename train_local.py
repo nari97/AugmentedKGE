@@ -23,12 +23,12 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'rotpro', 6, '', 0
+    model_name, dataset, split_prefix, point = 'transa', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
 
-    validation_epochs = 25
+    validation_epochs = 5
     train_times = 500
 
     use_gpu = False
@@ -47,6 +47,8 @@ def run():
 
     # TODO Testing regularization
     parameters["lmbda"] = 1e-5
+    # Weight of constraints over parameters.
+    parameters["weight_constraints"] = 1e-5
     # TODO Normalization of lambda: https://arxiv.org/pdf/1711.05101.pdf (Appendix B.1)
 
     # TODO This is L2 regularization!
@@ -58,6 +60,8 @@ def run():
     parameters["opt_method"] = "adam"
 
     parameters["gamma"] = 1e-4
+    parameters["gammap"] = 1e-4
+    parameters["gamman"] = 1e-4
 
     parameters["pnorm"] = 2
 

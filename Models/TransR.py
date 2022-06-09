@@ -24,8 +24,8 @@ class TransR(Model):
         self.create_embedding(self.dim_r, emb_type="relation", name="r")
         self.create_embedding((self.dim_e, self.dim_r), emb_type="relation", name="mr")
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r")
 
     def get_er(self, e, mr):
         batch_size = e.shape[0]
@@ -37,8 +37,8 @@ class TransR(Model):
         tr = self.get_er(t, mr)
 
         if not is_predict:
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(hr, dim=-1, ord=2), 1))
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(tr, dim=-1, ord=2), 1))
+            self.onthefly_constraints.append(self.scale_constraint(hr))
+            self.onthefly_constraints.append(self.scale_constraint(tr))
 
         return -torch.linalg.norm(hr + r - tr, ord=self.pnorm, dim=-1)
 
@@ -47,7 +47,6 @@ class TransR(Model):
 
         h = head_emb["e"]
         t = tail_emb["e"]
-        r = rel_emb["r"]
-        mr = rel_emb["mr"]
+        r, mr = rel_emb["r"], rel_emb["mr"]
 
         return self._calc(h, r, mr, t, is_predict)

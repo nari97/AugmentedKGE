@@ -23,11 +23,11 @@ class TorusE(Model):
         d = torch.minimum(d, 1 - d)
 
         if self.pnorm is 1 or 2:
-            scores = 2 * self.pnorm * torch.linalg.norm(d, dim=-1, ord=self.pnorm)
+            scores = - 2 * self.pnorm * torch.linalg.norm(d, dim=-1, ord=self.pnorm)
         else:
             scores = 2 - 2 * torch.cos(2 * math.pi * d)/4
 
-        return -scores
+        return scores
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

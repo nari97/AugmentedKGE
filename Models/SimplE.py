@@ -17,10 +17,10 @@ class SimplE(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r")
         self.create_embedding(self.dim, emb_type="relation", name="r_inv")
 
-        self.register_scale_constraint(emb_type="entity", name="he", p=2)
-        self.register_scale_constraint(emb_type="entity", name="te", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r_inv", p=2)
+        self.register_scale_constraint(emb_type="entity", name="he")
+        self.register_scale_constraint(emb_type="entity", name="te")
+        self.register_scale_constraint(emb_type="relation", name="r")
+        self.register_scale_constraint(emb_type="relation", name="r_inv")
 
     def _calc_avg(self, hei, hej, tei, tej, r, r_inv):
         return (torch.sum(hei * r * tej, -1) + torch.sum(hej * r_inv * tei, -1)).flatten()/2

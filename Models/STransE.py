@@ -18,8 +18,8 @@ class STransE(Model):
         self.create_embedding((self.dim, self.dim), emb_type="relation", name="wr1")
         self.create_embedding((self.dim, self.dim), emb_type="relation", name="wr2")
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r")
 
     def get_et(self, w, e):
         batch_size = e.shape[0]
@@ -31,8 +31,8 @@ class STransE(Model):
         tt = self.get_et(wr2, t)
 
         if not is_predict:
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(ht, dim=-1, ord=2), 1))
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(tt, dim=-1, ord=2), 1))
+            self.onthefly_constraints.append(self.scale_constraint(ht))
+            self.onthefly_constraints.append(self.scale_constraint(tt))
 
         return -torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm)
 

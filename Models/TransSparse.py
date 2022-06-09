@@ -48,8 +48,8 @@ class TransSparse(Model):
             for r in self.sparse_degrees:
                 self.make_sparse(e.emb[r], self.sparse_degrees[r][loc])
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r")
 
     def make_sparse(self, matrix, deg):
         # This is to avoid issues with the dropout.
@@ -67,8 +67,8 @@ class TransSparse(Model):
         tt = self.get_et(mt, t)
 
         if not is_predict:
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(ht, dim=-1, ord=2), 1))
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(tt, dim=-1, ord=2), 1))
+            self.onthefly_constraints.append(self.scale_constraint(ht))
+            self.onthefly_constraints.append(self.scale_constraint(tt))
 
         return -torch.pow(torch.linalg.norm(ht + r - tt, ord=self.pnorm, dim=-1), 2)
 
@@ -80,10 +80,8 @@ class TransSparse(Model):
         r = rel_emb["r"]
 
         if self.type is 'share':
-            mh = rel_emb["m"]
-            mt = rel_emb["m"]
+            mh, mt = rel_emb["m"], rel_emb["m"]
         elif self.type is 'separate':
-            mh = rel_emb["mh"]
-            mt = rel_emb["mt"]
+            mh, mt = rel_emb["mh"], rel_emb["mt"]
 
         return self._calc(h, mh, r, t, mt, is_predict)

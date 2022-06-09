@@ -23,10 +23,10 @@ class CrossE(Model):
         self.create_embedding(self.dim, emb_type="relation", name="c")
         self.create_embedding(self.dim, emb_type="global", name="b")
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
-        self.register_scale_constraint(emb_type="relation", name="c", p=2)
-        self.register_scale_constraint(emb_type="global", name="b", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r")
+        self.register_scale_constraint(emb_type="relation", name="c")
+        self.register_scale_constraint(emb_type="global", name="b")
 
     def _calc(self, h, r, t, c, b, is_predict=False):
         scores = torch.sum(torch.tanh((c * h) + (c * h * r) + b) * t, -1)

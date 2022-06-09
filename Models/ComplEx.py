@@ -16,10 +16,10 @@ class ComplEx(Model):
         self.create_embedding(self.dim, emb_type="entity", name="e_img")
         self.create_embedding(self.dim, emb_type="relation", name="r_img")
 
-        self.register_scale_constraint(emb_type="entity", name="e_real", p=2)
-        self.register_scale_constraint(emb_type="entity", name="e_img", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r_real", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r_img", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e_real")
+        self.register_scale_constraint(emb_type="entity", name="e_img")
+        self.register_scale_constraint(emb_type="relation", name="r_real")
+        self.register_scale_constraint(emb_type="relation", name="r_img")
         
     def _calc(self, h_re, h_im, t_re, t_im, r_re, r_im):
         return torch.sum(h_re * t_re * r_re + h_im * t_im * r_re +

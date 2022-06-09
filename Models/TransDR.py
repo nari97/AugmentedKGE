@@ -2,29 +2,9 @@ import torch
 from Models.Model import Model
 
 
-class TransD(Model):
-    """
-    TransD :cite:`ji2015knowledge` is a translation-based embedding approach that introduces the concept that entity and relation embeddings are no longer represented in the same space. Entity embeddings are represented in space :math:`\mathbb{R}^{k}` and relation embeddings are represented in space :math:`\mathbb{R}^{d}` where :math:`k \geq d`.TransD also introduces additional embeddings :math:`\mathbf{w_{h}}, \mathbf{w_{t}} \in \mathbb{R}^{k}` and :math:`\mathbf{w_{r} \in \mathbb{R}^{d}}`. I is the identity matrix.
-    The scoring function for TransD is defined as
-
-    :math:`f_{r}(h,t) = -||h_{\\bot} + \mathbf{r} - t_{\\bot}||`
-
-    :math:`h_{\\bot} = (\mathbf{w_{r}}\mathbf{w_{h}^{T}} + I^{d \\times k})\,\mathbf{h}`
-
-    :math:`t_{\\bot} = (\mathbf{w_{r}}\mathbf{w_{t}^{T}} + I^{d \\times k})\,\mathbf{t}`
-
-    TransD imposes contraints like :math:`||\mathbf{h}||_{2} \leq 1, ||\mathbf{t}||_{2} \leq 1, ||\mathbf{r}||_{2} \leq 1, ||h_{\\bot}||_{2} \leq 1` and :math:`||t_{\\bot}||_{2} \leq 1`
-    """
-
+class TransDR(Model):
     def __init__(self, ent_total, rel_total, dim_e, dim_r, norm=2):
-        """
-        Args:
-            ent_total (int): Total number of entities
-            rel_total (int): Total number of relations
-            dim_e (int): Number of dimensions for entity embeddings
-            dim_r (int): Number of dimensions for relation embeddings
-        """
-        super(TransD, self).__init__(ent_total, rel_total)
+        super(TransDR, self).__init__(ent_total, rel_total)
         self.dim_e = dim_e
         self.dim_r = dim_r
         self.pnorm = norm
@@ -56,11 +36,16 @@ class TransD(Model):
         ht = self.get_et(h, hp, rp)
         tt = self.get_et(t, tp, rp)
 
+        result = ht + r - tt
+        wr = 1 / torch.std(result, dim=1)
+
         if not is_predict:
             self.onthefly_constraints.append(self.scale_constraint(ht))
             self.onthefly_constraints.append(self.scale_constraint(tt))
+            # The paper says ||wr||=1, but they implement it as ||wr||>=1.
+            self.onthefly_constraints.append(self.scale_constraint(wr, ctype='ge'))
 
-        return -torch.pow(torch.linalg.norm(ht + r - tt, ord=self.pnorm, dim=-1), 2)
+        return -torch.pow(torch.linalg.norm(wr.view(-1, 1) * result, ord=self.pnorm, dim=-1), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

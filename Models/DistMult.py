@@ -15,7 +15,7 @@ class DistMult(Model):
         self.create_embedding(self.dim, emb_type="entity", name="e", norm_method="norm")
         self.create_embedding(self.dim, emb_type="relation", name="r")
 
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_scale_constraint(emb_type="relation", name="r")
         
     def _calc(self, h, r, t):
         return torch.sum(h * r * t, -1)

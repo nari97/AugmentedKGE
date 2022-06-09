@@ -15,7 +15,7 @@ class RotatE3D(Model):
     def initialize_model(self):
         for component in ['b', 'c', 'd']:
             self.create_embedding(self.dim, emb_type="entity", name="e_" + component)
-            self.register_scale_constraint(emb_type="entity", name="e_" + component, p=2)
+            self.register_scale_constraint(emb_type="entity", name="e_" + component)
         for component in ['a', 'b', 'c', 'd']:
             self.create_embedding(self.dim, emb_type="relation", name="r_" + component)
         self.create_embedding(self.dim, emb_type="global", name="b")

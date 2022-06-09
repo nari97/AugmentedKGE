@@ -3,10 +3,9 @@ from Models.Model import Model
 
 
 class CyclE(Model):
-    def __init__(self, ent_total, rel_total, dim, norm=2, omega=10):
+    def __init__(self, ent_total, rel_total, dim, omega=10):
         super(CyclE, self).__init__(ent_total, rel_total)
         self.dim = dim
-        self.pnorm = norm
         # This is the hyperparameter that controls the space volume: how many entities can be related to other entities.
         # As a result, the value needs to be large.
         self.omega = omega
@@ -22,8 +21,8 @@ class CyclE(Model):
         self.create_embedding(1, emb_type="global", name="g")
 
     def _calc(self, h, r, t, a, b, g):
-        # The paper does not specify this, but we need to get a single score
-        return -torch.linalg.norm(a * torch.sin(self.omega * (h + r - t) + b) + g, dim=-1, ord=self.pnorm)
+        # The paper does not specify any function, but we need to get a single score.
+        return torch.sum(a * torch.sin(self.omega * (h + r - t) + b) + g, dim=1)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

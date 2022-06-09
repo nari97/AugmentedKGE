@@ -22,8 +22,8 @@ class HyperKG(Model):
         self.create_embedding(self.dim, emb_type="entity", name="e")
         self.create_embedding(self.dim, emb_type="relation", name="r")
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2, z=.5)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r", z=.5)
 
     def _calc_train(self, h, r, t):
         # We want to rotate t beta times.

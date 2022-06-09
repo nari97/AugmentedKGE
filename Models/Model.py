@@ -22,16 +22,21 @@ class Model(nn.Module):
         self.use_gpu = False
 
         self.epoch = 0
+
         self.embeddings = {"entity": {}, "relation": {}, "global" : {}}
         self.embeddings_normalization = {"entity": {}, "relation": {}, "global" : {}}
+        self.embeddings_regularization = {"entity": {}, "relation": {}, "global": {}}
+
         self.ranks = None
         self.totals = None
         self.hyperparameters = None
+
         self.custom_constraints = []
         self.custom_extra_losses = []
         self.scale_constraints = []
         # These constraints are executed once for the current batch.
         self.onthefly_constraints = []
+
         self.current_batch = None
         self.current_data = None
         self.current_global_embeddings = {}
@@ -139,15 +144,17 @@ class Model(nn.Module):
                           '; are you sure about this?')
                     pass
 
-    def register_scale_constraint(self, emb_type, name, p, z=1):
+    def register_scale_constraint(self, emb_type, name, p=2, z=1):
         self.scale_constraints.append({'emb_type': emb_type, 'name': name, 'p': p, 'z': z})
 
-    # Gets the embedding and applies the constraint ||x||_y<=z
-    def scale_constraint(self, emb, p, z=1):
-        return self.max_clamp(torch.linalg.norm(emb, dim=-1, ord=p), z)
-
-    def max_clamp(self, x, z):
-        return x.clamp(max=z)
+    # Applies the constraint ||x||_y<=z when ctype='le', and ||x||_y>=z when ctype='ge'.
+    # Check, for instance, TransH and GTrans on how these are applied.
+    def scale_constraint(self, emb, p=2, z=1, ctype='le'):
+        if ctype == 'le':
+            constraint = torch.pow(torch.linalg.norm(emb, dim=-1, ord=p), 2) - z
+        elif ctype == 'ge':
+            constraint = z - torch.pow(torch.linalg.norm(emb, dim=-1, ord=p), 2)
+        return torch.maximum(constraint, torch.zeros_like(constraint))
 
     def register_custom_constraint(self, c):
         self.custom_constraints.append(c)
@@ -155,6 +162,7 @@ class Model(nn.Module):
     def register_custom_extra_loss(self, l):
         self.custom_extra_losses.append(l)
 
+    # TODO Do we need this?
     def apply_extra_losses(self, data):
         head_emb = self.get_head_embeddings(data)
         tail_emb = self.get_tail_embeddings(data)
@@ -167,8 +175,8 @@ class Model(nn.Module):
 
         return loss
 
-    # Apply the constraints as regularization (to be added to the loss) using either L1 or L2.
-    def regularization(self, data, reg_type='L2'):
+    # Apply the constraints to be added to the loss.
+    def constraints(self, data):
         head_emb = self.get_head_embeddings(data)
         tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
@@ -176,7 +184,7 @@ class Model(nn.Module):
         all_constraints = {'custom': self.custom_constraints, 'scale': self.scale_constraints,
                            'onthefly': self.onthefly_constraints}
 
-        reg, total = 0, 0
+        constraints = 0
         for key in all_constraints.keys():
             for c in all_constraints[key]:
                 v = []
@@ -192,19 +200,57 @@ class Model(nn.Module):
                     v.append(c)
 
                 for x in v:
-                    if reg_type is 'L1':
-                        x = torch.abs(x)
-                    elif reg_type is 'L2':
-                        x = torch.pow(x, 2)
-                    reg += torch.sum(x)
-                    total += len(x)
+                    constraints += torch.sum(x)
 
         # Clear on-the-fly constraints.
         self.onthefly_constraints = []
 
-        # See https://towardsdatascience.com/understanding-the-scaling-of-l%C2%B2-regularization-in-the-context-of-neural-networks-e3d25f8b50db
+        return constraints
+
+    # Apply regularization.
+    def regularization(self, data, reg_type='L2'):
+        reg, total = 0, 0
+
+        for etype in self.embeddings_regularization.keys():
+            for ename in self.embeddings_regularization[etype].keys():
+                reg_params = self.embeddings_regularization[etype][ename]
+
+                if reg_type is 'L1':
+                    p = 1
+                    f = torch.abs
+                elif reg_type is 'L2':
+                    p = 2
+                    f = torch.pow
+                elif reg_type is 'L3':
+                    p = 3
+                    f = torch.pow
+
+                # It can be fro, for instance.
+                if "p" in reg_params.keys():
+                    prev_p = p
+                    p = reg_params["p"]
+
+                x = self.embeddings[etype][ename].emb.data
+                if "transform" in reg_params.keys():
+                    x = reg_params["transform"](x)
+                r = reg_params["norm"](x, dim=reg_params["dim"], ord=p)
+
+                if "p" in reg_params.keys():
+                    p = prev_p
+
+                if p == 1:
+                    r = f(r)
+                else:
+                    r = f(r, p)
+
+                reg += torch.sum(r)
+                total += len(r)
+
         if reg_type is 'L2':
-            reg = .5 * reg
+            reg = 1/2 * reg
+        elif reg_type is 'L3':
+            reg = 1/3 * reg
+
         if total > 0:
             reg /= total
 
@@ -216,8 +262,10 @@ class Model(nn.Module):
     def return_score(self):
         raise NotImplementedError
 
-    def create_embedding(self, dimension, emb_type=None, name=None, register=True, init="xavier_uniform",
-                         init_params=[], norm_method=None, norm_params={"p": 2, "dim": -1}):
+    def create_embedding(self, dimension, emb_type=None, name=None, register=True,
+                         init="xavier_uniform", init_params=[],
+                         norm_method=None, norm_params={"p": 2, "dim": -1},
+                         reg=False, reg_params={"norm": torch.linalg.norm, "dim" : -1}):
         if emb_type == "entity":
             total = self.ent_tot
         elif emb_type == "relation":
@@ -232,6 +280,10 @@ class Model(nn.Module):
             self.embeddings[emb_type][name] = emb
             self.embeddings_normalization[emb_type][name] = {'method': norm_method, 'params': norm_params}
             self.register_parameter(emb_type + '_' + name, self.embeddings[emb_type][name].emb)
+
+        if reg:
+            self.embeddings_regularization[emb_type][name] = reg_params
+
         return emb
 
     def move_to_gpu(self, emb):

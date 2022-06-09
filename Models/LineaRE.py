@@ -16,7 +16,7 @@ class LineaRE(Model):
         self.create_embedding(self.dim, emb_type="relation", name="w_2")
         self.create_embedding(self.dim, emb_type="relation", name="b")
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
 
     def _calc(self, h, w_1, w_2, b, t):
         return -torch.linalg.norm(w_1 * h + b - w_2 * t, dim=-1, ord=2)

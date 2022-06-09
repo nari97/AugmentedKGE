@@ -18,9 +18,9 @@ class MAKR(Model):
         self.create_embedding(self.dim, emb_type="relation", name="rt")
         self.create_embedding(1, emb_type="relation", name="dr")
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="rh", p=2)
-        self.register_scale_constraint(emb_type="relation", name="rt", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="rh")
+        self.register_scale_constraint(emb_type="relation", name="rt")
 
     def _calc(self, h, rh, t, rt, dr):
         return -torch.linalg.norm(rh * h - rt * t - torch.pow(dr, 2), dim=-1, ord=self.pnorm)

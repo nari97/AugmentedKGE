@@ -22,7 +22,7 @@ class Analogy(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r")
 
         # Not mentioned in the original paper.
-        #self.register_scale_constraint(emb_type="entity", name="e", p=2)
+        #self.register_scale_constraint(emb_type="entity", name="e")
 
     def get_matrix(self, r):
         # r = [a, b, c, d, e]

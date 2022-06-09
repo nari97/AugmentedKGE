@@ -18,7 +18,7 @@ class ManifoldE(Model):
 
     def _calc(self, h, rh, t, rt):
         # Assuming linear kernel:
-        return -torch.sum((h+rh) * (t+rt), -1)
+        return torch.sum((h+rh) * (t+rt), -1)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

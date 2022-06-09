@@ -7,6 +7,7 @@ class Loss(nn.Module):
         super(Loss, self).__init__()
         self.model = model
         self.nr = model.hyperparameters["nr"]
+        self.wc = model.hyperparameters["weight_constraints"]
         self.lmbda = model.hyperparameters["lmbda"]
         # This tells us whether or not we need to split positives and negatives.
         self.is_pairwise = is_pairwise
@@ -32,6 +33,9 @@ class Loss(nn.Module):
         else:
             loss_res = self.lossFn(score, data["batch_y"])
 
-        # Apply regularization after loss.
-        reg = torch.tensor([self.model.regularization(data)], device=score.device)
-        return loss_res + self.model.apply_extra_losses(data) + self.lmbda * reg
+        # Apply constraints.
+        constraints = torch.tensor([self.model.constraints(data)], device=score.device)
+        # Apply regularization.
+        regularization = torch.tensor([self.model.regularization(data, reg_type=self.reg_type)], device=score.device)
+
+        return loss_res + self.model.apply_extra_losses(data) + self.wc * constraints + self.lmbda * regularization

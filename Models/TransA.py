@@ -3,7 +3,6 @@ from Models.Model import Model
 
 
 class TransA(Model):
-
     def __init__(self, ent_total, rel_total, dim):
         super(TransA, self).__init__(ent_total, rel_total)
         self.dim = dim
@@ -12,20 +11,16 @@ class TransA(Model):
         return 'margin'
 
     def initialize_model(self):
-        self.create_embedding(self.dim, emb_type="entity", name="e")
-        self.create_embedding(self.dim, emb_type="relation", name="r")
-        self.create_embedding((self.dim, self.dim), emb_type="relation", name="w")
+        self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)
+        self.create_embedding(self.dim, emb_type="relation", name="r", reg=True)
+        self.create_embedding((self.dim, self.dim), emb_type="relation", name="w",
+                              reg=True, reg_params={"norm": torch.linalg.matrix_norm, "p": 'fro', "dim": (-2, -1),
+                                                    "transform": self.get_matrix})
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
-        self.register_custom_constraint(self.frob_constraint)
-
-    def get_matrix(self, w):
+    @staticmethod
+    def get_matrix(w):
         # Make sure it is symmetric and positive.
         return torch.abs(torch.bmm(w, torch.transpose(w, 1, 2)))
-
-    def frob_constraint(self, head_emb, rel_emb, tail_emb):
-        return self.max_clamp(torch.linalg.matrix_norm(self.get_matrix(rel_emb["w"]), ord='fro'), 1)
 
     def _calc(self, h, r, t, w):
         batch_size = h.shape[0]
@@ -37,7 +32,6 @@ class TransA(Model):
 
         h = head_emb["e"]
         t = tail_emb["e"]
-        r = rel_emb["r"]
-        w = rel_emb["w"]
+        r, w = rel_emb["r"], rel_emb["w"]
 
         return self._calc(h, r, t, w)

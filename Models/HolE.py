@@ -15,14 +15,14 @@ class HolE(Model):
         self.create_embedding(self.dim, emb_type="entity", name="e")
         self.create_embedding(self.dim, emb_type="relation", name="r")
     
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r")
         
     def _calc(self, h, r, t):
-        # Last term in Eq. 13 says e_t(r * e_h), where a*b=F-1(F(a) x F(b)), where x is the Hadamard product.
+        # Last term in Eq. 12 says e_t(r * e_h), where a*b=F-1(F(a) x F(b)), where x is the Hadamard product.
         fh = torch.fft.rfft(h, dim=-1)
         fr = torch.fft.rfft(r, dim=-1)
-        return torch.sum(t * torch.fft.irfft(fr * fh, dim=-1, n=r.shape[-1]), dim=-1, keepdim=False)
+        return torch.sum(t * torch.fft.irfft(fr * fh, dim=-1, n=self.dim), dim=-1, keepdim=False)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

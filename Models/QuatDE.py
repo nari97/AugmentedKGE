@@ -18,10 +18,10 @@ class QuatDE(Model):
             self.create_embedding(self.dim, emb_type="entity", name="v_" + component)
             self.create_embedding(self.dim, emb_type="relation", name="r_" + component)
 
-            self.register_scale_constraint(emb_type="entity", name="e_" + component, p=2)
-            self.register_scale_constraint(emb_type="entity", name="p_" + component, p=2)
-            self.register_scale_constraint(emb_type="entity", name="v_" + component, p=2)
-            self.register_scale_constraint(emb_type="relation", name="r_" + component, p=2)
+            self.register_scale_constraint(emb_type="entity", name="e_" + component)
+            self.register_scale_constraint(emb_type="entity", name="p_" + component)
+            self.register_scale_constraint(emb_type="entity", name="v_" + component)
+            self.register_scale_constraint(emb_type="relation", name="r_" + component)
 
     def _calc(self, h, ph, vh, r, t, pt, vt):
         # Normalize quaternions.

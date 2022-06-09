@@ -27,7 +27,7 @@ class HAKE(Model):
         self.create_embedding(1, emb_type="global", name="lambda1")
         self.create_embedding(1, emb_type="global", name="lambda2")
 
-        self.register_scale_constraint(emb_type="relation", name="rmprime", p=2)
+        self.register_scale_constraint(emb_type="relation", name="rmprime")
 
     def _calc(self, hm, hp, rm, rp, rmp, tm, tp, l1, l2):
         # rm and rmp must always be positive, so we use abs.

@@ -18,10 +18,10 @@ class CombinE(Model):
         self.create_embedding(self.dim, emb_type="relation", name="rp")
         self.create_embedding(self.dim, emb_type="relation", name="rm")
 
-        self.register_scale_constraint(emb_type="entity", name="ep", p=2)
-        self.register_scale_constraint(emb_type="entity", name="em", p=2)
-        self.register_scale_constraint(emb_type="relation", name="rp", p=2, z=math.sqrt(2))
-        self.register_scale_constraint(emb_type="relation", name="rm", p=2)
+        self.register_scale_constraint(emb_type="entity", name="ep")
+        self.register_scale_constraint(emb_type="entity", name="em")
+        self.register_scale_constraint(emb_type="relation", name="rp", z=math.sqrt(2))
+        self.register_scale_constraint(emb_type="relation", name="rm")
 
     def _calc(self, hp, hm, rp, rm, tp, tm):
         return -torch.pow(torch.linalg.norm(hp + tp - rp, dim=-1, ord=self.pnorm), 2) + \

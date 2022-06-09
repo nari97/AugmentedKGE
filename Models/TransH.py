@@ -37,13 +37,13 @@ class TransH(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r")
         self.create_embedding(self.dim, emb_type="relation", name="w_r", norm_method="norm")
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
         self.register_custom_constraint(self.orthogonal_constraint)
 
-    def orthogonal_constraint(self, head_emb, rel_emb, tail_emb):
-        r = rel_emb["r"]
-        wr = rel_emb["w_r"]
-        return self.max_clamp(torch.abs(torch.sum(wr * r, dim=-1))/torch.linalg.norm(r, dim=-1, ord=2), 1)
+    def orthogonal_constraint(self, head_emb, rel_emb, tail_emb, eps=1e-5):
+        r, w_r = rel_emb["r"], rel_emb["w_r"]
+        constraint = torch.pow(torch.sum(w_r * r, dim=-1), 2)/torch.pow(torch.linalg.norm(r, dim=-1, ord=2), 2) - eps**2
+        return torch.maximum(constraint, torch.zeros_like(constraint))
 
     def _calc(self, h, r, t, w_r):
         ht = h - torch.sum(w_r * h, dim=-1, keepdim=True) * w_r
@@ -55,7 +55,6 @@ class TransH(Model):
 
         h = head_emb["e"]
         t = tail_emb["e"]
-        r = rel_emb["r"]
-        w_r = rel_emb["w_r"]
+        r, w_r = rel_emb["r"], rel_emb["w_r"]
 
         return self._calc(h, r, t, w_r)

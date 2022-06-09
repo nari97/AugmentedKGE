@@ -27,8 +27,8 @@ class AttE(Model):
                               init="uniform", init_params=[0, 2 * math.pi])
 
         # Not mentioned in the original paper.
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r")
 
     def get_matrix(self, r, batch_size, optype):
         # r = [a, b]

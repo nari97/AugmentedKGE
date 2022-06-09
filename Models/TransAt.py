@@ -17,8 +17,8 @@ class TransAt(Model):
         self.create_embedding(self.dim, emb_type="relation", name="rh")
         self.create_embedding(self.dim, emb_type="relation", name="rt")
 
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_scale_constraint(emb_type="relation", name="r", p=2)
+        self.register_scale_constraint(emb_type="entity", name="e")
+        self.register_scale_constraint(emb_type="relation", name="r")
 
     # TODO The original paper defines a special loss function using "capable" and "non-capable" head and tail entities.
     #  Capable is defined as: head (tail) entities in triples related to relation r to constitute head (tail) candidate

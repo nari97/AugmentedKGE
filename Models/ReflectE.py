@@ -32,8 +32,8 @@ class ReflectE(Model):
         tcrt = tc * rt
 
         if not is_predict:
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(hcrh, dim=-1, ord=2), 1))
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(tcrt, dim=-1, ord=2), 1))
+            self.onthefly_constraints.append(self.scale_constraint(hcrh))
+            self.onthefly_constraints.append(self.scale_constraint(tcrt))
 
         hpredict = torch.linalg.norm(
             torch.bmm(self.get_et(hc, rh), t.view(batch_size, -1, 1)).view(batch_size, -1) -

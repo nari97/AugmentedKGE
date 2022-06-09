@@ -27,9 +27,11 @@ class TransGate(Model):
         tgate = self.gate(t, vt, r, vrt, bt)
 
         if not is_predict:
-            # Even though the paper says ||gate||_2=1, we implement ||gate||_2<=1.
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(hgate, dim=-1, ord=2), 1))
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(tgate, dim=-1, ord=2), 1))
+            # The paper says ||gate||_2=1; we implement ||gate||_2<=1 and ||gate||_2>=1.
+            self.onthefly_constraints.append(self.scale_constraint(hgate))
+            self.onthefly_constraints.append(self.scale_constraint(hgate, ctype='ge'))
+            self.onthefly_constraints.append(self.scale_constraint(tgate))
+            self.onthefly_constraints.append(self.scale_constraint(tgate, ctype='ge'))
 
         return -torch.linalg.norm(hgate + r - tgate, dim=-1, ord=self.pnorm)
 

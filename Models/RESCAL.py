@@ -13,14 +13,9 @@ class RESCAL(Model):
         return 'margin'
 
     def initialize_model(self):
-        self.create_embedding(self.dim, emb_type="entity", name="e")
-        self.create_embedding((self.dim, self.dim), emb_type="relation", name="r")
-
-        self.register_scale_constraint(emb_type="entity", name="e", p=2)
-        self.register_custom_constraint(self.frob_constraint)
-
-    def frob_constraint(self, head_emb, rel_emb, tail_emb):
-        return self.max_clamp(torch.linalg.matrix_norm(rel_emb["r"], ord='fro'), 1)
+        self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)
+        self.create_embedding((self.dim, self.dim), emb_type="relation", name="r",
+                              reg=True, reg_params={"norm": torch.linalg.matrix_norm, "p": 'fro', "dim": (-2, -1)})
 
     def _calc(self, h, r, t):
         batch_size = h.shape[0]

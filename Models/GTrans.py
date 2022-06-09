@@ -37,8 +37,8 @@ class GTrans(Model):
                     if e in ctx[r].keys():
                         b.emb.data[e][r] += len(ctx[r][e])/total_e
 
-        self.register_scale_constraint(emb_type="entity", name="ee", p=2)
-        self.register_scale_constraint(emb_type="relation", name="re", p=2)
+        self.register_scale_constraint(emb_type="entity", name="ee")
+        self.register_scale_constraint(emb_type="relation", name="re")
 
     def get_et(self, ee, ea, ra):
         batch_size = ee.shape[0]
@@ -59,11 +59,10 @@ class GTrans(Model):
 
         # Register on-the-fly constraints.
         if not is_predict:
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(h, dim=-1, ord=2), 1))
-            self.onthefly_constraints.append(self.max_clamp(torch.linalg.norm(t, dim=-1, ord=2), 1))
-            self.onthefly_constraints.append(wr.clamp(min=0))
+            self.onthefly_constraints.append(self.scale_constraint(h))
+            self.onthefly_constraints.append(self.scale_constraint(t))
             # This returns a single value.
-            self.onthefly_constraints.append(torch.linalg.norm(wr, dim=-1, ord=2).clamp(min=1).view(-1, 1))
+            self.onthefly_constraints.append(self.scale_constraint(wr, ctype='ge').view(-1, 1))
 
         return -torch.pow(torch.linalg.norm(wr.view(-1, 1) * result, ord=self.pnorm, dim=-1), 2)
 

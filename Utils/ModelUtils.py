@@ -35,13 +35,17 @@ from Models.ReflectE import ReflectE
 from Models.RotatE import RotatE
 from Models.RotatE3D import RotatE3D
 from Models.RotPro import RotPro
+from Models.SE import SE
 from Models.SimplE import SimplE
 from Models.STransE import STransE
 from Models.StructurE import StructurE
 from Models.TransA import TransA
 from Models.TransAt import TransAt
 from Models.TransD import TransD
+from Models.TransDR import TransDR
 from Models.TransE import TransE
+from Models.TransEDT import TransEDT
+from Models.TransEdge import TransEdge
 from Models.TransEFT import TransEFT
 from Models.TransERS import TransERS
 from Models.TransF import TransF
@@ -68,7 +72,8 @@ def getModel(model_name, params):
     """
 
     kwargs = {"ent_total":params["ent_total"], "rel_total":params["rel_total"]}
-    if model_name == "transd" or model_name == "transr" or model_name == "tucker" or model_name == "transsparse":
+    if model_name == "transd" or model_name == "transr" or model_name == "tucker" or model_name == "transsparse" or \
+            model_name == "transdr":
         kwargs.update({"dim_e":params["dime"], "dim_r":params["dimr"]})
     else:
         kwargs.update({"dim": params["dim"]})
@@ -76,7 +81,8 @@ def getModel(model_name, params):
         model_name == "boxe" or model_name == "makr" or model_name == "transms" or model_name == "transers" or \
             model_name == "lpptranse" or model_name == "transeft" or model_name == "transm" or model_name == "mde" or \
             model_name == "combine" or model_name == "transgate" or model_name == "transat" or \
-            model_name == "aprile" or model_name == "cycle" or model_name == "reflecte" or model_name == "structure":
+            model_name == "aprile" or model_name == "reflecte" or model_name == "structure" or \
+            model_name == "transedt" or model_name == "transedge":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse" or model_name == "transm":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
@@ -196,6 +202,14 @@ def getModel(model_name, params):
         m = StructurE(**kwargs)
     elif model_name == "gtrans":
         m = GTrans(**kwargs)
+    elif model_name == "transedt":
+        m = TransEDT(**kwargs)
+    elif model_name == "transdr":
+        m = TransDR(**kwargs)
+    elif model_name == "transedge":
+        m = TransEdge(**kwargs)
+    elif model_name == "se":
+        m = SE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -205,10 +219,12 @@ def getModel(model_name, params):
     # TODO: https://github.com/xinguoxia/KGE
     # ConE (https://arxiv.org/pdf/2110.14923v2.pdf) works with hierarchies that can be pre-computed, see Appendix H.
     # ITransF: https://aclanthology.org/P17-1088.pdf
+    # DihEdral: https://aclanthology.org/P19-1026.pdf
     # TransC (requires instanceOf and subclassOf triples): https://aclanthology.org/D18-1222.pdf
     # KEC (requires concepts): https://www.sciencedirect.com/science/article/pii/S0950705118304945
     # ConnectE (requires type info): https://www.sciencedirect.com/science/article/abs/pii/S0950705120301921
     # TransRHS (requires subrelationOf): https://doi.org/10.24963/ijcai.2020/413
+    # SSE (requires concepts): https://www.aclweb.org/anthology/P15-1009/
 
     # Neural networks
     # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf
