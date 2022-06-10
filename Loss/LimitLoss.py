@@ -3,10 +3,10 @@ import torch.nn as nn
 from .Loss import Loss
 
 
-class LimitBasedLoss(Loss):
+class LimitLoss(Loss):
 
     def __init__(self, model, margin_p=1e-1, margin_n=1e-1, alpha=.8, criterion=None, reg_type='L2'):
-        super(LimitBasedLoss, self).__init__(model, is_pairwise=True, reg_type=reg_type)
+        super(LimitLoss, self).__init__(model, is_pairwise=True, reg_type=reg_type)
         self.loss_p = nn.MarginRankingLoss(margin_p)
         self.loss_n = nn.MarginRankingLoss(margin_n)
         self.alpha = alpha

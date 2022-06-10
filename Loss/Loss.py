@@ -38,4 +38,4 @@ class Loss(nn.Module):
         # Apply regularization.
         regularization = torch.tensor([self.model.regularization(data, reg_type=self.reg_type)], device=score.device)
 
-        return loss_res + self.model.apply_extra_losses(data) + self.wc * constraints + self.lmbda * regularization
+        return loss_res + self.wc * constraints + self.lmbda * regularization

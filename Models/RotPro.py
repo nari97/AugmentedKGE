@@ -27,11 +27,11 @@ class RotPro(Model):
                               init="uniform", init_params=[.5, .5])
         self.create_embedding(self.dim, emb_type="relation", name="p")
 
-        self.register_custom_extra_loss(self.penalty_loss)
+        self.register_custom_constraint(self.penalty_constraint)
 
     # Equation 10.
-    def penalty_loss(self, head_emb, rel_emb, tail_emb, pos_neg, alpha=.25):
-        return torch.sum((self.apply_penalty(rel_emb["a"]) + self.apply_penalty(rel_emb["b"])) * alpha)
+    def penalty_constraint(self, head_emb, rel_emb, tail_emb, alpha=.25):
+        return (self.apply_penalty(rel_emb["a"]) + self.apply_penalty(rel_emb["b"])) * alpha
 
     # Check: https://github.com/tewiSong/Rot-Pro/blob/main/codes/model.py#L420
     def apply_penalty(self, x, gamma=.00005, beta=1.5):
@@ -68,15 +68,9 @@ class RotPro(Model):
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        h_real = head_emb["e_real"]
-        h_img = head_emb["e_img"]
-
-        t_real = tail_emb["e_real"]
-        t_img = tail_emb["e_img"]
-
+        h_real, h_img = head_emb["e_real"], head_emb["e_img"]
+        t_real, t_img = tail_emb["e_real"], tail_emb["e_img"]
         r_phase = rel_emb["r_phase"]
-        a = rel_emb["a"]
-        b = rel_emb["b"]
-        p = rel_emb["p"]
+        a, b, p = rel_emb["a"], rel_emb["b"], rel_emb["p"]
 
         return self._calc(h_real, h_img, r_phase, a, b, p, t_real, t_img)

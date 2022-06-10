@@ -32,7 +32,6 @@ class Model(nn.Module):
         self.hyperparameters = None
 
         self.custom_constraints = []
-        self.custom_extra_losses = []
         self.scale_constraints = []
         # These constraints are executed once for the current batch.
         self.onthefly_constraints = []
@@ -159,22 +158,6 @@ class Model(nn.Module):
     def register_custom_constraint(self, c):
         self.custom_constraints.append(c)
 
-    def register_custom_extra_loss(self, l):
-        self.custom_extra_losses.append(l)
-
-    # TODO Do we need this?
-    def apply_extra_losses(self, data):
-        head_emb = self.get_head_embeddings(data)
-        tail_emb = self.get_tail_embeddings(data)
-        rel_emb = self.get_relation_embeddings(data)
-        pos_neg = data["batch_y"]
-
-        loss = 0
-        for l in self.custom_extra_losses:
-            loss += l(head_emb, rel_emb, tail_emb, pos_neg)
-
-        return loss
-
     # Apply the constraints to be added to the loss.
     def constraints(self, data):
         head_emb = self.get_head_embeddings(data)
@@ -265,7 +248,7 @@ class Model(nn.Module):
     def create_embedding(self, dimension, emb_type=None, name=None, register=True,
                          init="xavier_uniform", init_params=[],
                          norm_method=None, norm_params={"p": 2, "dim": -1},
-                         reg=False, reg_params={"norm": torch.linalg.norm, "dim" : -1}):
+                         reg=False, reg_params={"norm": torch.linalg.norm, "dim": -1}):
         if emb_type == "entity":
             total = self.ent_tot
         elif emb_type == "relation":

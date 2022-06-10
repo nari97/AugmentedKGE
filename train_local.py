@@ -23,7 +23,7 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'transa', 6, '', 0
+    model_name, dataset, split_prefix, point = 'rotpro', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
@@ -60,8 +60,7 @@ def run():
     parameters["opt_method"] = "adam"
 
     parameters["gamma"] = 1e-4
-    parameters["gammap"] = 1e-4
-    parameters["gamman"] = 1e-4
+    parameters["other_gamma"] = 1e-4
 
     parameters["pnorm"] = 2
 
