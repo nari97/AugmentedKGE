@@ -14,7 +14,11 @@ class BoxE(Model):
 
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e_base")
-        self.create_embedding(self.dim, emb_type="entity", name="e_bump")
+        # Not proposed in the original paper; the implementation
+        #   (https://github.com/ralphabb/BoxE/blob/master/BoxEModel.py#L398) normalizes only when initializing.
+        #   We empirically found that this norm helps.
+        self.create_embedding(self.dim, emb_type="entity", name="e_bump", norm_method="norm")
+
         # A box has a base and a delta, check: https://github.com/ralphabb/BoxE/blob/master/BoxEModel.py#L119
         self.create_embedding(self.dim, emb_type="relation", name="r_base_1")
         self.create_embedding(self.dim, emb_type="relation", name="r_delta_1")

@@ -6,12 +6,6 @@ from Models.Model import Model
 class HAKE(Model):
 
     def __init__(self, ent_total, rel_total, dim):
-        """
-        Args:
-            ent_total (int): Total number of entities
-            rel_total (int): Total number of relations
-            dim (int): Number of dimensions for embeddings
-        """
         super(HAKE, self).__init__(ent_total, rel_total)
         self.dim = dim
 
@@ -38,13 +32,9 @@ class HAKE(Model):
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        hm = head_emb["em"]
-        tm = tail_emb["em"]
-        rm = rel_emb["rm"]
-        hp = head_emb["ep"]
-        tp = tail_emb["ep"]
-        rp = rel_emb["rp"]
-        rmp = rel_emb["rmprime"]
+        hm, hp = head_emb["em"], head_emb["ep"]
+        tm, tp = tail_emb["em"], tail_emb["ep"]
+        rm, rp, rmp = rel_emb["rm"], rel_emb["rp"], rel_emb["rmprime"]
 
         l1 = self.current_global_embeddings["lambda1"].item()
         l2 = self.current_global_embeddings["lambda2"].item()

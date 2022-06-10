@@ -2,6 +2,7 @@ import torch
 from Models.Model import Model
 
 
+# TODO This takes forever; find a better way, if possible.
 class GCOTE(Model):
 
     def __init__(self, ent_total, rel_total, dim, head_context, tail_context, k=3):

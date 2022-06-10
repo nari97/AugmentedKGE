@@ -21,14 +21,12 @@ class AttE(Model):
         # Note: we do not include c as we are not learning in the Poincare space.
         self.c = 1
 
+        # They are regularized in the implementation; check:
+        # https://github.com/tensorflow/neural-structured-learning/blob/master/research/kg_hyp_emb/models/euclidean.py#L145
         self.create_embedding(math.floor(self.dim/2), emb_type="relation", name="r_theta",
-                              init="uniform", init_params=[0, 2 * math.pi])
+                              init="uniform", init_params=[0, 2 * math.pi], reg=True)
         self.create_embedding(math.floor(self.dim/2), emb_type="relation", name="r_phi",
-                              init="uniform", init_params=[0, 2 * math.pi])
-
-        # Not mentioned in the original paper.
-        self.register_scale_constraint(emb_type="entity", name="e")
-        self.register_scale_constraint(emb_type="relation", name="r")
+                              init="uniform", init_params=[0, 2 * math.pi], reg=True)
 
     def get_matrix(self, r, batch_size, optype):
         # r = [a, b]
@@ -70,7 +68,11 @@ class AttE(Model):
         return torch.diag_embed(r_diag) + torch.diag_embed(r_u[:,:self.dim - 1], offset=1) + \
               torch.diag_embed(r_l[:,:self.dim - 1], offset=-1)
 
-    def _calc(self, h, bh, r, r_theta, r_phi, ar, t, bt):
+    # In this case, the predict and train are the same. They are not in AttH.
+    def _calc_predict(self, h, bh, r, r_theta, r_phi, ar, t, bt):
+        return self._calc_train(h, bh, r, r_theta, r_phi, ar, t, bt)
+
+    def _calc_train(self, h, bh, r, r_theta, r_phi, ar, t, bt):
         batch_size = h.shape[0]
 
         # Rotate and reflect.
@@ -87,13 +89,11 @@ class AttE(Model):
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        h = head_emb["e"]
-        t = tail_emb["e"]
-        r = rel_emb["r"]
-        bh = head_emb["b"]
-        bt = tail_emb["b"]
-        r_theta = rel_emb["r_theta"]
-        r_phi = rel_emb["r_phi"]
-        ar = rel_emb["a"]
+        h, bh = head_emb["e"], head_emb["b"]
+        t, bt = tail_emb["e"], tail_emb["b"]
+        r, r_theta, r_phi, ar = rel_emb["r"], rel_emb["r_theta"], rel_emb["r_phi"], rel_emb["a"]
 
-        return self._calc(h, bh, r, r_theta, r_phi, ar, t, bt)
+        if not is_predict:
+            return self._calc_train(h, bh, r, r_theta, r_phi, ar, t, bt)
+        else:
+            return self._calc_predict(h, bh, r, r_theta, r_phi, ar, t, bt)

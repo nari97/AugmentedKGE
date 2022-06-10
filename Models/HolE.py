@@ -9,14 +9,11 @@ class HolE(Model):
         self.dim = dim
 
     def get_default_loss(self):
-        return 'margin_sigmoid'
+        return 'soft'
 
     def initialize_model(self):
-        self.create_embedding(self.dim, emb_type="entity", name="e")
-        self.create_embedding(self.dim, emb_type="relation", name="r")
-    
-        self.register_scale_constraint(emb_type="entity", name="e")
-        self.register_scale_constraint(emb_type="relation", name="r")
+        self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)
+        self.create_embedding(self.dim, emb_type="relation", name="r", reg=True)
         
     def _calc(self, h, r, t):
         # Last term in Eq. 12 says e_t(r * e_h), where a*b=F-1(F(a) x F(b)), where x is the Hadamard product.

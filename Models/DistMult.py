@@ -9,13 +9,11 @@ class DistMult(Model):
         self.dim = dim
 
     def get_default_loss(self):
-        return 'margin_sigmoid'
+        return 'margin'
 
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e", norm_method="norm")
-        self.create_embedding(self.dim, emb_type="relation", name="r")
-
-        self.register_scale_constraint(emb_type="relation", name="r")
+        self.create_embedding(self.dim, emb_type="relation", name="r", reg=True)
         
     def _calc(self, h, r, t):
         return torch.sum(h * r * t, -1)

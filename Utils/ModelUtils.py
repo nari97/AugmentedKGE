@@ -82,7 +82,8 @@ def getModel(model_name, params):
             model_name == "lpptranse" or model_name == "transeft" or model_name == "transm" or model_name == "mde" or \
             model_name == "combine" or model_name == "transgate" or model_name == "transat" or \
             model_name == "aprile" or model_name == "reflecte" or model_name == "structure" or \
-            model_name == "transedt" or model_name == "transedge":
+            model_name == "transedt" or model_name == "transedge" or model_name == "harotate" or \
+            model_name == "manifolde":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse" or model_name == "transm":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})

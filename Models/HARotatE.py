@@ -20,10 +20,9 @@ class HARotatE(Model):
         # |r|=1 entails that the absolute part of r is 1.
         self.create_embedding(self.dim, emb_type="relation", name="r_phase",
                               init="uniform", init_params=[0, 2 * math.pi])
-        self.create_embedding(self.m, emb_type="relation", name="w")
+        self.create_embedding(self.m, emb_type="relation", name="w", init="uniform", init_params=[-2, 2])
 
     def _calc(self, h_real, h_img, r_phase, w, t_real, t_img):
-        batch_size = h_real.shape[0]
         w_expand = torch.repeat_interleave(w, self.m, dim=1)
 
         if w_expand.shape[1] != self.dim:
@@ -32,17 +31,14 @@ class HARotatE(Model):
         hc = torch.view_as_complex(torch.stack((w_expand * h_real, w_expand * h_img), dim=-1))
         tc = torch.view_as_complex(torch.stack((t_real, t_img), dim=-1))
         rc = torch.view_as_complex(torch.stack((torch.cos(r_phase), torch.sin(r_phase)), dim=-1))
+
         return -torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        h_real = head_emb["e_real"]
-        h_img = head_emb["e_img"]
-        t_real = tail_emb["e_real"]
-        t_img = tail_emb["e_img"]
-
-        r_phase = rel_emb["r_phase"]
-        w = rel_emb["w"]
+        h_real, h_img = head_emb["e_real"], head_emb["e_img"]
+        t_real, t_img = tail_emb["e_real"], tail_emb["e_img"]
+        r_phase, w = rel_emb["r_phase"], rel_emb["w"]
 
         return self._calc(h_real, h_img, r_phase, w, t_real, t_img)

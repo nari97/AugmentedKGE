@@ -23,7 +23,7 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'rotpro', 6, '', 0
+    model_name, dataset, split_prefix, point = 'makr', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
@@ -47,6 +47,8 @@ def run():
 
     # TODO Testing regularization
     parameters["lmbda"] = 1e-5
+    parameters["reg_type"] = 'L2'
+
     # Weight of constraints over parameters.
     parameters["weight_constraints"] = 1e-5
     # TODO Normalization of lambda: https://arxiv.org/pdf/1711.05101.pdf (Appendix B.1)
@@ -105,7 +107,7 @@ def run():
     mu.set_params(parameters)
     print("Model name : ", mu.get_model_name())
 
-    loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu)
+    loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu, reg_type=parameters["reg_type"])
 
     validation = Evaluator(TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
                                          batch_size=parameters["batch_size"], neg_rate=parameters["nr"],

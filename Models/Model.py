@@ -26,6 +26,8 @@ class Model(nn.Module):
         self.embeddings = {"entity": {}, "relation": {}, "global" : {}}
         self.embeddings_normalization = {"entity": {}, "relation": {}, "global" : {}}
         self.embeddings_regularization = {"entity": {}, "relation": {}, "global": {}}
+        # This is for complex numbers.
+        self.embeddings_regularization_complex = {"entity": [], "relation": [], "global": []}
 
         self.ranks = None
         self.totals = None
@@ -143,8 +145,8 @@ class Model(nn.Module):
                           '; are you sure about this?')
                     pass
 
-    def register_scale_constraint(self, emb_type, name, p=2, z=1):
-        self.scale_constraints.append({'emb_type': emb_type, 'name': name, 'p': p, 'z': z})
+    def register_scale_constraint(self, emb_type, name, p=2, z=1, ctype='le'):
+        self.scale_constraints.append({'emb_type': emb_type, 'name': name, 'p': p, 'z': z, 'ctype': ctype})
 
     # Applies the constraint ||x||_y<=z when ctype='le', and ||x||_y>=z when ctype='ge'.
     # Check, for instance, TransH and GTrans on how these are applied.
@@ -175,10 +177,10 @@ class Model(nn.Module):
                     v.append(c(head_emb, rel_emb, tail_emb))
                 elif key is 'scale':
                     if c['emb_type'] == 'entity':
-                        v.append(self.scale_constraint(head_emb[c['name']], c['p'], c['z']))
-                        v.append(self.scale_constraint(tail_emb[c['name']], c['p'], c['z']))
+                        v.append(self.scale_constraint(head_emb[c['name']], c['p'], c['z'], c['ctype']))
+                        v.append(self.scale_constraint(tail_emb[c['name']], c['p'], c['z'], c['ctype']))
                     elif c['emb_type'] == 'relation':
-                        v.append(self.scale_constraint(rel_emb[c['name']], c['p'], c['z']))
+                        v.append(self.scale_constraint(rel_emb[c['name']], c['p'], c['z'], c['ctype']))
                 elif key is 'onthefly':
                     v.append(c)
 
@@ -194,38 +196,21 @@ class Model(nn.Module):
     def regularization(self, data, reg_type='L2'):
         reg, total = 0, 0
 
+        # TODO This can be improved by taking only the embeddings mentioned in the batch!
         for etype in self.embeddings_regularization.keys():
             for ename in self.embeddings_regularization[etype].keys():
                 reg_params = self.embeddings_regularization[etype][ename]
+                r = self.apply_individual_regularization(self.embeddings[etype][ename].emb.data, reg_type, reg_params)
+                reg += torch.sum(r)
+                total += len(r)
 
-                if reg_type is 'L1':
-                    p = 1
-                    f = torch.abs
-                elif reg_type is 'L2':
-                    p = 2
-                    f = torch.pow
-                elif reg_type is 'L3':
-                    p = 3
-                    f = torch.pow
-
-                # It can be fro, for instance.
-                if "p" in reg_params.keys():
-                    prev_p = p
-                    p = reg_params["p"]
-
-                x = self.embeddings[etype][ename].emb.data
-                if "transform" in reg_params.keys():
-                    x = reg_params["transform"](x)
-                r = reg_params["norm"](x, dim=reg_params["dim"], ord=p)
-
-                if "p" in reg_params.keys():
-                    p = prev_p
-
-                if p == 1:
-                    r = f(r)
-                else:
-                    r = f(r, p)
-
+        for etype in self.embeddings_regularization_complex.keys():
+            for d in self.embeddings_regularization_complex[etype]:
+                real_part, img_part = self.embeddings[etype][d["real_part"]].emb.data, \
+                                      self.embeddings[etype][d["img_part"]].emb.data
+                reg_params = d["params"]
+                complex = torch.view_as_complex(torch.stack((real_part, img_part), dim=-1))
+                r = self.apply_individual_regularization(complex, reg_type, reg_params)
                 reg += torch.sum(r)
                 total += len(r)
 
@@ -238,6 +223,36 @@ class Model(nn.Module):
             reg /= total
 
         return reg
+
+    def apply_individual_regularization(self, x, reg_type, reg_params):
+        if reg_type is 'L1':
+            p = 1
+            f = torch.abs
+        elif reg_type is 'L2':
+            p = 2
+            f = torch.pow
+        elif reg_type is 'L3':
+            p = 3
+            f = torch.pow
+
+        # It can be fro, for instance.
+        if "p" in reg_params.keys():
+            prev_p = p
+            p = reg_params["p"]
+
+        if "transform" in reg_params.keys():
+            x = reg_params["transform"](x)
+        r = reg_params["norm"](x, dim=reg_params["dim"], ord=p)
+
+        if "p" in reg_params.keys():
+            p = prev_p
+
+        if p == 1:
+            r = f(r)
+        else:
+            r = f(r, p)
+
+        return r
 
     def predict(self, data):
         return self.get_scores(data, is_predict=True)
@@ -268,6 +283,11 @@ class Model(nn.Module):
             self.embeddings_regularization[emb_type][name] = reg_params
 
         return emb
+
+    def register_complex_regularization(self, emb_type=None, name_real=None, name_img=None,
+                                         reg_params={"norm": torch.linalg.norm, "dim": -1}):
+        self.embeddings_regularization_complex[emb_type].append({"real_part": name_real, "img_part": name_img,
+                                                                 "params": reg_params})
 
     def move_to_gpu(self, emb):
         return emb.to(torch.device('cuda'))
