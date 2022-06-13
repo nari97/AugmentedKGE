@@ -14,11 +14,8 @@ class QuatE(Model):
 
     def initialize_model(self):
         for component in ['a', 'b', 'c', 'd']:
-            self.create_embedding(self.dim, emb_type="entity", name="e_" + component, init='kaiming_uniform')
-            self.create_embedding(self.dim, emb_type="relation", name="r_" + component, init='kaiming_uniform')
-
-            self.register_scale_constraint(emb_type="entity", name="e_" + component)
-            self.register_scale_constraint(emb_type="relation", name="r_" + component)
+            self.create_embedding(self.dim, emb_type="entity", name="e_" + component, init='kaiming_uniform', reg=True)
+            self.create_embedding(self.dim, emb_type="relation", name="r_" + component, init='kaiming_uniform', reg=True)
 
         # Special initialization: normalized quaternion with scalar component equal to zero.
 
@@ -27,13 +24,13 @@ class QuatE(Model):
                self.create_embedding(self.dim, emb_type="entity", register=False, init='kaiming_uniform').emb.data,
                self.create_embedding(self.dim, emb_type="entity", register=False, init='kaiming_uniform').emb.data,
                self.create_embedding(self.dim, emb_type="entity", register=False, init='kaiming_uniform').emb.data)
-        q_img_norm_e = self.quat_norm(q_img_e)
+        q_img_norm_e = QuaternionUtils.quat_norm(q_img_e)
 
         q_img_r = (self.create_embedding(self.dim, emb_type="relation", register=False, init=None).emb.data,
                self.create_embedding(self.dim, emb_type="relation", register=False, init='kaiming_uniform').emb.data,
                self.create_embedding(self.dim, emb_type="relation", register=False, init='kaiming_uniform').emb.data,
                self.create_embedding(self.dim, emb_type="relation", register=False, init='kaiming_uniform').emb.data)
-        q_img_norm_r = self.quat_norm(q_img_r)
+        q_img_norm_r = QuaternionUtils.quat_norm(q_img_r)
 
         # Embeddings between -pi and pi.
         theta_e = self.create_embedding(self.dim, emb_type="entity", register=False,
@@ -44,11 +41,11 @@ class QuatE(Model):
         for idx, component in enumerate(['a', 'b', 'c', 'd']):
             e, r = self.get_embedding('entity', 'e_'+component), self.get_embedding('relation', 'r_'+component)
             if component is 'a':
-                e.emb.data = e.emb.data * torch.cos(theta_e)
-                r.emb.data = r.emb.data * torch.cos(theta_r)
+                e.emb.data *= torch.cos(theta_e)
+                r.emb.data *= torch.cos(theta_r)
             else:
-                e.emb.data = e.emb.data * torch.sin(theta_e) * q_img_norm_e[idx]
-                r.emb.data = r.emb.data * torch.sin(theta_r) * q_img_norm_r[idx]
+                e.emb.data *= torch.sin(theta_e) * q_img_norm_e[idx]
+                r.emb.data *= torch.sin(theta_r) * q_img_norm_r[idx]
 
     def _calc(self, h, r, t):
         return QuaternionUtils.inner_product(

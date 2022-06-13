@@ -9,8 +9,7 @@ class MDE(Model):
         self.pnorm = norm
 
     def get_default_loss(self):
-        # The original paper uses a custom loss function that uses multiple hyperparameters.
-        return 'soft_margin'
+        return 'limit'
 
     def initialize_model(self):
         for c in ['i', 'j', 'k', 'l']:

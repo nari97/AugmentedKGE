@@ -31,10 +31,8 @@ class StructurE(Model):
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        h = head_emb["e"]
-        hc = head_emb["ec"]
-        t = tail_emb["e"]
-        tc = tail_emb["ec"]
+        h, hc = head_emb["e"], head_emb["ec"]
+        t, tc = tail_emb["e"], tail_emb["ec"]
         rh, rt, r = rel_emb["rh"], rel_emb["rt"], rel_emb["r"]
         lr, le = self.current_global_embeddings["lr"], self.current_global_embeddings["le"]
 

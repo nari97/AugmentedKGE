@@ -29,11 +29,8 @@ class RotatE(Model):
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        h_real = head_emb["e_real"]
-        h_img = head_emb["e_img"]
-        t_real = tail_emb["e_real"]
-        t_img = tail_emb["e_img"]
-
+        h_real, h_img = head_emb["e_real"], head_emb["e_img"]
+        t_real, t_img = tail_emb["e_real"], tail_emb["e_img"]
         r_phase = rel_emb["r_phase"]
 
         return self._calc(h_real, h_img, r_phase, t_real, t_img)

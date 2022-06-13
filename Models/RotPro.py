@@ -22,6 +22,7 @@ class RotPro(Model):
                               # Make phases of relations between [-pi, pi]
                               norm_method="rescaling", norm_params={"a": -math.pi, "b": math.pi})
         self.create_embedding(self.dim, emb_type="relation", name="a",
+                              # https://github.com/tewiSong/Rot-Pro/blob/main/codes/model.py#L63
                               init="uniform", init_params=[.5, .5])
         self.create_embedding(self.dim, emb_type="relation", name="b",
                               init="uniform", init_params=[.5, .5])
@@ -70,7 +71,6 @@ class RotPro(Model):
 
         h_real, h_img = head_emb["e_real"], head_emb["e_img"]
         t_real, t_img = tail_emb["e_real"], tail_emb["e_img"]
-        r_phase = rel_emb["r_phase"]
-        a, b, p = rel_emb["a"], rel_emb["b"], rel_emb["p"]
+        r_phase, a, b, p = rel_emb["r_phase"], rel_emb["a"], rel_emb["b"], rel_emb["p"]
 
         return self._calc(h_real, h_img, r_phase, a, b, p, t_real, t_img)

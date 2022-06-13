@@ -22,9 +22,6 @@ class MRotatE(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r_phase",
                               init="uniform", init_params=[0, 2 * math.pi])
 
-        self.create_embedding(self.dim, emb_type="entity", name="e")
-        self.create_embedding(self.dim, emb_type="relation", name="r")
-
     def _calc(self, h_real, h_img, h, r_phase, r, t_real, t_img, t):
         hc = torch.view_as_complex(torch.stack((h_real, h_img), dim=-1))
         tc = torch.view_as_complex(torch.stack((t_real, t_img), dim=-1))
@@ -35,14 +32,8 @@ class MRotatE(Model):
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        h_real = head_emb["e_real"]
-        h_img = head_emb["e_img"]
-        h = head_emb["e"]
-        t_real = tail_emb["e_real"]
-        t_img = tail_emb["e_img"]
-        t = head_emb["e"]
-
-        r_phase = rel_emb["r_phase"]
-        r = rel_emb["r"]
+        h, h_real, h_img = head_emb["e"], head_emb["e_real"], head_emb["e_img"]
+        t, t_real, t_img = tail_emb["e"], tail_emb["e_real"], tail_emb["e_img"]
+        r, r_phase = rel_emb["r"], rel_emb["r_phase"]
 
         return self._calc(h_real, h_img, h, r_phase, r, t_real, t_img, t)

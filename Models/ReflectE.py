@@ -9,7 +9,7 @@ class ReflectE(Model):
         self.pnorm = norm
 
     def get_default_loss(self):
-        return 'margin'
+        return 'soft_margin'
 
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e")
@@ -31,6 +31,7 @@ class ReflectE(Model):
         hcrh = hc * rh
         tcrt = tc * rt
 
+        # Check Eqs. 6 and 7; note that these override Eqs. 2 and 3.
         if not is_predict:
             self.onthefly_constraints.append(self.scale_constraint(hcrh))
             self.onthefly_constraints.append(self.scale_constraint(tcrt))
@@ -48,10 +49,8 @@ class ReflectE(Model):
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        h = head_emb["e"]
-        hc = head_emb["ec"]
-        t = tail_emb["e"]
-        tc = tail_emb["ec"]
+        h, hc = head_emb["e"], head_emb["ec"]
+        t, tc = tail_emb["e"], tail_emb["ec"]
         rh, rt, rp = rel_emb["rh"], rel_emb["rt"], rel_emb["rp"]
 
         return self._calc(h, hc, rh, rt, rp, t, tc, is_predict)

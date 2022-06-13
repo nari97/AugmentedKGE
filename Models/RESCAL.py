@@ -13,9 +13,8 @@ class RESCAL(Model):
         return 'margin'
 
     def initialize_model(self):
-        self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)
-        self.create_embedding((self.dim, self.dim), emb_type="relation", name="r",
-                              reg=True, reg_params={"norm": torch.linalg.matrix_norm, "p": 'fro', "dim": (-2, -1)})
+        self.create_embedding(self.dim, emb_type="entity", name="e")
+        self.create_embedding((self.dim, self.dim), emb_type="relation", name="r")
 
     def _calc(self, h, r, t):
         batch_size = h.shape[0]

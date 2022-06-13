@@ -19,8 +19,7 @@ class RatE(Model):
         # |r|=1 entails that the absolute part of r is 1.
         self.create_embedding(self.dim, emb_type="relation", name="r_phase",
                               init="uniform", init_params=[0, 2 * math.pi])
-        self.create_embedding(8, emb_type="relation", name="wr",
-                              reg=True, reg_params={"norm": torch.linalg.norm, "dim": -1, "p": 1})
+        self.create_embedding(8, emb_type="relation", name="wr", reg=True)
 
     def _calc(self, h_real, h_img, r_phase, wr, t_real, t_img):
         r_real, r_img = torch.cos(r_phase), torch.sin(r_phase)

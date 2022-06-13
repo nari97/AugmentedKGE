@@ -41,8 +41,6 @@ class STransE(Model):
 
         h = head_emb["e"]
         t = tail_emb["e"]
-        r = rel_emb["r"]
-        wr1 = rel_emb["wr1"]
-        wr2 = rel_emb["wr2"]
+        r, wr1, wr2 = rel_emb["r"], rel_emb["wr1"], rel_emb["wr2"]
 
         return self._calc(h, wr1, r, t, wr2, is_predict)

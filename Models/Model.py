@@ -28,6 +28,8 @@ class Model(nn.Module):
         self.embeddings_regularization = {"entity": {}, "relation": {}, "global": {}}
         # This is for complex numbers.
         self.embeddings_regularization_complex = {"entity": [], "relation": [], "global": []}
+        # This regularization is executed once for the current batch.
+        self.onthefly_regularization = []
 
         self.ranks = None
         self.totals = None
@@ -214,6 +216,14 @@ class Model(nn.Module):
                 reg += torch.sum(r)
                 total += len(r)
 
+        for (x, reg_params) in self.onthefly_regularization:
+            r = self.apply_individual_regularization(x, reg_type, reg_params)
+            reg += torch.sum(r)
+            total += len(r)
+
+        # Clear on-the-fly regularization.
+        self.onthefly_regularization = []
+
         if reg_type is 'L2':
             reg = 1/2 * reg
         elif reg_type is 'L3':
@@ -259,6 +269,9 @@ class Model(nn.Module):
 
     def return_score(self):
         raise NotImplementedError
+
+    def register_onthefly_regularization(self, x, reg_params={"norm": torch.linalg.norm, "dim": -1}):
+        self.onthefly_regularization.append((x, reg_params))
 
     def create_embedding(self, dimension, emb_type=None, name=None, register=True,
                          init="xavier_uniform", init_params=[],
