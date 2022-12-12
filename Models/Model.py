@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from Utils.Embedding import Embedding
+import time
+from ..Utils.Embedding import Embedding
 import os
 
 
@@ -46,6 +47,9 @@ class Model(nn.Module):
 
     def set_use_gpu(self, use_gpu):
         self.use_gpu = use_gpu
+        for key1 in self.embeddings:
+            for key2 in self.embeddings[key1]:
+                self.embeddings[key1][key2] = self.embeddings[key1][key2].to("cuda")
 
     def get_model_name(self):
         return type(self).__name__.lower()
@@ -77,9 +81,10 @@ class Model(nn.Module):
         self.current_batch = (head_emb, rel_emb, tail_emb)
         self.current_data = data
 
-        self.embeddings_to_gpu()
+        #self.embeddings_to_gpu()
         scores = self.return_score(is_predict=is_predict).flatten()
-        self.embeddings_to_cpu()
+
+        #self.embeddings_to_cpu()
 
         return scores
 

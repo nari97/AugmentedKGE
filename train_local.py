@@ -101,8 +101,6 @@ def run():
     parameters["head_context"] = train_manager.headDict
     parameters["tail_context"] = train_manager.tailDict
 
-
-
     mu = ModelUtils.getModel(model_name, parameters)
     mu.set_params(parameters)
     print("Model name : ", mu.get_model_name())
