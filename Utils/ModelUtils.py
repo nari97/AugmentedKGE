@@ -6,6 +6,7 @@ from Models.BoxE import BoxE
 from Models.CombinE import CombinE
 from Models.ComplEx import ComplEx
 from Models.CrossE import CrossE
+from Models.CrossES import CrossES
 from Models.CyclE import CyclE
 from Models.DistMult import DistMult
 from Models.DensE import DensE
@@ -48,7 +49,6 @@ from Models.TransEDT import TransEDT
 from Models.TransEdge import TransEdge
 from Models.TransEFT import TransEFT
 from Models.TransERS import TransERS
-from Models.TransF import TransF
 from Models.TransGate import TransGate
 from Models.TransH import TransH
 from Models.TransM import TransM
@@ -92,6 +92,7 @@ def getModel(model_name, params):
     if model_name == "gcote" or model_name == "gtrans":
         kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
 
+    # TODO Can we do this dynamically?
     m = None
     if model_name == "transe":
         m = TransE(**kwargs)
@@ -127,10 +128,10 @@ def getModel(model_name, params):
         m = STransE(**kwargs)
     elif model_name == "crosse":
         m = CrossE(**kwargs)
+    elif model_name == "crosses":
+        m = CrossES(**kwargs)
     elif model_name == "hake":
         m = HAKE(**kwargs)
-    elif model_name == "transf":
-        m = TransF(**kwargs)
     elif model_name == "transa":
         m = TransA(**kwargs)
     elif model_name == "rescal":

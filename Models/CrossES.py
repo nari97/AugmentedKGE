@@ -2,7 +2,7 @@ import torch
 from Models.Model import Model
 
 
-class CrossE(Model):
+class CrossES(Model):
     """
     Wen Zhang, Bibek Paudel, Wei Zhang, Abraham Bernstein, Huajun Chen: Interaction Embeddings for Prediction and
         Explanation in Knowledge Graphs. WSDM 2019: 96-104.
@@ -14,7 +14,7 @@ class CrossE(Model):
                 already applies sigmoid, so, if this is the loss function used, apply_sigmoid must be set to False. If
                 a different loss function is applied, then apply_sigmoid should be set to True.
         """
-        super(CrossE, self).__init__(ent_total, rel_total)
+        super(CrossES, self).__init__(ent_total, rel_total)
         self.dim = dim
         self.apply_sigmoid = apply_sigmoid
 
@@ -26,13 +26,13 @@ class CrossE(Model):
         # Section 3 and loss function after Eq. (8).
         self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)
         self.create_embedding(self.dim, emb_type="relation", name="r", reg=True)
-        self.create_embedding(self.dim, emb_type="relation", name="c", reg=True)
+        # This is the same as CrossE but without interaction embeddings.
         # After Eq. (5). Section 5.1.2: "b is initialized to zero."
         self.create_embedding(self.dim, emb_type="global", name="b", init_method="zero", reg=True)
 
-    def _calc(self, h, r, c, t, b, is_predict=False):
-        # Eq. (7) except sigmoid.
-        scores = torch.sum(torch.tanh((c * h) + (c * h * r) + b) * t, -1)
+    def _calc(self, h, r, t, b, is_predict=False):
+        # Eq. (8) except sigmoid.
+        scores = torch.sum(torch.tanh(h + r + b) * t, -1)
 
         # Apply sigmoid when predicting or when indicated by apply_sigmoid.
         if is_predict or self.apply_sigmoid:
@@ -45,7 +45,7 @@ class CrossE(Model):
 
         h = head_emb["e"]
         t = tail_emb["e"]
-        r, c = rel_emb["r"], rel_emb["c"]
+        r = rel_emb["r"]
         b = self.current_global_embeddings["b"]
 
-        return self._calc(h, r, c, t, b, is_predict)
+        return self._calc(h, r, t, b, is_predict)

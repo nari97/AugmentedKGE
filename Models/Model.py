@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-import time
-from ..Utils.Embedding import Embedding
+from Utils.Embedding import Embedding
 import os
 
 
@@ -12,7 +11,6 @@ class Model(nn.Module):
 
     def __init__(self, ent_tot, rel_tot):
         """
-        Args:
             ent_tot (int): Total number of entites
             rel_tot (int): Total number of relations
         """
@@ -24,12 +22,16 @@ class Model(nn.Module):
 
         self.epoch = 0
 
+        # Global are embeddings that do not belong to any entity or relation.
         self.embeddings = {"entity": {}, "relation": {}, "global" : {}}
+        # This provides normalization info for each embedding. The info is 'norm', where 'p' and 'dim' are expected,
+        #   'rescaling', where 'a' and 'b' are expected, or None.
         self.embeddings_normalization = {"entity": {}, "relation": {}, "global" : {}}
+        # Regularization for embeddings.
         self.embeddings_regularization = {"entity": {}, "relation": {}, "global": {}}
         # This is for complex numbers.
         self.embeddings_regularization_complex = {"entity": [], "relation": [], "global": []}
-        # This regularization is executed once for the current batch.
+        # TODO This regularization is executed once for the current batch.
         self.onthefly_regularization = []
 
         self.ranks = None
@@ -37,6 +39,7 @@ class Model(nn.Module):
         self.hyperparameters = None
 
         self.custom_constraints = []
+        # These constraints scale the embedding norms, e.g., ||x||<=1.
         self.scale_constraints = []
         # These constraints are executed once for the current batch.
         self.onthefly_constraints = []
@@ -45,34 +48,30 @@ class Model(nn.Module):
         self.current_data = None
         self.current_global_embeddings = {}
 
-    def set_use_gpu(self, use_gpu):
-        self.use_gpu = use_gpu
-        for key1 in self.embeddings:
-            for key2 in self.embeddings[key1]:
-                self.embeddings[key1][key2] = self.embeddings[key1][key2].to("cuda")
-
     def get_model_name(self):
         return type(self).__name__.lower()
 
+    # This method declares the embeddings and all the stuff.
     def initialize_model(self):
         raise NotImplementedError
 
+    # This method provides the default loss function of the model.
     def get_default_loss(self):
         raise NotImplementedError
 
+    # PyTorch, please, do your magic!
     def forward(self, data):
         return self.get_scores(data)
 
     def get_scores(self, data, is_predict=False):
         """
-                Calculate the scores for the given batch of triples
+        Calculate the scores for the given batch of triples
+            data (Tensor): Tensor containing the batch of triples for which scores are to be calculated.
+            is_predict (Bool): whether we are predicting (no gradient computation is expected).
 
-                Args:
-                    data (Tensor): Tensor containing the batch of triples for which scores are to be calculated
-
-                Returns:
-                    score (Tensor): Tensor containing the scores for each triple
-                """
+        Returns:
+            score (Tensor): Tensor containing the scores for each triple.
+        """
         head_emb = self.get_head_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
         tail_emb = self.get_tail_embeddings(data)
@@ -81,48 +80,60 @@ class Model(nn.Module):
         self.current_batch = (head_emb, rel_emb, tail_emb)
         self.current_data = data
 
+        # GPU is currently not supported. Larger datasets cannot fit in GPU.
         #self.embeddings_to_gpu()
         scores = self.return_score(is_predict=is_predict).flatten()
-
         #self.embeddings_to_cpu()
 
         return scores
 
-    def embeddings_to_gpu(self):
-        # Move to GPU?
-        if self.use_gpu:
-            (head_emb, rel_emb, tail_emb) = self.current_batch
-            for emb in [head_emb, tail_emb, rel_emb]:
-                for name in emb.keys():
-                    emb[name] = self.move_to_gpu(emb[name])
-            self.current_batch = (head_emb, rel_emb, tail_emb)
+    # This method creates embeddings.
+    def create_embedding(self, dim, emb_type=None, name=None, register=True,
+                         init_method="xavier_uniform", init_params=[],
+                         norm_method=None, norm_params={"p": 2, "dim": -1},
+                         reg=False, reg_params={"norm": torch.linalg.norm, "dim": -1}):
+        """
+            dim (int): Number of dimensions for embeddings.
+            emb_type (String): entity, relation, global, None.
+            name (String): name of the embedding to be accessed.
+            register (Bool): whether to register as a model parameter or not.
+            init_method and init_params: to be used by Embedding.
+            norm_method and norm_params: embedding normalization.
+            reg and reg_params: whether to regularize embedding and information.
+        """
+        if emb_type == "entity":
+            total = self.ent_tot
+        elif emb_type == "relation":
+            total = self.rel_tot
+        elif emb_type == "global":
+            total = 1
+        else:
+            raise Exception("Type of embedding must be relation or entity")
 
-            for name in self.current_global_embeddings.keys():
-                self.current_global_embeddings[name] = self.move_to_gpu(self.current_global_embeddings[name])
+        emb = Embedding(total, dim, emb_type, name, init_method, init_params)
+        if register:
+            self.embeddings[emb_type][name] = emb
+            self.embeddings_normalization[emb_type][name] = {'method': norm_method, 'params': norm_params}
+            self.register_parameter(emb_type + '_' + name, self.embeddings[emb_type][name].emb)
 
-    def embeddings_to_cpu(self):
-        if self.use_gpu:
-            (head_emb, rel_emb, tail_emb) = self.current_batch
-            for emb in [head_emb, tail_emb, rel_emb]:
-                for name in emb.keys():
-                    emb[name] = self.move_to_cpu(emb[name])
-            self.current_batch = None
-            self.current_data = None
+        # This registers a regularization term for this embedding.
+        if reg:
+            self.embeddings_regularization[emb_type][name] = reg_params
 
-            for name in self.current_global_embeddings.keys():
-                self.current_global_embeddings[name] = self.move_to_cpu(self.current_global_embeddings[name])
-            self.current_global_embeddings = {}
+        return emb
 
-            torch.cuda.empty_cache()
+    # This method computes the score using self.current_batch.
+    def return_score(self):
+        raise NotImplementedError
 
-    # This is called before starting the batch and gradients.
+    def predict(self, data):
+        return self.get_scores(data, is_predict=True)
+
+    # This method is called by the Trainer before starting the batch and gradients.
     def start_batch(self):
         self.apply_normalization()
 
-    # This is called when the batch is done.
-    def end_batch(self):
-        pass
-
+    # Normalize embeddings.
     def apply_normalization(self):
         for emb_type in self.embeddings:
             for name in self.embeddings[emb_type]:
@@ -152,20 +163,9 @@ class Model(nn.Module):
                           '; are you sure about this?')
                     pass
 
+    # We register a scale constraint we wish to apply.
     def register_scale_constraint(self, emb_type, name, p=2, z=1, ctype='le'):
         self.scale_constraints.append({'emb_type': emb_type, 'name': name, 'p': p, 'z': z, 'ctype': ctype})
-
-    # Applies the constraint ||x||_y<=z when ctype='le', and ||x||_y>=z when ctype='ge'.
-    # Check, for instance, TransH and GTrans on how these are applied.
-    def scale_constraint(self, emb, p=2, z=1, ctype='le'):
-        if ctype == 'le':
-            constraint = torch.pow(torch.linalg.norm(emb, dim=-1, ord=p), 2) - z
-        elif ctype == 'ge':
-            constraint = z - torch.pow(torch.linalg.norm(emb, dim=-1, ord=p), 2)
-        return torch.maximum(constraint, torch.zeros_like(constraint))
-
-    def register_custom_constraint(self, c):
-        self.custom_constraints.append(c)
 
     # Apply the constraints to be added to the loss.
     def constraints(self, data):
@@ -194,38 +194,97 @@ class Model(nn.Module):
                 for x in v:
                     constraints += torch.sum(x)
 
+        # TODO Clear here or later, when batch is done?
         # Clear on-the-fly constraints.
         self.onthefly_constraints = []
 
         return constraints
 
+    # Applies the constraint ||x||_p<=z when ctype='le', and ||x||_p>=z when ctype='ge'.
+    # Check, for instance, TransH and GTrans on how these are applied.
+    # In Keras, these are implemented using clamp: https://keras.io/api/layers/constraints/
+    def scale_constraint(self, emb, p=2, z=1, ctype='le'):
+        if ctype == 'le':
+            constraint = torch.pow(torch.linalg.norm(emb, dim=-1, ord=p), 2) - z
+        elif ctype == 'ge':
+            constraint = z - torch.pow(torch.linalg.norm(emb, dim=-1, ord=p), 2)
+        return torch.maximum(constraint, torch.zeros_like(constraint))
+
+    # This method is called when the batch is done.
+    def end_batch(self):
+        pass
+
+
+
+    # TODO What is this doing?
+    def register_custom_constraint(self, c):
+        self.custom_constraints.append(c)
+
+    # TODO Do we need complex regularization? If not, remove!
+    # This method registers a new embedding regularization term for complex numbers.
+    #def register_complex_regularization(self, emb_type=None, name_real=None, name_img=None,
+    #                                     reg_params={"norm": torch.linalg.norm, "dim": -1}):
+    #    self.embeddings_regularization_complex[emb_type].append(
+    #        {"real_part": name_real, "img_part": name_img, "params": reg_params})
+
     # Apply regularization.
     def regularization(self, data, reg_type='L2'):
         reg, total = 0, 0
 
-        # TODO This can be improved by taking only the embeddings mentioned in the batch!
+        head_emb = self.get_head_embeddings(data)
+        tail_emb = self.get_tail_embeddings(data)
+        rel_emb = self.get_relation_embeddings(data)
+
         for etype in self.embeddings_regularization.keys():
+            embeds_to_apply = []
+            if etype is 'entity':
+                embeds_to_apply.append(head_emb)
+                embeds_to_apply.append(tail_emb)
+            elif etype is 'relation':
+                embeds_to_apply.append(rel_emb)
+            #elif type is 'global':
+                #TODO: What to add?
+
             for ename in self.embeddings_regularization[etype].keys():
-                reg_params = self.embeddings_regularization[etype][ename]
-                r = self.apply_individual_regularization(self.embeddings[etype][ename].emb.data, reg_type, reg_params)
-                reg += torch.sum(r)
-                total += len(r)
+                if type is 'global':
+                    # TODO What to do with global!
+                    raise NotImplementedError
+
+                for e in embeds_to_apply:
+                    reg_params = self.embeddings_regularization[etype][ename]
+                    r = self.apply_individual_regularization(e[ename], reg_type, reg_params)
+                    reg += torch.sum(r)
+                    total += len(r)
 
         for etype in self.embeddings_regularization_complex.keys():
+            embeds_to_apply = []
+            if etype is 'entity':
+                embeds_to_apply.append(head_emb)
+                embeds_to_apply.append(tail_emb)
+            elif etype is 'relation':
+                embeds_to_apply.append(rel_emb)
+            # elif type is 'global':
+                # TODO: What to add?
+
             for d in self.embeddings_regularization_complex[etype]:
-                real_part, img_part = self.embeddings[etype][d["real_part"]].emb.data, \
-                                      self.embeddings[etype][d["img_part"]].emb.data
-                reg_params = d["params"]
-                complex = torch.view_as_complex(torch.stack((real_part, img_part), dim=-1))
-                r = self.apply_individual_regularization(complex, reg_type, reg_params)
-                reg += torch.sum(r)
-                total += len(r)
+                if type is 'global':
+                    # TODO What to do with global!
+                    raise NotImplementedError
+
+                for e in embeds_to_apply:
+                    real_part, img_part = e[d["real_part"]], e[d["img_part"]]
+                    reg_params = d["params"]
+                    complex = torch.view_as_complex(torch.stack((real_part, img_part), dim=-1))
+                    r = self.apply_individual_regularization(complex, reg_type, reg_params)
+                    reg += torch.sum(r)
+                    total += len(r)
 
         for (x, reg_params) in self.onthefly_regularization:
             r = self.apply_individual_regularization(x, reg_type, reg_params)
             reg += torch.sum(r)
             total += len(r)
 
+        # TODO Clear here?
         # Clear on-the-fly regularization.
         self.onthefly_regularization = []
 
@@ -239,6 +298,7 @@ class Model(nn.Module):
 
         return reg
 
+    # This method applies regularization to the parameters.
     def apply_individual_regularization(self, x, reg_type, reg_params):
         if reg_type is 'L1':
             p = 1
@@ -269,49 +329,15 @@ class Model(nn.Module):
 
         return r
 
-    def predict(self, data):
-        return self.get_scores(data, is_predict=True)
-
-    def return_score(self):
-        raise NotImplementedError
-
+    # TODO What about this?
     def register_onthefly_regularization(self, x, reg_params={"norm": torch.linalg.norm, "dim": -1}):
         self.onthefly_regularization.append((x, reg_params))
 
-    def create_embedding(self, dimension, emb_type=None, name=None, register=True,
-                         init="xavier_uniform", init_params=[],
-                         norm_method=None, norm_params={"p": 2, "dim": -1},
-                         reg=False, reg_params={"norm": torch.linalg.norm, "dim": -1}):
-        if emb_type == "entity":
-            total = self.ent_tot
-        elif emb_type == "relation":
-            total = self.rel_tot
-        elif emb_type == "global":
-            total = 1
-        else:
-            raise Exception("Type of embedding must be relation or entity")
 
-        emb = Embedding(total, dimension, emb_type, name, init, init_params)
-        if register:
-            self.embeddings[emb_type][name] = emb
-            self.embeddings_normalization[emb_type][name] = {'method': norm_method, 'params': norm_params}
-            self.register_parameter(emb_type + '_' + name, self.embeddings[emb_type][name].emb)
 
-        if reg:
-            self.embeddings_regularization[emb_type][name] = reg_params
 
-        return emb
 
-    def register_complex_regularization(self, emb_type=None, name_real=None, name_img=None,
-                                         reg_params={"norm": torch.linalg.norm, "dim": -1}):
-        self.embeddings_regularization_complex[emb_type].append({"real_part": name_real, "img_part": name_img,
-                                                                 "params": reg_params})
 
-    def move_to_gpu(self, emb):
-        return emb.to(torch.device('cuda'))
-
-    def move_to_cpu(self, emb):
-        return emb.to(torch.device('cpu'))
 
     def get_embedding(self, emb_type, name):
         return self.embeddings[emb_type][name]
@@ -362,3 +388,44 @@ class Model(nn.Module):
 
     def get_params(self):
         return self.hyperparameters
+
+
+
+    def set_use_gpu(self, use_gpu):
+        self.use_gpu = use_gpu
+        for key1 in self.embeddings:
+            for key2 in self.embeddings[key1]:
+                self.embeddings[key1][key2] = self.embeddings[key1][key2].to("cuda")
+
+    def move_to_gpu(self, emb):
+        return emb.to(torch.device('cuda'))
+
+    def move_to_cpu(self, emb):
+        return emb.to(torch.device('cpu'))
+
+    def embeddings_to_gpu(self):
+        # Move to GPU?
+        if self.use_gpu:
+            (head_emb, rel_emb, tail_emb) = self.current_batch
+            for emb in [head_emb, tail_emb, rel_emb]:
+                for name in emb.keys():
+                    emb[name] = self.move_to_gpu(emb[name])
+            self.current_batch = (head_emb, rel_emb, tail_emb)
+
+            for name in self.current_global_embeddings.keys():
+                self.current_global_embeddings[name] = self.move_to_gpu(self.current_global_embeddings[name])
+
+    def embeddings_to_cpu(self):
+        if self.use_gpu:
+            (head_emb, rel_emb, tail_emb) = self.current_batch
+            for emb in [head_emb, tail_emb, rel_emb]:
+                for name in emb.keys():
+                    emb[name] = self.move_to_cpu(emb[name])
+            self.current_batch = None
+            self.current_data = None
+
+            for name in self.current_global_embeddings.keys():
+                self.current_global_embeddings[name] = self.move_to_cpu(self.current_global_embeddings[name])
+            self.current_global_embeddings = {}
+
+            torch.cuda.empty_cache()
