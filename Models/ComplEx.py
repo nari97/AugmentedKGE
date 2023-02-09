@@ -1,27 +1,32 @@
 import torch
-from .Model import Model
+from Models.Model import Model
 
 
 class ComplEx(Model):
+    """
+    Théo Trouillon, Johannes Welbl, Sebastian Riedel, Éric Gaussier, Guillaume Bouchard:
+        Complex Embeddings for Simple Link Prediction. ICML 2016: 2071-2080.
+    Supplementary: http://proceedings.mlr.press/v48/trouillon16-supp.pdf
+    """
     def __init__(self, ent_total, rel_total, dim):
         super(ComplEx, self).__init__(ent_total, rel_total)
         self.dim = dim
 
     def get_default_loss(self):
-        # http://proceedings.mlr.press/v48/trouillon16-supp.pdf
+        # Eq. (12).
         return 'soft'
 
     def initialize_model(self):
-        self.create_embedding(self.dim, emb_type="entity", name="e_real")
-        self.create_embedding(self.dim, emb_type="entity", name="e_img")
-        self.create_embedding(self.dim, emb_type="relation", name="r_real")
-        self.create_embedding(self.dim, emb_type="relation", name="r_img")
-
-        # http://proceedings.mlr.press/v48/trouillon16-supp.pdf
-        self.register_complex_regularization(emb_type="entity", name_real="e_real", name_img="e_img")
-        self.register_complex_regularization(emb_type="relation", name_real="r_real", name_img="r_img")
+        # Eq. (11)
+        # Regularization is mentioned in Eq. (12). In the supplement, it is mentioned that it is equivalent to
+        #   L2 regularization over real and image, independently.
+        self.create_embedding(self.dim, emb_type="entity", name="e_real", reg=True)
+        self.create_embedding(self.dim, emb_type="entity", name="e_img", reg=True)
+        self.create_embedding(self.dim, emb_type="relation", name="r_real", reg=True)
+        self.create_embedding(self.dim, emb_type="relation", name="r_img", reg=True)
         
     def _calc(self, h_re, h_im, t_re, t_im, r_re, r_im):
+        # Eq. (11).
         return torch.sum(h_re * t_re * r_re + h_im * t_im * r_re +
                          h_re * t_im * r_im - h_im * t_re * r_im, -1)
 
