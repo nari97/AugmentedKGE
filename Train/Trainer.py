@@ -1,13 +1,12 @@
 import torch
 import time
-from .Evaluator import RankCollector
+from Train.Evaluator import RankCollector
 
 
 class Trainer(object):
 
     def __init__(self, loss=None, train=None, validation=None, train_times=1000, save_steps=None,
-                 checkpoint_dir=None, load_valid=None, save_valid=None, save_checkpoint=None,
-                 optimizer=None):
+                 load_valid=None, save_valid=None, save_checkpoint=None, optimizer=None):
         self.train_times = train_times
 
         self.optimizer = optimizer
@@ -16,7 +15,6 @@ class Trainer(object):
         self.train = train
         self.validation = validation
         self.save_steps = save_steps
-        self.checkpoint_dir = checkpoint_dir
         self.patient_count = 3
         self.finished = False
 
@@ -49,28 +47,32 @@ class Trainer(object):
 
         return loss
 
-    def run(self, init_epoch=0):
+    def run(self, init_epoch=0, metric_str="mr"):
         # Get ranks and totals from the valid model.
         collector = None
 
         # Get previous model after validation (if any):
-        prev_valid = self.load_valid()
-        if prev_valid is not None:
-            collector = RankCollector()
-            collector.load(prev_valid.ranks, prev_valid.totals)
+        if self.load_valid is not None:
+            prev_valid = self.load_valid()
+            if prev_valid is not None:
+                collector = RankCollector()
+                collector.load(prev_valid.ranks, prev_valid.totals)
             
         for epoch in range(init_epoch+1, self.train_times+1):
             with torch.no_grad():
-                if self.save_steps and self.checkpoint_dir and epoch > 0 and epoch % self.save_steps == 0:
+                if self.save_steps and epoch > 0 and epoch % self.save_steps == 0:
                     if self.validation is not None:
                         start = time.perf_counter()
+                        # TODO: Try with negative sign and pick the best value.
                         new_collector = self.validation.evaluate(self.loss.model)
                         end = time.perf_counter()
-                        print("Validation metric: ", new_collector.get_metric().get(), "; Time:", end-start)
+                        print("Validation metric: ", new_collector.get_metric(metric_str=metric_str).get(),
+                              "; Time:", end-start)
 
                     # If the new collector did not significantly improve the previous one or random, stop!
-                    if new_collector.stop_train(collector):
-                        print('Previous metric value:', collector.get_metric().get(), " was not improved and is significant")
+                    if new_collector.stop_train(collector, metric_str=metric_str):
+                        print('Previous metric value:', collector.get_metric(metric_str=metric_str).get(),
+                              " was not improved and is significant")
                         self.finished = True
                         break
                     else:
@@ -80,7 +82,8 @@ class Trainer(object):
                         self.loss.model.totals = new_collector.all_totals
 
                         # Save validation model.
-                        self.save_valid()
+                        if self.save_valid is not None:
+                            self.save_valid()
 
                         # Update the collector and keep going
                         collector = new_collector
@@ -100,6 +103,7 @@ class Trainer(object):
 
                 self.loss.model.epoch = epoch
                 # Save checkpoint model.
-                self.save_checkpoint()
+                if self.save_checkpoint is not None:
+                    self.save_checkpoint()
                 end = time.perf_counter()
                 print("Epoch:",epoch,"; Loss:",res,"; Time:", end-start,"; Time neg.:",time_neg)

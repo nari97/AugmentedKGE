@@ -333,8 +333,30 @@ class Model(nn.Module):
     def register_onthefly_regularization(self, x, reg_params={"norm": torch.linalg.norm, "dim": -1}):
         self.onthefly_regularization.append((x, reg_params))
 
+    # These methods set and get the hyperparameters of the model.
+    def set_hyperparameters(self, hyperparams):
+        self.hyperparameters = hyperparams
 
+    def get_hyperparameters(self):
+        return self.hyperparameters
 
+    # These methods save and load models.
+    def load_checkpoint(self, path):
+        dic = torch.load(os.path.join(path))
+        if 'epoch' in dic.keys():
+            self.epoch = dic.pop("epoch")
+        self.embeddings = dic.pop("embeddings")
+        self.ranks = dic.pop("ranks")
+        self.totals = dic.pop("totals")
+        self.hyperparameters = dic.pop("hyperparameters")
+
+        self.eval()
+
+    def save_checkpoint(self, path, epoch=0):
+        to_save = {"embeddings": self.embeddings, "ranks": self.ranks, "totals": self.totals,
+                   "epoch": epoch, "hyperparameters": self.hyperparameters}
+
+        torch.save(to_save, path)
 
 
 
@@ -366,28 +388,9 @@ class Model(nn.Module):
             relation_embeddings[emb] = self.embeddings["relation"][emb].get_embedding(data["batch_r"])
         return relation_embeddings
 
-    def load_checkpoint(self, path):
-        dic = torch.load(os.path.join(path))
-        if 'epoch' in dic.keys():
-            self.epoch = dic.pop("epoch")
-        self.embeddings = dic.pop("embeddings")
-        self.ranks = dic.pop("ranks")
-        self.totals = dic.pop("totals")
-        self.hyperparameters = dic.pop("hyperparameters")
 
-        self.eval()
 
-    def save_checkpoint(self, path, epoch=0):
-        to_save = {"embeddings": self.embeddings, "ranks": self.ranks, "totals": self.totals,
-                   "epoch": epoch, "hyperparameters": self.hyperparameters}
 
-        torch.save(to_save, path)
-
-    def set_params(self, params):
-        self.hyperparameters = params
-
-    def get_params(self):
-        return self.hyperparameters
 
 
 

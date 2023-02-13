@@ -1,6 +1,7 @@
 import torch
 
 
+# TODO Can we remove this?
 def check_params(params):
     """
         Checks hyperparameters for validity

@@ -125,8 +125,6 @@ class Evaluator(object):
                     if neg_triples[p][1] > 0:
                         collector.update_unique_materialized(r)
 
-        # TODO Remove!
-        print('IsNaN (%):', is_nan_cnt / total)
         return collector
 
     def add_triple(self, tree, h, r, t, i):
@@ -184,34 +182,20 @@ class RankCollector():
         return rc
 
     # Checks whether we should stop training.
-    def stop_train(self, previous):
+    def stop_train(self, previous, metric_str="mr"):
         if previous is None:
             return False
 
-        current_metric = self.get_metric()
-
-        # TODO Remove!
-        print('Stop training')
-        print('Current metric: ', current_metric.get(), '; Previous metric: ', previous.get_metric().get())
-        print('Previous is better than current: ', Metric.is_improved(current_metric, previous.get_metric()))
-        try:
-            print('Is significant: ', RankCollector.is_significant(self.all_ranks, previous.all_ranks))
-        except ValueError as err:
-            print('Is significant error: ', err)
-        print('Expected: ', previous.get_expected().get())
-        print('Expected is better than current: ', Metric.is_improved(current_metric, previous.get_expected()))
-        try:
-            print('Is significant expected: ', self.is_significant_expected())
-        except ValueError as err:
-            print('Is significant error: ', err)
+        current_metric = self.get_metric(metric_str=metric_str)
 
         # If the current metric is improved by previous and it is significant.
-        if Metric.is_improved(current_metric, previous.get_metric()) and \
+        if Metric.is_improved(current_metric, previous.get_metric(metric_str=metric_str)) and \
                 RankCollector.is_significant(self.all_ranks, previous.all_ranks):
             return True
 
         # If the current metric is improved by random and it is significant.
-        if Metric.is_improved(current_metric, previous.get_expected()) and self.is_significant_expected():
+        if Metric.is_improved(current_metric, previous.get_expected(metric_str=metric_str)) and \
+                self.is_significant_expected():
             return True
 
         return False
