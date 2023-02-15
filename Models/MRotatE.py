@@ -4,30 +4,54 @@ from .Model import Model
 
 
 class MRotatE(Model):
-
-    def __init__(self, ent_total, rel_total, dim, norm=1, omega=.5, phi=.5):
+    """
+    Xuqian Huang, Jiuyang Tang, Zhen Tan, Weixin Zeng, Ji Wang, Xiang Zhao: Knowledge graph embedding by relational and
+        entity rotation. Knowl. Based Syst. 229: 107310 (2021).
+    """
+    def __init__(self, ent_total, rel_total, dim, norm=1):
+        """
+            dim (int): Number of dimensions for embeddings
+            norm (int): L1 or L2 norm. Default: 1, even though ||.|| is never defined in the paper.
+        """
         super(MRotatE, self).__init__(ent_total, rel_total)
         self.dim = dim
         self.pnorm = norm
-        self.omega = omega
-        self.phi = phi
 
     def get_default_loss(self):
+        # Eq. (7).
         return 'soft_margin'
 
     def initialize_model(self):
+        # See Eq. (1). Similar to RotatE.
         self.create_embedding(self.dim, emb_type="entity", name="e_real")
         self.create_embedding(self.dim, emb_type="entity", name="e_img")
-        # |r|=1 entails that the absolute part of r is 1.
+        # As in RotatE.
         self.create_embedding(self.dim, emb_type="relation", name="r_phase",
-                              init="uniform", init_params=[0, 2 * math.pi])
+                              init_method="uniform", init_params=[0, 2 * math.pi])
 
-    def _calc(self, h_real, h_img, h, r_phase, r, t_real, t_img, t):
+        # See Eq. (3).
+        self.create_embedding(self.dim, emb_type="entity", name="e")
+        self.create_embedding(self.dim, emb_type="relation", name="r")
+
+        # See Eq. (6). Omega is hyperparameter ("under the best weights obtained by the validation set training"). We
+        #   consider it as a parameter.
+        self.create_embedding(1, emb_type="global", name="omega", init_method="uniform", init_params=[0, 1])
+        # Omega is always less than one.
+        self.register_scale_constraint(emb_type="global", name="omega")
+
+    def _calc(self, h_real, h_img, h, r_phase, r, t_real, t_img, t, omega):
+        # This is RotatE (Eq. (2)).
         hc = torch.view_as_complex(torch.stack((h_real, h_img), dim=-1))
         tc = torch.view_as_complex(torch.stack((t_real, t_img), dim=-1))
         rc = torch.view_as_complex(torch.stack((torch.cos(r_phase), torch.sin(r_phase)), dim=-1))
-        return -self.omega * torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm) - \
-            self.phi * (torch.linalg.norm(h - t, dim=-1, ord=self.pnorm) - torch.linalg.norm(r, dim=-1, ord=self.pnorm))
+        relation_rotation_scores = torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)
+
+        # Eq. (4).
+        entity_rotation_scores = torch.linalg.norm(h - t, dim=-1, ord=self.pnorm) - \
+                                 torch.linalg.norm(r, dim=-1, ord=self.pnorm)
+
+        # Eq. (6). Note that omega + phi = 1, so phi = 1 - omega.
+        return -omega * relation_rotation_scores - (1 - omega) * entity_rotation_scores
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
@@ -36,4 +60,6 @@ class MRotatE(Model):
         t, t_real, t_img = tail_emb["e"], tail_emb["e_real"], tail_emb["e_img"]
         r, r_phase = rel_emb["r"], rel_emb["r_phase"]
 
-        return self._calc(h_real, h_img, h, r_phase, r, t_real, t_img, t)
+        omega = self.current_global_embeddings["omega"].item()
+
+        return self._calc(h_real, h_img, h, r_phase, r, t_real, t_img, t, omega)
