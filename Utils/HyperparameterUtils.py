@@ -2,7 +2,7 @@ from scipy.stats import qmc
 from torch import optim
 
 
-def get_points(d=6, m=7, seed=None):
+def get_points(d=7, m=7, seed=None):
     # d is how many hyperparameters we have.
     sampler = qmc.Sobol(d=d, seed=seed)
     # This returns an array of size 2^m with arrays of size d.
@@ -24,6 +24,9 @@ def decode(hyperparameters, point):
 
     # Norms of models that use vector norms.
     hyperparameters["pnorm"] = scale_option([1, 2], point[5])
+
+    # Whether using Bernoulli or not for sampling negatives.
+    hyperparameters["use_bern"] = scale_option([False, True], point[6])
 
 
 # This method gets an array of options and a value between 0 and 1; one option is returned based on the value, e.g.,

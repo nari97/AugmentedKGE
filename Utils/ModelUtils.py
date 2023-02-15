@@ -22,6 +22,7 @@ from Models.lppTransE import lppTransE
 from Models.MAKR import MAKR
 from Models.ManifoldE import ManifoldE
 from Models.MDE import MDE
+from Models.ModE import ModE
 from Models.MRotatE import MRotatE
 from Models.MuRE import MuRE
 from Models.MuRP import MuRP
@@ -93,6 +94,7 @@ def getModel(model_name, params):
         kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
 
     # TODO Can we do this dynamically?
+    # TODO Careful with models implemented like DistMult using tanh (extra parameters).
     m = None
     if model_name == "transe":
         m = TransE(**kwargs)
@@ -212,6 +214,8 @@ def getModel(model_name, params):
         m = TransEdge(**kwargs)
     elif model_name == "se":
         m = SE(**kwargs)
+    elif model_name == "mode":
+        m = ModE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -227,6 +231,8 @@ def getModel(model_name, params):
     # ConnectE (requires type info): https://www.sciencedirect.com/science/article/abs/pii/S0950705120301921
     # TransRHS (requires subrelationOf): https://doi.org/10.24963/ijcai.2020/413
     # SSE (requires concepts): https://www.aclweb.org/anthology/P15-1009/
+    # NTN: Socher, Richard, Chen, Danqi, Manning, Christopher D., and Ng, Andrew Y. Reasoning with neural
+    #           tensor networks for knowledge base completion. In NIPS, 2013.
 
     # Neural networks
     # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf

@@ -48,8 +48,10 @@ class Model(nn.Module):
         self.current_data = None
         self.current_global_embeddings = {}
 
-    def get_model_name(self):
-        return type(self).__name__.lower()
+    # https://stackoverflow.com/questions/3596641/how-to-get-subclass-name-from-a-static-method-in-python
+    @classmethod
+    def get_model_name(cls):
+        return cls.__name__.lower()
 
     # This method declares the embeddings and all the stuff.
     def initialize_model(self):

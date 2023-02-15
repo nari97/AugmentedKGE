@@ -247,6 +247,7 @@ class RankCollector():
             expected.append((self.all_totals[i] + 1) / 2)
         return RankCollector.is_significant(self.all_ranks, expected)
 
+    # TODO Compute these using mean and include variance.
     def get(self, ranks, totals, metric_str):
         if len(ranks) == 0:
             return Metric(0)

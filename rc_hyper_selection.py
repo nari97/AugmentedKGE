@@ -57,7 +57,7 @@ def run():
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
     train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=hyperparameters["batch_size"],
-                                  neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode)
+                                  neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode,)
     end = time.perf_counter()
     print("Dataset initialization time: ", end - start)
 
@@ -79,8 +79,11 @@ def run():
     selected, current = None, last_inspected
     # If a checkpoint exists, we are resuming, so let's continue where we left it.
     if os.path.exists(checkpoint_file):
-        model = torch.load(checkpoint_file)
-        model_hyperparameters = model.get_hyperparameters()
+        # We need the hyperparameters first.
+        model_hyperparameters = torch.load(checkpoint_file).pop("hyperparameters")
+        model = ModelUtils.getModel(model_name, model_hyperparameters)
+        model.set_hyperparameters(model_hyperparameters)
+        model.load_checkpoint(checkpoint_file)
         loss = LossUtils.getLoss(margin=model_hyperparameters["margin"],
                                  other_margin=model_hyperparameters["other_margin"],
                                  model=model, reg_type=model_hyperparameters["reg_type"])
@@ -125,6 +128,14 @@ def run():
 
         # Get optimizer.
         optimizer = HyperparameterUtils.get_optimizer(hyperparameters, loss)
+
+        # Let's inform the Trainer whether the loss function is paired or unpaired.
+        if loss.is_pairwise:
+            train_manager.pairing_mode = "Paired"
+        else:
+            train_manager.pairing_mode = "Unpaired"
+        # Whether to use Bernoulli or uniform when corrupting heads/tails.
+        train_manager.use_bern = hyperparameters["use_bern"]
 
         # Let's train!
         trainer = Trainer(loss=loss, train=train_manager, validation=validation, train_times=train_times,

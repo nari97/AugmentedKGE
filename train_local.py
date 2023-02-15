@@ -23,7 +23,7 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'makr', 6, '', 0
+    model_name, dataset, split_prefix, point = 'rotate3d', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
@@ -102,10 +102,10 @@ def run():
     parameters["tail_context"] = train_manager.tailDict
 
     mu = ModelUtils.getModel(model_name, parameters)
-    mu.set_params(parameters)
+    mu.set_hyperparameters(parameters)
     print("Model name : ", mu.get_model_name())
 
-    loss = LossUtils.getLoss(gamma=parameters["gamma"], model=mu, reg_type=parameters["reg_type"])
+    loss = LossUtils.getLoss(margin=parameters["gamma"], model=mu, reg_type=parameters["reg_type"])
 
     validation = Evaluator(TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
                                          batch_size=parameters["batch_size"], neg_rate=parameters["nr"],
@@ -124,7 +124,6 @@ def run():
     else:
         # Initialize model from scratch
         loss.model.initialize_model()
-    mu.set_use_gpu(use_gpu)
 
     end = time.perf_counter()
     print("Initialization time: " + str(end - start))
@@ -179,8 +178,8 @@ def run():
     # If this exists, we are done; otherwise, let's go for it.
     if not os.path.exists(checkpoint_dir + ".model"):
         trainer = Trainer(loss=loss, train=train_manager, validation=validation, train_times=train_times,
-                          save_steps=validation_epochs, checkpoint_dir=checkpoint_dir, load_valid=load_valid,
-                          save_valid=save_valid, save_checkpoint=save_checkpoint, optimizer=optimizer, )
+                          save_steps=validation_epochs, load_valid=load_valid, save_valid=save_valid,
+                          save_checkpoint=save_checkpoint, optimizer=optimizer, )
         trainer.run(init_epoch=init_epoch)
     else:
         print("Model already exists")

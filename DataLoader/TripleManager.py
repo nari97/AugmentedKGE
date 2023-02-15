@@ -32,7 +32,7 @@ class TripleManager():
     restriction does not exist for Unpaired. 
     """
     # TODO Change splits for a dictionary?
-    def __init__(self, path, splits, batch_size = None, neg_rate = None, use_bern=False, seed=None,
+    def __init__(self, path, splits, batch_size=None, neg_rate=None, use_bern=False, seed=None,
                  corruption_mode="Global", pairing_mode="Paired"):
         self.counter = 0
         # Whether we will use a Bernoulli distribution to determine whether to corrupt head or tail
@@ -302,17 +302,11 @@ class TripleManager():
                             if self.use_bern else random.random() < 0.5:
                         ch = self.corrupt_head(ch, r, ct)
                     else:
-                        
                         ct = self.corrupt_tail(ch, r, ct)
-
-                # TODO Do we need this?
-                #if ch == None or ct == None:
-                #    times = times - 1
-                #    continue
 
                 batch_h[i_in_batch + last] = ch
                 batch_t[i_in_batch + last] = ct
-                batch_r[i_in_batch + last] = self.tripleList[self.randIndexes[i_in_batch]].r
+                batch_r[i_in_batch + last] = r
                 batch_y[i_in_batch + last] = -1
                 last = last + bs
         self.randIndexes = self.randIndexes[bs:]
