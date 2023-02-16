@@ -94,7 +94,7 @@ def getModel(model_name, params):
         kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
 
     # TODO Can we do this dynamically?
-    # TODO Careful with models implemented like DistMult using tanh (extra parameters).
+    # TODO Careful with models implemented like DistMult using tanh (extra parameters). KG2E also has extra.
     m = None
     if model_name == "transe":
         m = TransE(**kwargs)
@@ -235,5 +235,6 @@ def getModel(model_name, params):
     #           tensor networks for knowledge base completion. In NIPS, 2013.
 
     # Neural networks
+    # ConvE: https://arxiv.org/abs/1707.01476
     # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf
     # CapsE: https://arxiv.org/pdf/1808.04122v3.pdf

@@ -9,21 +9,9 @@ import time
 import os
 
 
-def get_params(index, total_points):
-    current = 0
-    for model_name in ['transe', 'transh', 'transd', 'distmult', 'complex', 'hole', 'simple', 'rotate']:
-        for dataset in range(0, 8):
-            for point in range(0, total_points):
-                # This is the prefix to point to different splits. We have:
-                #   (empty): Original split
-                if current == index:
-                    return model_name, dataset, '', point
-                current += 1
-
-
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'mrotate', 6, '', 0
+    model_name, dataset, split_prefix, point = 'makr', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
