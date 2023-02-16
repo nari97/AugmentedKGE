@@ -28,7 +28,8 @@ class CrossES(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r", reg=True)
         # This is the same as CrossE but without interaction embeddings.
         # After Eq. (5). Section 5.1.2: "b is initialized to zero."
-        self.create_embedding(self.dim, emb_type="global", name="b", init_method="zero", reg=True)
+        self.create_embedding(self.dim, emb_type="global", name="b",
+                              init_method="uniform", init_params=[0, 0],reg=True)
 
     def _calc(self, h, r, t, b, is_predict=False):
         # Eq. (8) except sigmoid.

@@ -26,9 +26,11 @@ class RotatE3D(Model):
             self.create_embedding(self.dim, emb_type="entity", name="e_" + component, reg=True)
         # See Section 5.3.
         # From the paper: "...are uniformly initialized between −pi and pi. This guarantees that u is a unit vector."
+        # We are also adding rescaling to make sure they are always between -pi and pi.
         for component in ['theta', 'alpha', 'beta']:
             self.create_embedding(self.dim, emb_type="relation", name="r_" + component,
-                                  init_method="uniform", init_params=[-math.pi, math.pi])
+                                  init_method="uniform", init_params=[-math.pi, math.pi],
+                                  norm_method="rescaling", norm_params={"a": -math.pi, "b": math.pi})
         # Bias (see below Eq. (9)).
         # From the paper: "Relation-specific biases are initialized to 1."
         self.create_embedding(self.dim, emb_type="global", name="b", init_method="uniform", init_params=[1, 1])

@@ -51,13 +51,13 @@ def run():
     # Hyperparameters that are constant.
     # If you set weight decay, you are using L2 regularization without control.
     hyperparameters = {"batch_size": 10000, "nr": 25, "dim": 250, "dime": 250, "dimr": 250,
-                       "lr": None, "momentum": None, "weight_decay": None, "opt_method": "adam"}
+                       "lr": None, "momentum": None, "weight_decay": None, "opt_method": "adam", "seed": seed}
 
     # Loading dataset.
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
     train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=hyperparameters["batch_size"],
-                                  neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode,)
+                                  neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode, seed=seed)
     end = time.perf_counter()
     print("Dataset initialization time: ", end - start)
 

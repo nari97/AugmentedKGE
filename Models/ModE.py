@@ -24,17 +24,15 @@ class ModE(Model):
         self.create_embedding(self.dim, emb_type="entity", name="em")
         self.create_embedding(self.dim, emb_type="relation", name="rm")
         self.create_embedding(self.dim, emb_type="relation", name="rmprime")
-        # Section 4.
-        self.create_embedding(1, emb_type="global", name="lambda1")
 
         # Every element in rmprime must be between 0 and 1. From the paper: "0 < r_m' < 1."
         self.register_scale_constraint(emb_type="relation", name="rmprime")
 
-    def _calc(self, hm, rm, rmprime, tm, l1):
+    def _calc(self, hm, rm, rmprime, tm):
         # This is d'_{r,m}(h, t) in the paper.
         modulus_scores = torch.linalg.norm(hm*((1-rmprime)/(rm+rmprime))-tm, dim=-1, ord=2)
         # See Training Protocol in Section 4.
-        return - l1 * modulus_scores
+        return -modulus_scores
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
@@ -43,6 +41,4 @@ class ModE(Model):
         tm = tail_emb["em"]
         rm, rmprime = rel_emb["rm"], rel_emb["rmprime"]
 
-        l1 = self.current_global_embeddings["lambda1"].item()
-
-        return self._calc(hm, rm, rmprime, tm, l1)
+        return self._calc(hm, rm, rmprime, tm)

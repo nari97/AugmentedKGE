@@ -23,13 +23,14 @@ def get_params(index, total_points):
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'hole', 6, '', 0
+    model_name, dataset, split_prefix, point = 'mrotate', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
 
     validation_epochs = 5
     train_times = 500
+    seed = 42
 
     use_gpu = False
 
@@ -42,6 +43,7 @@ def run():
     parameters["dim"] = 5
     parameters["dime"] = 5
     parameters["dimr"] = 3
+    parameters["seed"] = seed
 
     parameters["lr"] = None
 
@@ -93,7 +95,7 @@ def run():
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
     train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=parameters["batch_size"],
-                                  neg_rate=parameters["nr"], corruption_mode=corruption_mode)
+                                  neg_rate=parameters["nr"], corruption_mode=corruption_mode, seed=seed)
     parameters["ent_total"] = train_manager.entityTotal
     parameters["rel_total"] = train_manager.relationTotal
     parameters["pred_count"] = train_manager.triple_count_by_pred

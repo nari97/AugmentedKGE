@@ -9,9 +9,9 @@ class DistMult(Model):
     """
     def __init__(self, ent_total, rel_total, dim, apply_tanh=False):
         """
+            dim (int): Number of dimensions for embeddings
             apply_tanh (Bool): Indicates whether tanh should be used to project entity embeddings (see Table 4 in the
                                 paper, DistMult-tanh).
-            dim (int): Number of dimensions for embeddings
         """
         super(DistMult, self).__init__(ent_total, rel_total)
         self.dim = dim

@@ -33,13 +33,12 @@ class HARotatE(Model):
         # Polar form is r*e^{i\theta}=r*(cos\theta + i*sin\theta). |r|=1 entails that we only use \theta.
         # From the paper: "[we] constrain the phases of the relation embeddings between 0 and 2*pi."
         self.create_embedding(self.dim, emb_type="relation", name="r_phase",
-                              init_method="uniform", init_params=[0, 2 * math.pi])
+                              init_method="uniform", init_params=[0, 2 * math.pi],
+                              norm_method="rescaling", norm_params={"a": 0, "b": 2 * math.pi})
         # Section 5.3.
         self.create_embedding(self.m, emb_type="relation", name="w", init_method="uniform", init_params=[-2, 2])
 
     def _calc(self, h_real, h_img, r_phase, w, t_real, t_img):
-        # Use 2*pi to get the phase.
-        r_phase = torch.abs(r_phase % (2 * math.pi))
         # we expand w so the multiplication works. See Eq. (3). We repeat ceil(|h| * m).
         w_expand = torch.repeat_interleave(w, int(math.ceil(self.dim / self.m)), dim=1)
         # If the shape is still not correct, cut until last dimension fits.

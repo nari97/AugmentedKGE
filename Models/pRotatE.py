@@ -28,11 +28,10 @@ class pRotatE(Model):
                               init_method="uniform", init_params=[0, 2 * math.pi])
 
         # https://github.com/DeepGraphLearning/KnowledgeGraphEmbedding/blob/master/codes/model.py#L59
-        self.create_embedding(1, emb_type="global", name="c")
+        # c is a modulus, so it must be positive.
+        self.create_embedding(1, emb_type="global", name="c", norm_method="rescaling", norm_params={"a": 0})
 
     def _calc(self, h_phase, r_phase, t_phase, c):
-        # c is a modulus, so it must be positive.
-        c = math.fabs(c)
         # See Section 4.1 and Eq. (17).
         return - 2 * c * torch.linalg.norm(torch.sin((h_phase+r_phase-t_phase)/2), dim=-1, ord=self.pnorm)
 

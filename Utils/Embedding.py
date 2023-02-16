@@ -9,7 +9,7 @@ class Embedding(nn.Module):
 
     """
 
-    def __init__(self, n_emb, n_dim, emb_type, name, init="xavier_uniform", init_params=[0, 1]):
+    def __init__(self, n_emb, n_dim, emb_type, name, init="xavier_uniform", init_params=[0, 1], seed=None):
         """Init function to create and initialize embeddings
 
         Args:
@@ -19,6 +19,7 @@ class Embedding(nn.Module):
             c_rep (str): For complex representations of embeddings, 'real' represents each individual dimension in the embedding as a vector [x, y] where the complex number c = x+iy, 'complex' represents each individual dimension as a complex number x+iy. Default: 'complex'
             init (str): Type of initialization for the embedding, 'xavier_uniform' uses the inbuilt xavier_uniform function and 'uniform' uses the inbuilt uniform function. Default: 'xavier_uniform'
             init_params (str): Contains the parameters required for initialization, for example, uniform initialization requires a lower and upper bound for each value. Default: None
+            seed (int): seed to use for initialization
         """
         super(Embedding, self).__init__()
 
@@ -31,7 +32,7 @@ class Embedding(nn.Module):
         self.init_params = init_params
         self.emb = None
         self.create_embedding()
-        self.init_embedding()
+        self.init_embedding(seed)
 
     def create_embedding(self):
         """
@@ -43,7 +44,9 @@ class Embedding(nn.Module):
             empty = torch.empty((self.n_emb, self.n_dim), dtype=torch.float64)
         self.emb = torch.nn.Parameter(empty)
 
-    def init_embedding(self):
+    def init_embedding(self, seed):
+        if seed is not None:
+            torch.manual_seed(seed)
         """
         Initialises embeddings using the type of initialisation specified.
         """
@@ -53,8 +56,6 @@ class Embedding(nn.Module):
             torch.nn.init.uniform_(self.emb.data, a=self.init_params[0], b=self.init_params[1])
         elif self.init is "kaiming_uniform":
             torch.nn.init.kaiming_uniform_(self.emb.data)
-        elif self.init is "zero":
-            torch.nn.init.zeros_(self.emb.data)
 
         # From time to time, using kaiming gives nan, we avoid that.
         if True in torch.isnan(self.emb.data):

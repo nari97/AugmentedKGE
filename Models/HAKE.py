@@ -22,26 +22,25 @@ class HAKE(Model):
     def initialize_model(self):
         # Section 3.
         self.create_embedding(self.dim, emb_type="entity", name="em")
+        # All phases must be between 0 and 2*pi (see Table 1).
         self.create_embedding(self.dim, emb_type="entity", name="ep",
-                              init_method="uniform", init_params=[0, 2 * math.pi])
-        self.create_embedding(self.dim, emb_type="relation", name="rm")
-        self.create_embedding(self.dim, emb_type="relation", name="rmprime")
+                              init_method="uniform", init_params=[0, 2 * math.pi],
+                              norm_method="rescaling", norm_params={"a": 0, "b": 2 * math.pi})
+        # rm is always positive (see Table 1 and Section 3).
+        self.create_embedding(self.dim, emb_type="relation", name="rm",
+                              norm_method="rescaling", norm_params={"a": 0})
+        # Every element in rmprime must be between 0 and 1. From the paper: "0 < r_m' < 1."
+        self.create_embedding(self.dim, emb_type="relation", name="rmprime",
+                              norm_method="rescaling", norm_params={"a": 0, "b": 1})
+        # All phases must be between 0 and 2*pi (see Table 1).
         self.create_embedding(self.dim, emb_type="relation", name="rp",
-                              init_method="uniform", init_params=[0, 2 * math.pi])
+                              init_method="uniform", init_params=[0, 2 * math.pi],
+                              norm_method="rescaling", norm_params={"a": 0, "b": 2 * math.pi})
         # Section 4.
         self.create_embedding(1, emb_type="global", name="lambda1")
         self.create_embedding(1, emb_type="global", name="lambda2")
 
-        # Every element in rmprime must be between 0 and 1. From the paper: "0 < r_m' < 1."
-        self.register_scale_constraint(emb_type="relation", name="rmprime")
-
     def _calc(self, hm, hp, rm, rmprime, rp, tm, tp, l1, l2):
-        # rm  and rmprime are always positive (see Table 1 and Section 3), so take the absolute value.
-        rm, rmprime = torch.abs(rm), torch.abs(rmprime)
-
-        # All *p must be between 0 and 2*pi (see Table 1).
-        hp, rp, tp = torch.abs(hp % (2 * math.pi)), torch.abs(rp % (2 * math.pi)), torch.abs(tp % (2 * math.pi))
-
         # This is d'_{r,m}(h, t) in the paper.
         modulus_scores = torch.linalg.norm(hm*((1-rmprime)/(rm+rmprime))-tm, dim=-1, ord=2)
         # This is d_{r,p}(h, t) in the paper.

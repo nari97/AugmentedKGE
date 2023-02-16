@@ -112,7 +112,12 @@ class Model(nn.Module):
         else:
             raise Exception("Type of embedding must be relation or entity")
 
-        emb = Embedding(total, dim, emb_type, name, init_method, init_params)
+        seed = self.hyperparameters.get('seed', None)
+        if seed is not None:
+            # Some models do not learn anything if all embeddings are equally initialized.
+            # We add the number of embeddings declared so far to break ties.
+            seed += len(self.embeddings[emb_type])
+        emb = Embedding(total, dim, emb_type, name, init_method, init_params, seed=seed)
         if register:
             self.embeddings[emb_type][name] = emb
             self.embeddings_normalization[emb_type][name] = {'method': norm_method, 'params': norm_params}
@@ -148,16 +153,11 @@ class Model(nn.Module):
                     # This is in place.
                     emb.emb.data = torch.nn.functional.normalize(emb.emb.data, p, dim)
                 elif norm_info['method'] == 'rescaling':
-                    a = norm_info['params']['a']
-                    b = norm_info['params']['b']
-
-                    # This is in place.
-                    min, max = emb.emb.data.min(1, keepdim=True)[0], emb.emb.data.max(1, keepdim=True)[0]
-                    emb.emb.data -= min
-                    emb.emb.data /= (max - min)
-
-                    emb.emb.data *= b - a
-                    emb.emb.data += a
+                    # We want this in-place.
+                    with torch.no_grad():
+                        a = norm_info['params'].get('a', None)
+                        b = norm_info['params'].get('b', None)
+                        emb.emb.clamp(min=a, max=b)
                 elif norm_info['method'] is None:
                     pass
                 else:
@@ -313,15 +313,16 @@ class Model(nn.Module):
             f = torch.pow
 
         # It can be fro, for instance.
-        if "p" in reg_params.keys():
+        other_p = reg_params.get("p", None)
+        if other_p is not None:
             prev_p = p
-            p = reg_params["p"]
+            p = other_p
 
         if "transform" in reg_params.keys():
             x = reg_params["transform"](x)
         r = reg_params["norm"](x, dim=reg_params["dim"], ord=p)
 
-        if "p" in reg_params.keys():
+        if other_p is not None:
             p = prev_p
 
         if p == 1:
@@ -345,8 +346,7 @@ class Model(nn.Module):
     # These methods save and load models.
     def load_checkpoint(self, path):
         dic = torch.load(os.path.join(path))
-        if 'epoch' in dic.keys():
-            self.epoch = dic.pop("epoch")
+        self.epoch = dic.pop("epoch", None)
         self.embeddings = dic.pop("embeddings")
         self.ranks = dic.pop("ranks")
         self.totals = dic.pop("totals")

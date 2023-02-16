@@ -34,10 +34,9 @@ class MRotatE(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r")
 
         # See Eq. (6). Omega is hyperparameter ("under the best weights obtained by the validation set training"). We
-        #   consider it as a parameter.
-        self.create_embedding(1, emb_type="global", name="omega", init_method="uniform", init_params=[0, 1])
-        # Omega is always less than one.
-        self.register_scale_constraint(emb_type="global", name="omega")
+        #   consider it as a parameter. Omega is always between zero and one.
+        self.create_embedding(1, emb_type="global", name="omega", init_method="uniform", init_params=[0, 1],
+                              norm_method="rescaling", norm_params={"a": 0, "b": 1})
 
     def _calc(self, h_real, h_img, h, r_phase, r, t_real, t_img, t, omega):
         # This is RotatE (Eq. (2)).

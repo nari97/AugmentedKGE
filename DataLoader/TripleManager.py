@@ -126,7 +126,6 @@ class TripleManager():
                 # self.tailProb[r] = hpt[r]/(tph[r]+hpt[r])
 
         if seed is not None:
-            # TODO Are these two seeds necessary?
             np.random.seed(seed)
             random.seed(seed)
 
