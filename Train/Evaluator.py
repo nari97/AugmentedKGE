@@ -1,7 +1,55 @@
+import heapq
+import pickle
+
+import pandas as pd
 import torch
 import numpy as np
 import math
 from scipy.stats import wilcoxon
+
+
+def add_triple(triple_stats, head, tail, is_negative=False, is_ranked_better=False, is_correctly_predicted=False,
+               is_top_k=False):
+    index = (head, tail)
+
+    if index not in triple_stats:
+        triple_stats[index] = {'is_negative': False, 'is_ranked_better': False, 'is_correctly_predicted': False,
+                               'is_top_k': False}
+
+    if is_negative:
+        triple_stats[index]['is_negative'] = True
+
+    if is_ranked_better:
+        triple_stats[index]['is_ranked_better'] = True
+
+    if is_correctly_predicted:
+        triple_stats[index]['is_correctly_predicted'] = True
+
+    if is_top_k:
+        triple_stats[index]['is_top_k'] = True
+
+
+def sort_by_score(item):
+    return item[3]
+
+
+def get_top_k_triples(triples, k):
+    top_k_triples = heapq.nsmallest(k, triples, key=sort_by_score)
+
+    return top_k_triples
+
+
+def save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats, folder_to_save, model_name,
+                                    dataset_name):
+    ranked_before_expected_file = open(f"{folder_to_save}\\{dataset_name}_{model_name}_ranked_before_expected.pickle",
+                                       'wb')
+    triple_stats_file = open(f"{folder_to_save}\\{dataset_name}_{model_name}_triple_stats.pickle", 'wb')
+
+    pickle.dump(n_positives_ranked_before_expected, ranked_before_expected_file)
+    pickle.dump(triple_stats, triple_stats_file)
+
+    triple_stats_file.close()
+    ranked_before_expected_file.close()
 
 
 class Evaluator(object):
@@ -33,12 +81,14 @@ class Evaluator(object):
 
         return totals
 
-    def evaluate(self, model, materialize=False):
+    def evaluate(self, model, materialize=False, folder_to_save=None, model_name=None, dataset_name=None):
         collector = RankCollector()
 
         is_nan_cnt, total = 0, 0
         # We will split the evaluation by relation
         relations = {}
+        triple_stats_across_relations = {}
+        n_positives_ranked_before_expected = {}
         for t in self.manager.get_triples():
             # We will not consider these anomalies.
             if self.manager.relation_anomaly[t.r] < self.rel_anomaly_min or \
@@ -51,43 +101,56 @@ class Evaluator(object):
         for r in relations.keys():
             total += 1
             # print (str(r) + ":Started")
+            print(f"Relation {r}: {total}/{len(relations)}")
             if materialize:
-                neg_triples = {}
+                triple_stats = {}
             for t in relations[r]:
                 corruptedHeads = self.manager.get_corrupted(t.h, t.r, t.t, "head")
                 corruptedTails = self.manager.get_corrupted(t.h, t.r, t.t, "tail")
 
                 if materialize:
                     for hp in corruptedHeads:
-                        self.add_triple(neg_triples, hp, t.r, t.t, 0)
+                        add_triple(triple_stats, hp, t.t, is_negative=True)
 
                     for tp in corruptedTails:
-                        self.add_triple(neg_triples, t.h, t.r, tp, 0)
+                        add_triple(triple_stats, t.h, tp, is_negative=True)
 
                 totalTriples = 1 + len(corruptedHeads) + len(corruptedTails)
-                arrH = np.zeros(totalTriples, dtype=np.int64)
-                arrR = np.zeros(totalTriples, dtype=np.int64)
-                arrT = np.zeros(totalTriples, dtype=np.int64)
 
-                arrH[0], arrR[0], arrT[0] = t.h, t.r, t.t
+                triples = np.zeros((totalTriples, 4))
 
-                arrH[1:1 + len(corruptedHeads)] = list(corruptedHeads)
-                arrR[1:1 + len(corruptedHeads)] = t.r
-                arrT[1:1 + len(corruptedHeads)] = t.t
+                # arrH = np.zeros(totalTriples, dtype=np.int64)
+                # arrR = np.zeros(totalTriples, dtype=np.int64)
+                # arrT = np.zeros(totalTriples, dtype=np.int64)
+
+                triples[0, 0:3] = [t.h, t.r, t.t]
+                # arrH[0], arrR[0], arrT[0] = t.h, t.r, t.t
+
+                triples[1:1 + len(corruptedHeads), 0] = list(corruptedHeads)
+                triples[1:1 + len(corruptedHeads), 1] = t.r
+                triples[1:1 + len(corruptedHeads), 2] = t.t
+
+                # arrH[1:1 + len(corruptedHeads)] = list(corruptedHeads)
+                # arrR[1:1 + len(corruptedHeads)] = t.r
+                # arrT[1:1 + len(corruptedHeads)] = t.t
 
                 corruptedHeadsEnd = 1 + len(corruptedHeads)
 
-                arrH[1 + len(corruptedHeads):] = t.h
-                arrR[1 + len(corruptedHeads):] = t.r
-                arrT[1 + len(corruptedHeads):] = list(corruptedTails)
+                triples[1 + len(corruptedHeads):, 0] = t.h
+                triples[1 + len(corruptedHeads):, 1] = t.r
+                triples[1 + len(corruptedHeads):, 2] = list(corruptedTails)
+
+                # arrH[1 + len(corruptedHeads):] = t.h
+                # arrR[1 + len(corruptedHeads):] = t.r
+                # arrT[1 + len(corruptedHeads):] = list(corruptedTails)
 
                 if not self.batched:
-                    scores = self.predict(arrH, arrR, arrT, model)
+                    scores = self.predict(triples[:, 0], triples[:, 1], triples[:, 2], model)
                 else:
                     batch_size = 25
-                    arrH_batches = np.array_split(arrH, batch_size)
-                    arrR_batches = np.array_split(arrR, batch_size)
-                    arrT_batches = np.array_split(arrT, batch_size)
+                    arrH_batches = np.array_split(triples[:, 0], batch_size)
+                    arrR_batches = np.array_split(triples[:, 1], batch_size)
+                    arrT_batches = np.array_split(triples[:, 2], batch_size)
                     scores = None
 
                     for i in range(len(arrT_batches)):
@@ -97,40 +160,70 @@ class Evaluator(object):
                         else:
                             scores = torch.concat((scores, batch_score))
 
-                cHeads = scores[1:corruptedHeadsEnd]
-                cTails = scores[corruptedHeadsEnd:]
+                triples[:, 3] = scores.detach().numpy()
+                cHeads = triples[1:corruptedHeadsEnd, 3]
+                cTails = triples[corruptedHeadsEnd:, 3]
+                positive_triple_score = triples[0, 3]
 
-                rankhLess, ranktLess = torch.sum(scores[0] > cHeads).item(), torch.sum(scores[0] > cTails).item()
-                rankhEq, ranktEq = 1 + torch.sum(scores[0] == cHeads).item(), 1 + torch.sum(scores[0] == cTails).item()
+                rankhLess, ranktLess = np.sum(positive_triple_score > cHeads).item(), np.sum(
+                    positive_triple_score > cTails).item()
+                rankhEq, ranktEq = 1 + np.sum(positive_triple_score == cHeads).item(), 1 + np.sum(
+                    positive_triple_score == cTails).item()
 
                 # If it is NaN, rank last!
-                if np.isnan(scores[0].item()):
+                if np.isnan(positive_triple_score.item()):
                     is_nan_cnt += 1
                     rankhLess, ranktLess = len(cHeads), len(cTails)
                     rankhEq, ranktEq = 1, 1
 
                 if materialize:
+                    rankH = self.frac_rank(rankhLess, rankhEq)
+                    rankT = self.frac_rank(ranktLess, ranktEq)
+                    expectedH = (len(corruptedHeads) + 1) / 2
+                    expectedT = (len(corruptedTails) + 1) / 2
+
+                    if rankH < expectedH:
+                        n_positives_ranked_before_expected[r] = n_positives_ranked_before_expected[r] + 1
+                    if rankT < expectedT:
+                        n_positives_ranked_before_expected[r] = n_positives_ranked_before_expected[r] + 1
+
+                    top_k_triples = get_top_k_triples(triples, k=25)
+
+                    for k_triple in top_k_triples:
+                        if k_triple[0] == triples[0][0] and k_triple[1] == triples[1] and k_triple[2] == triples[2]:
+                            add_triple(triple_stats, k_triple[0], k_triple[2], is_top_k=True, is_negative=False)
+                        else:
+                            add_triple(triple_stats, k_triple[0], k_triple[2], is_top_k=True, is_negative=True)
+
                     for i in range(1, totalTriples):
-                        if scores[0] >= scores[i]:
-                            self.add_triple(neg_triples, arrH[i], arrR[i], arrT[i], 1)
+                        if positive_triple_score >= triples[i, 3]:
+                            add_triple(triple_stats, triples[i, 0], triples[i, 2], is_ranked_better=True)
+                            if i < corruptedHeadsEnd:
+                                if rankH < expectedH:
+                                    add_triple(triple_stats, triples[i, 0], triples[i, 2], is_correctly_predicted=True)
+                            else:
+                                if rankT < expectedT:
+                                    add_triple(triple_stats, triples[i, 0], triples[i, 2], is_correctly_predicted=True)
 
                 collector.update_rank(self.frac_rank(rankhLess, rankhEq), rankhEq > 1, len(corruptedHeads),
                                       self.frac_rank(ranktLess, ranktEq), ranktEq > 1, len(corruptedTails), t.r,
                                       self.manager.relation_anomaly[t.r])
 
             if materialize:
-                for p in neg_triples.keys():
+                for key in triple_stats.keys():
                     collector.update_total_unique_triples(r)
+                    if triple_stats[key]['is_ranked_better'] or triple_stats[key]['is_top_k']:
+                        triple_stats_across_relations[(key[0], r, key[1])] = triple_stats[key]
 
-                    if neg_triples[p][1] > 0:
-                        collector.update_unique_materialized(r)
+        if materialize:
+            for key in triple_stats_across_relations.keys():
+                if triple_stats_across_relations[key]['is_ranked_better']:
+                    collector.update_unique_materialized(key[1])
+            save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats,
+                                            folder_to_save=f"{folder_to_save}\\{dataset_name}\\{model_name}",
+                                            model_name=model_name, dataset_name=dataset_name)
 
         return collector
-
-    def add_triple(self, tree, h, r, t, i):
-        if (h, t) not in tree.keys():
-            tree[(h, t)] = np.array((0, 0))
-        tree[(h, t)][i] = tree[(h, t)][i] + 1
 
     def frac_rank(self, less, eq):
         return (2 * less + eq + 1) / 2
