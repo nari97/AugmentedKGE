@@ -70,7 +70,10 @@ def run():
     hyperparameters["tail_context"] = train_manager.tailDict
 
     # Hyperparameters to find optimal values.
-    points = HyperparameterUtils.get_points(d=6, m=7, seed=seed)
+    # TODO Add more dimensions and establish which position corresponds to each hyperparameter value. Note that in the
+    #   future we may need to add more hyperparameters, so we need to account for them now. I think using d=15 should
+    #   work. Make sure each position is established in HyperparameterUtils.
+    points = HyperparameterUtils.get_points(d=7, m=7, seed=seed)
 
     # Get checkpoint file.
     checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(index)

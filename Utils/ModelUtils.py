@@ -238,3 +238,4 @@ def getModel(model_name, params):
     # ConvE: https://arxiv.org/abs/1707.01476
     # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf
     # CapsE: https://arxiv.org/pdf/1808.04122v3.pdf
+    # MDE has a MDENN version.

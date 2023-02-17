@@ -6,7 +6,7 @@ class ModE(Model):
     """
     Zhanqiu Zhang, Jianyu Cai, Yongdong Zhang, Jie Wang: Learning Hierarchy-Aware Knowledge Graph Embeddings for Link
         Prediction. AAAI 2020: 3065-3072.
-    See Section 4. This is only the modulus part.
+    This is a variant of HAKE. See Section 4. This is only the modulus part.
     """
     def __init__(self, ent_total, rel_total, dim):
         """

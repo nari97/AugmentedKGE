@@ -7,6 +7,7 @@ class pRotatE(Model):
     """
     Zhiqing Sun, Zhi-Hong Deng, Jian-Yun Nie, Jian Tang: RotatE: Knowledge Graph Embedding by Relational Rotation in
         Complex Space. ICLR (Poster) 2019.
+    This is a variant of RotatE.
     """
     def __init__(self, ent_total, rel_total, dim, norm=1):
         """
