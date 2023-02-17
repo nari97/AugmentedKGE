@@ -10,6 +10,23 @@ from scipy.stats import wilcoxon
 
 def add_triple(triple_stats, head, tail, is_negative=False, is_ranked_better=False, is_correctly_predicted=False,
                is_top_k=False):
+    """
+    Adds information about a triple (head, tail) to the triple_stats dictionary.
+
+    Args:
+        triple_stats (dict): A dictionary that maps pairs of entities (heads and tails) to information
+            about triples involving those entities.
+        head: The head entity of the triple.
+        tail: The tail entity of the triple.
+        is_negative (bool, optional): Whether the triple is negative (i.e., not true). Defaults to False.
+        is_ranked_better (bool, optional): Whether the triple is ranked better than the correct answer by the model.
+            Defaults to False.
+        is_correctly_predicted (bool, optional): Whether the triple is correctly predicted by the model. Defaults to False.
+        is_top_k (bool, optional): Whether the triple is in the top k predictions of the model. Defaults to False.
+
+    Returns:
+        None
+    """
     index = (head, tail)
 
     if index not in triple_stats:
@@ -30,10 +47,30 @@ def add_triple(triple_stats, head, tail, is_negative=False, is_ranked_better=Fal
 
 
 def sort_by_score(item):
+    """
+    Returns the score of the given item to be used for sorting.
+
+    Args:
+        item (ndarray): A numpy matrix containing a triple to be sorted. The score should be in the fourth element (index 3).
+
+    Returns:
+        The score of the triple to be used for sorting.
+    """
     return item[3]
 
 
 def get_top_k_triples(triples, k):
+    """
+    Returns the top k triples with the highest scores.
+
+    Args:
+        triples (ndarray): A numpy array representing the triples to be ranked.
+            Each triple should have a score in the fourth element (index 3) of the tuple or list.
+        k (int): The number of top triples to return.
+
+    Returns:
+        A list of the top k triples with the highest scores, sorted in ascending order by score.
+    """
     top_k_triples = heapq.nsmallest(k, triples, key=sort_by_score)
 
     return top_k_triples
@@ -41,6 +78,21 @@ def get_top_k_triples(triples, k):
 
 def save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats, folder_to_save, model_name,
                                     dataset_name):
+    """
+    Saves the number of positives ranked before expected and the triple statistics to pickle files in the specified folder.
+
+    Args:
+        n_positives_ranked_before_expected (dict): The number of positive triples ranked that were correctly predicted
+            for each relation.
+        triple_stats (dict): A dictionary that maps pairs of entities (heads and tails) to information
+            about triples involving those entities.
+        folder_to_save (str): The path to the folder where the files should be saved.
+        model_name (str): The name of the model used to generate the rankings.
+        dataset_name (str): The name of the dataset the triples come from.
+
+    Returns:
+        None
+    """
     ranked_before_expected_file = open(f"{folder_to_save}\\{dataset_name}_{model_name}_ranked_before_expected.pickle",
                                        'wb')
     triple_stats_file = open(f"{folder_to_save}\\{dataset_name}_{model_name}_triple_stats.pickle", 'wb')
@@ -99,6 +151,7 @@ class Evaluator(object):
             relations[t.r].append(t)
 
         for r in relations.keys():
+            n_positives_ranked_before_expected[r] = 0
             total += 1
             # print (str(r) + ":Started")
             print(f"Relation {r}: {total}/{len(relations)}")
@@ -117,6 +170,10 @@ class Evaluator(object):
 
                 totalTriples = 1 + len(corruptedHeads) + len(corruptedTails)
 
+                # Here I changed arrH, arrR and arrT to be a numpy matrix of size (totalTriples, 4), where positions
+                # 0,1 and 2 are head, relation and tail respectively. The 4th position is to be used later when
+                # the scores are calculated. This is so that the sorting and materialization process is easier to be
+                # done
                 triples = np.zeros((totalTriples, 4))
 
                 # arrH = np.zeros(totalTriples, dtype=np.int64)
@@ -160,11 +217,13 @@ class Evaluator(object):
                         else:
                             scores = torch.concat((scores, batch_score))
 
+                # Adding scores to the triples
                 triples[:, 3] = scores.detach().numpy()
                 cHeads = triples[1:corruptedHeadsEnd, 3]
                 cTails = triples[corruptedHeadsEnd:, 3]
                 positive_triple_score = triples[0, 3]
 
+                # Chaned PyTorch.sum to numpy.sum as positive_triple_score, cHeads, cTails are all numpy arrays now
                 rankhLess, ranktLess = np.sum(positive_triple_score > cHeads).item(), np.sum(
                     positive_triple_score > cTails).item()
                 rankhEq, ranktEq = 1 + np.sum(positive_triple_score == cHeads).item(), 1 + np.sum(
@@ -177,26 +236,46 @@ class Evaluator(object):
                     rankhEq, ranktEq = 1, 1
 
                 if materialize:
+
+                    # Compute ranks and expected rank
                     rankH = self.frac_rank(rankhLess, rankhEq)
                     rankT = self.frac_rank(ranktLess, ranktEq)
                     expectedH = (len(corruptedHeads) + 1) / 2
                     expectedT = (len(corruptedTails) + 1) / 2
 
+                    # Update dict, renamed the variable to make it more readable
                     if rankH < expectedH:
                         n_positives_ranked_before_expected[r] = n_positives_ranked_before_expected[r] + 1
                     if rankT < expectedT:
                         n_positives_ranked_before_expected[r] = n_positives_ranked_before_expected[r] + 1
 
-                    top_k_triples = get_top_k_triples(triples, k=25)
+                    # Get top-k triples for head and tail corruptions separately
+                    top_k_triples_head = get_top_k_triples(triples[0:corruptedHeadsEnd], k=25)
+                    top_k_triples_tail = get_top_k_triples(np.vstack((triples[0, :], triples[corruptedHeadsEnd:, :])),
+                                                           k=25)
 
-                    for k_triple in top_k_triples:
-                        if k_triple[0] == triples[0][0] and k_triple[1] == triples[1] and k_triple[2] == triples[2]:
+                    # Update top-k head triples while making sure that if the positive triple exists in top-k, then its
+                    # is_negative is set to False, else set to True
+                    for k_triple in top_k_triples_head:
+                        if k_triple[0].item() == triples[0][0].item() and k_triple[1].item() == triples[0][1].item() and \
+                                k_triple[2].item() == triples[0][2].item():
+                            add_triple(triple_stats, k_triple[0], k_triple[2], is_top_k=True, is_negative=False)
+                        else:
+                            add_triple(triple_stats, k_triple[0], k_triple[2], is_top_k=True, is_negative=True)
+
+                    # Update top-k tail triples while making sure that if the positive triple exists in top-k, then its
+                    # is_negative is set to False, else set to True
+                    for k_triple in top_k_triples_tail:
+                        if k_triple[0].item() == triples[0][0].item() and k_triple[1].item() == triples[0][1].item() and \
+                                k_triple[2].item() == triples[0][2].item():
                             add_triple(triple_stats, k_triple[0], k_triple[2], is_top_k=True, is_negative=False)
                         else:
                             add_triple(triple_stats, k_triple[0], k_triple[2], is_top_k=True, is_negative=True)
 
                     for i in range(1, totalTriples):
                         if positive_triple_score >= triples[i, 3]:
+
+                            # Same as before now adding more information for each triples
                             add_triple(triple_stats, triples[i, 0], triples[i, 2], is_ranked_better=True)
                             if i < corruptedHeadsEnd:
                                 if rankH < expectedH:
@@ -212,17 +291,24 @@ class Evaluator(object):
             if materialize:
                 for key in triple_stats.keys():
                     collector.update_total_unique_triples(r)
+
+                    # Since we have an incredible amount of negatives, I only want to keep the ones we need, i.e, the ones
+                    # that were part of top-k or the ones that were ranked better (predictions)
                     if triple_stats[key]['is_ranked_better'] or triple_stats[key]['is_top_k']:
                         triple_stats_across_relations[(key[0], r, key[1])] = triple_stats[key]
 
         if materialize:
             for key in triple_stats_across_relations.keys():
+                # Moved this to happen outside the testing loop
                 if triple_stats_across_relations[key]['is_ranked_better']:
                     collector.update_unique_materialized(key[1])
-            save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats,
+
+            # Save positives_before_expected and triple_stats_across_relations into pickle files
+            save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats_across_relations,
                                             folder_to_save=f"{folder_to_save}\\{dataset_name}\\{model_name}",
                                             model_name=model_name, dataset_name=dataset_name)
 
+            # add_triple moved outside evaluator
         return collector
 
     def frac_rank(self, less, eq):
