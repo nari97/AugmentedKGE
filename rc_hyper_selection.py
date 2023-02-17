@@ -56,8 +56,10 @@ def run():
     # Loading dataset.
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
+    # We assume we will be using Bernouilli, this is because TripleManager computes extra stuff if it is enabled. Then,
+    #   below, we select whether we are using it or not.
     train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=hyperparameters["batch_size"],
-                                  neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode, seed=seed)
+                              neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode, seed=seed, use_bern=True)
     end = time.perf_counter()
     print("Dataset initialization time: ", end - start)
 

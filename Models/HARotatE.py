@@ -48,7 +48,7 @@ class HARotatE(Model):
 
         hc = torch.view_as_complex(torch.stack((w_expand * h_real, w_expand * h_img), dim=-1))
         tc = torch.view_as_complex(torch.stack((t_real, t_img), dim=-1))
-        rc = torch.view_as_complex(torch.stack((torch.cos(r_phase), torch.sin(r_phase)), dim=-1))
+        rc = torch.polar(torch.ones_like(r_phase), r_phase)
 
         # Eq. (4).
         return -torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)

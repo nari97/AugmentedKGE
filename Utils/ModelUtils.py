@@ -223,6 +223,7 @@ def getModel(model_name, params):
 
 
     # TODO: https://github.com/xinguoxia/KGE
+    # TODO: https://github.com/LIANGKE23/Awesome-Knowledge-Graph-Reasoning
     # ConE (https://arxiv.org/pdf/2110.14923v2.pdf) works with hierarchies that can be pre-computed, see Appendix H.
     # ITransF: https://aclanthology.org/P17-1088.pdf
     # DihEdral: https://aclanthology.org/P19-1026.pdf
@@ -233,6 +234,28 @@ def getModel(model_name, params):
     # SSE (requires concepts): https://www.aclweb.org/anthology/P15-1009/
     # NTN: Socher, Richard, Chen, Danqi, Manning, Christopher D., and Ng, Andrew Y. Reasoning with neural
     #           tensor networks for knowledge base completion. In NIPS, 2013.
+    # RodE: https://ieeexplore.ieee.org/document/9240950
+    # Trans4E: https://arxiv.org/pdf/2107.03297.pdf
+    # 5*E: https://ojs.aaai.org/index.php/AAAI/article/view/17095
+    # ODE: https://aclanthology.org/2021.emnlp-main.750/
+    # TransG: https://aclanthology.org/P16-1219/
+    # GAKE: https://aclanthology.org/C16-1062/
+    # Flexible: https://dl.acm.org/doi/10.5555/3032027.3032102
+    # AEM: https://ieeexplore.ieee.org/document/8545570
+    # TRPE: https://www.sciencedirect.com/science/article/pii/S092523122200889X
+    # GIE: https://ojs.aaai.org/index.php/AAAI/article/view/20491
+    # MEI: Tran, Hung Nghiep; Takasu, Atsuhiro (2020). "Multi-Partition Embedding Interaction with Block Term
+    #           Format for Knowledge Graph Completion". ECAI.
+    # MEIM: Tran, Hung-Nghiep; Takasu, Atsuhiro (2022). "MEIM: Multi-partition Embedding Interaction Beyond Block
+    #           Term Format for Efficient and Expressive Link Prediction". IJCAI.
+    # TransComplex: https://arxiv.org/pdf/1909.00519.pdf
+    # SpacE: https://link.springer.com/content/pdf/10.1007/978-3-030-62419-4_25.pdf
+    # GeomE: https://aclanthology.org/2020.coling-main.46.pdf
+    # RUGE: https://arxiv.org/abs/1711.11231
+    # SEEK: Wentao Xu, Shun Zheng, Liang He, Bin Shao, Jian Yin, and Tie-Yan Liu. 2020. SEEK: Segmented embedding of
+    #   knowledge graphs. In ACL 2020, pages 3888–3897.
+
+
 
     # Neural networks
     # ConvE: https://arxiv.org/abs/1707.01476

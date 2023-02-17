@@ -36,7 +36,7 @@ class RotatE(Model):
     def _calc(self, h_real, h_img, r_phase, t_real, t_img):
         hc = torch.view_as_complex(torch.stack((h_real, h_img), dim=-1))
         tc = torch.view_as_complex(torch.stack((t_real, t_img), dim=-1))
-        rc = torch.view_as_complex(torch.stack((torch.cos(r_phase), torch.sin(r_phase)), dim=-1))
+        rc = torch.polar(torch.ones_like(r_phase), r_phase)
 
         # Eq. (3).
         return -torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)
