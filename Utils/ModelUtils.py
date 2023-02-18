@@ -254,6 +254,9 @@ def getModel(model_name, params):
     # RUGE: https://arxiv.org/abs/1711.11231
     # SEEK: Wentao Xu, Shun Zheng, Liang He, Bin Shao, Jian Yin, and Tie-Yan Liu. 2020. SEEK: Segmented embedding of
     #   knowledge graphs. In ACL 2020, pages 3888–3897.
+    # ALMP: https://link.springer.com/chapter/10.1007/978-3-031-10983-6_50
+    # Tatec: https://jair.org/index.php/jair/article/view/10993
+    # HypE: https://www.ijcai.org/proceedings/2020/303
 
 
 
