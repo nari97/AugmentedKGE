@@ -29,21 +29,25 @@ def add_triple(triple_stats, head, tail, is_negative=False, is_ranked_better=Fal
     """
     index = (head, tail)
 
+    # Index 0 is is_negative
+    # Index 1 is ranked_better
+    # Index 2 is correctly predicted
+    # Index 3 is top-k
+
     if index not in triple_stats:
-        triple_stats[index] = {'is_negative': False, 'is_ranked_better': False, 'is_correctly_predicted': False,
-                               'is_top_k': False}
+        triple_stats[index] = [0, 0, 0, 0]
 
     if is_negative:
-        triple_stats[index]['is_negative'] = True
+        triple_stats[index][0] = 1
 
     if is_ranked_better:
-        triple_stats[index]['is_ranked_better'] = True
+        triple_stats[index][1] = 1
 
     if is_correctly_predicted:
-        triple_stats[index]['is_correctly_predicted'] = True
+        triple_stats[index][2] = 1
 
     if is_top_k:
-        triple_stats[index]['is_top_k'] = True
+        triple_stats[index][3] = 1
 
 
 def sort_by_score(item):
@@ -133,7 +137,7 @@ class Evaluator(object):
 
         return totals
 
-    def evaluate(self, model, materialize=False, folder_to_save=None, model_name=None, dataset_name=None):
+    def evaluate(self, model, materialize=False, folder_to_save=None, model_name=None, dataset_name=None, k=25):
         collector = RankCollector()
 
         is_nan_cnt, total = 0, 0
@@ -250,9 +254,9 @@ class Evaluator(object):
                         n_positives_ranked_before_expected[r] = n_positives_ranked_before_expected[r] + 1
 
                     # Get top-k triples for head and tail corruptions separately
-                    top_k_triples_head = get_top_k_triples(triples[0:corruptedHeadsEnd], k=25)
+                    top_k_triples_head = get_top_k_triples(triples[0:corruptedHeadsEnd], k=k)
                     top_k_triples_tail = get_top_k_triples(np.vstack((triples[0, :], triples[corruptedHeadsEnd:, :])),
-                                                           k=25)
+                                                           k=k)
 
                     # Update top-k head triples while making sure that if the positive triple exists in top-k, then its
                     # is_negative is set to False, else set to True
@@ -294,20 +298,19 @@ class Evaluator(object):
 
                     # Since we have an incredible amount of negatives, I only want to keep the ones we need, i.e, the ones
                     # that were part of top-k or the ones that were ranked better (predictions)
-                    if triple_stats[key]['is_ranked_better'] or triple_stats[key]['is_top_k']:
+                    if triple_stats[key][1] == 1 or triple_stats[key][3] == 1:
                         triple_stats_across_relations[(key[0], r, key[1])] = triple_stats[key]
 
         if materialize:
             for key in triple_stats_across_relations.keys():
                 # Moved this to happen outside the testing loop
-                if triple_stats_across_relations[key]['is_ranked_better']:
+                if triple_stats_across_relations[key][1] == 1:
                     collector.update_unique_materialized(key[1])
 
             # Save positives_before_expected and triple_stats_across_relations into pickle files
             save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats_across_relations,
                                             folder_to_save=f"{folder_to_save}\\{dataset_name}\\{model_name}",
                                             model_name=model_name, dataset_name=dataset_name)
-
             # add_triple moved outside evaluator
         return collector
 
