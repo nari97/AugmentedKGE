@@ -5,6 +5,7 @@ from Models.AttE import AttE
 from Utils import PoincareUtils
 
 
+# TODO Work on this one!
 # https://github.com/tensorflow/neural-structured-learning/blob/master/research/kg_hyp_emb/models/hyperbolic.py#L116
 class AttH(AttE):
     def __init__(self, ent_total, rel_total, dim):

@@ -3,7 +3,16 @@ from Models.Model import Model
 
 
 class TransEdge(Model):
+    # TODO Work on this again when dealing with NNs.
+    """
+    Zequn Sun, Jiacheng Huang, Wei Hu, Muhao Chen, Lingbing Guo, Yuzhong Qu: TransEdge: Translating Relation-
+        Contextualized Embeddings for Knowledge Graphs. ISWC (1) 2019: 612-629.
+    """
     def __init__(self, ent_total, rel_total, dim, norm=2):
+        """
+            dim (int): Number of dimensions for embeddings
+            norm (int): L1 or L2 norm. Default: 2
+        """
         super(TransEdge, self).__init__(ent_total, rel_total)
         self.dim = dim
         self.pnorm = norm
@@ -22,6 +31,7 @@ class TransEdge(Model):
         htc = torch.concat([hc, tc], 1)
         # Two layers.
         for i in range(2):
+            # TODO: Do we need keepdim?
             htc = torch.linalg.norm(htc, dim=1, ord=self.pnorm, keepdim=True)
             layer = torch.nn.Linear(1, self.dim, bias=True, dtype=h.dtype)
             htc = layer(htc)
@@ -35,15 +45,14 @@ class TransEdge(Model):
 
         psi = r - torch.sum(r * htc, dim=1, keepdim=True) * htc
 
+        # Eq. (1).
         return -torch.linalg.norm(h + psi - t, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        h = head_emb["e"]
-        hc = head_emb["ec"]
-        t = tail_emb["e"]
-        tc = tail_emb["ec"]
+        h, hc = head_emb["e"], head_emb["ec"]
+        t, tc = tail_emb["e"], tail_emb["ec"]
         r = rel_emb["r"]
 
         return self._calc(h, hc, r, t, tc, is_predict)

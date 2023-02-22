@@ -4,6 +4,9 @@ from .Model import Model
 
 class TransE(Model):
     """
+    Antoine Bordes, Nicolas Usunier, Alberto García-Durán, Jason Weston, Oksana Yakhnenko: Translating Embeddings for
+        Modeling Multi-relational Data. NIPS 2013: 2787-2795.
+
     TransE :cite:`bordes2013translating` is a representative relational distance model. All the embeddings, entities and relations are both represented in the same space :math:`\mathbb{R}^{d}` where d is the dimension of the embedding. Given a triple (head, relation, tail), transE imposes the constraint that :math:`h+r \\approx t`.
     The scoring function for TransE is defined as 
 
@@ -21,7 +24,7 @@ class TransE(Model):
         self.pnorm = norm
 
     def get_default_loss(self):
-        # Equation 1.
+        # Eq. (1).
         return 'margin'
 
     def initialize_model(self):
@@ -34,7 +37,7 @@ class TransE(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r")
 
     def _calc(self, h, r, t):
-        # ||h+r-t||_{1,2} (Eq. (1))
+        # Eq. (1).
         return -torch.linalg.norm(h + r - t, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):

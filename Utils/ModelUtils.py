@@ -73,23 +73,19 @@ def getModel(model_name, params):
     """
 
     kwargs = {"ent_total":params["ent_total"], "rel_total":params["rel_total"]}
-    if model_name == "transd" or model_name == "transr" or model_name == "tucker" or model_name == "transsparse" or \
-            model_name == "transdr":
+    if model_name == "transd" or model_name == "transr" or model_name == "tucker" or model_name == "transsparse":
         kwargs.update({"dim_e":params["dime"], "dim_r":params["dimr"]})
     else:
         kwargs.update({"dim": params["dim"]})
-    if model_name == "transe" or model_name == "toruse" or model_name == "stranse" or model_name == "transsparse" or \
+    if model_name == "transe" or model_name == "stranse" or model_name == "transsparse" or \
         model_name == "boxe" or model_name == "makr" or model_name == "transms" or model_name == "transers" or \
-            model_name == "lpptranse" or model_name == "transeft" or model_name == "transm" or model_name == "mde" or \
-            model_name == "combine" or model_name == "transgate" or model_name == "transat" or \
-            model_name == "aprile" or model_name == "reflecte" or model_name == "structure" or \
-            model_name == "transedt" or model_name == "transedge" or model_name == "harotate" or \
-            model_name == "manifolde":
+            model_name == "lpptranse" or model_name == "transeft" or \
+            model_name == "combine" or model_name == "transgate" or  model_name == "aprile" or \
+            model_name == "reflecte" or model_name == "structure" or model_name == "transedt" or \
+            model_name == "transedge" or model_name == "harotate" or model_name == "manifolde":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse" or model_name == "transm":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
-    if model_name == "transsparse":
-        kwargs.update({"type": params["sparse_type"]})
     if model_name == "gcote" or model_name == "gtrans":
         kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
 
@@ -234,6 +230,7 @@ def getModel(model_name, params):
     # SSE (requires concepts): https://www.aclweb.org/anthology/P15-1009/
     # NTN: Socher, Richard, Chen, Danqi, Manning, Christopher D., and Ng, Andrew Y. Reasoning with neural
     #           tensor networks for knowledge base completion. In NIPS, 2013.
+    # https://www.ijcai.org/Abstract/16/421 (requires types)
     # RodE: https://ieeexplore.ieee.org/document/9240950
     # Trans4E: https://arxiv.org/pdf/2107.03297.pdf
     # 5*E: https://ojs.aaai.org/index.php/AAAI/article/view/17095
@@ -257,6 +254,23 @@ def getModel(model_name, params):
     # ALMP: https://link.springer.com/chapter/10.1007/978-3-031-10983-6_50
     # Tatec: https://jair.org/index.php/jair/article/view/10993
     # HypE: https://www.ijcai.org/proceedings/2020/303
+    # CapsE: https://aclanthology.org/N19-1226/
+    # RTransE: Alberto Garc´ıa-Dur´an, Antoine Bordes, and Nicolas Usunier. 2015. Composing Relationships with
+    #   Translations.
+    # PTransE: Yankai Lin, Zhiyuan Liu, Huanbo Luan, Maosong Sun, Siwei Rao, and Song Liu. 2015a. Modeling Relation
+    #   Paths for Representation Learning of Knowledge Bases.
+    # ReflectE: https://www.sciencedirect.com/science/article/abs/pii/S0950705121010418
+    # TimE: https://www.sciencedirect.com/science/article/abs/pii/S0950705120306936
+    # ProtoE: https://www.mdpi.com/2078-2489/13/8/354
+    # GTransE: https://link.springer.com/chapter/10.1007/978-3-030-39878-1_16
+    # lppTransE, TransEDT, TransEFT, TransERS propose modifications over all trans* models (so far, Trans{E|R|H|DR|D|M|
+    #   Sparse|Gate|M|MS} and STransE. Try to create a framework that lpp*, Trans*DT, Trans*FT and Trans*RS are
+    #   implemented.
+    # TransMVG: https://link.springer.com/chapter/10.1007/978-3-030-62005-9_21
+    # RGKE: https://link.springer.com/chapter/10.1007/978-3-030-16142-2_37
+    #
+
+
 
 
 
@@ -265,3 +279,17 @@ def getModel(model_name, params):
     # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf
     # CapsE: https://arxiv.org/pdf/1808.04122v3.pdf
     # MDE has a MDENN version.
+    # ConKB: https://aclanthology.org/N18-2053/
+    # WGE: https://arxiv.org/abs/2112.09231
+    # https://www.sciencedirect.com/science/article/abs/pii/S095070512200870X
+    # https://www.sciencedirect.com/science/article/abs/pii/S0950705121004500
+    # https://aclanthology.org/2020.emnlp-main.460/
+    # TransEdge uses NNs (MLPs).
+    # TransGate as well.
+
+
+    # ???
+    # NoGE: https://dl.acm.org/doi/10.1145/3488560.3502183
+    # https://arxiv.org/abs/1909.03821
+    # https://www.hindawi.com/journals/sp/2020/7084958/
+    #

@@ -3,6 +3,9 @@ from Models.Model import Model
 
 
 class TransGate(Model):
+    """
+    Jun Yuan, Neng Gao, Ji Xiang: TransGate: Knowledge Graph Embedding with Shared Gate Structure. AAAI 2019: 3100-3107.
+    """
     def __init__(self, ent_total, rel_total, dim, norm=2):
         super(TransGate, self).__init__(ent_total, rel_total)
         self.dim = dim

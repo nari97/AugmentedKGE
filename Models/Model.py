@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-
-from AugmentedKGE.AugmentedKGE.Utils.Embedding import Embedding
+from Utils.Embedding import Embedding
 import os
 
 
@@ -32,7 +31,7 @@ class Model(nn.Module):
         self.embeddings_regularization = {"entity": {}, "relation": {}, "global": {}}
         # This is for complex numbers.
         self.embeddings_regularization_complex = {"entity": [], "relation": [], "global": []}
-        # TODO This regularization is executed once for the current batch.
+        # TODO This regularization is executed once for the current batch. Are we using this?
         self.onthefly_regularization = []
 
         self.ranks = None
@@ -170,6 +169,10 @@ class Model(nn.Module):
     def register_scale_constraint(self, emb_type, name, p=2, z=1, ctype='le'):
         self.scale_constraints.append({'emb_type': emb_type, 'name': name, 'p': p, 'z': z, 'ctype': ctype})
 
+    # This registers a custom constraint that is "uncommon." See TransH for an example.
+    def register_custom_constraint(self, c):
+        self.custom_constraints.append(c)
+
     # Apply the constraints to be added to the loss.
     def constraints(self, data):
         head_emb = self.get_head_embeddings(data)
@@ -187,26 +190,23 @@ class Model(nn.Module):
                     v.append(c(head_emb, rel_emb, tail_emb))
                 elif key is 'scale':
                     if c['emb_type'] == 'entity':
-                        v.append(self.scale_constraint(head_emb[c['name']], c['p'], c['z'], c['ctype']))
-                        v.append(self.scale_constraint(tail_emb[c['name']], c['p'], c['z'], c['ctype']))
+                        v.append(Model.scale_constraint(head_emb[c['name']], c['p'], c['z'], c['ctype']))
+                        v.append(Model.scale_constraint(tail_emb[c['name']], c['p'], c['z'], c['ctype']))
                     elif c['emb_type'] == 'relation':
-                        v.append(self.scale_constraint(rel_emb[c['name']], c['p'], c['z'], c['ctype']))
+                        v.append(Model.scale_constraint(rel_emb[c['name']], c['p'], c['z'], c['ctype']))
                 elif key is 'onthefly':
                     v.append(c)
 
                 for x in v:
                     constraints += torch.sum(x)
 
-        # TODO Clear here or later, when batch is done?
-        # Clear on-the-fly constraints.
-        self.onthefly_constraints = []
-
         return constraints
 
     # Applies the constraint ||x||_p<=z when ctype='le', and ||x||_p>=z when ctype='ge'.
     # Check, for instance, TransH and GTrans on how these are applied.
     # In Keras, these are implemented using clamp: https://keras.io/api/layers/constraints/
-    def scale_constraint(self, emb, p=2, z=1, ctype='le'):
+    @staticmethod
+    def scale_constraint(emb, p=2, z=1, ctype='le'):
         if ctype == 'le':
             constraint = torch.pow(torch.linalg.norm(emb, dim=-1, ord=p), 2) - z
         elif ctype == 'ge':
@@ -215,13 +215,8 @@ class Model(nn.Module):
 
     # This method is called when the batch is done.
     def end_batch(self):
-        pass
-
-
-
-    # TODO What is this doing?
-    def register_custom_constraint(self, c):
-        self.custom_constraints.append(c)
+        # Clear on-the-fly constraints.
+        self.onthefly_constraints = []
 
     # TODO Do we need complex regularization? If not, remove!
     # This method registers a new embedding regularization term for complex numbers.
@@ -333,7 +328,7 @@ class Model(nn.Module):
 
         return r
 
-    # TODO What about this?
+    # TODO What about this? It seems this is not used.
     def register_onthefly_regularization(self, x, reg_params={"norm": torch.linalg.norm, "dim": -1}):
         self.onthefly_regularization.append((x, reg_params))
 

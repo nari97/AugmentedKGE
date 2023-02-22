@@ -2,6 +2,7 @@ import torch
 from Models.Model import Model
 
 
+# TODO: Work on this one!
 class GTrans(Model):
     def __init__(self, ent_total, rel_total, dim, head_context, tail_context, norm=2):
         super(GTrans, self).__init__(ent_total, rel_total)

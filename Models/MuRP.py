@@ -3,6 +3,7 @@ from Models.MuRE import MuRE
 from Utils import PoincareUtils
 
 
+# TODO Check later.
 # Check this: https://github.com/ibalazevic/multirelational-poincare/blob/master/model.py
 class MuRP(MuRE):
 

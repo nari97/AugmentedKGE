@@ -3,7 +3,11 @@ from Models.Model import Model
 
 
 class TuckER(Model):
-
+    """
+    Ivana Balazevic, Carl Allen, Timothy M. Hospedales: TuckER: Tensor Factorization for Knowledge Graph Completion.
+        EMNLP/IJCNLP (1) 2019: 5184-5193.
+    The authors used batch normalization and dropout during training. We are not using any of those.
+    """
     def __init__(self, ent_total, rel_total, dim_e, dim_r):
         """
         Args:
@@ -17,14 +21,18 @@ class TuckER(Model):
         self.dim_r = dim_r
 
     def get_default_loss(self):
+        # Eq. (3).
         return 'bce'
 
     def initialize_model(self):
+        # See below Eq. (2).
         self.create_embedding(self.dim_e, emb_type="entity", name="e")
         self.create_embedding(self.dim_r, emb_type="relation", name="r")
+        # This is the core tensor.
         self.create_embedding((self.dim_e, self.dim_r, self.dim_e), emb_type="global", name="w")
 
     def _calc(self, h, r, t, w, is_predict):
+        # This is the implementation of Eq. (2). So easy!
         batch_size = h.shape[0]
 
         # This changes from (batch_size, dim_e/dim_r) to (batch_size, 1, dim_e/dim_r)
@@ -51,7 +59,7 @@ class TuckER(Model):
         # Multiply: (batch_size, 1, dim_e) x (batch_size, dim_e, 1) = (batch_size, 1, 1)
         scores = torch.bmm(bt, prod_two_rolled)
 
-        # Apply only sigmoid when predicting.
+        # Apply only sigmoid when predicting. From the paper: "...We apply logistic sigmoid to each score..."
         if is_predict:
             scores = torch.sigmoid(scores)
 

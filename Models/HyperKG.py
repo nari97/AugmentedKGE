@@ -4,6 +4,7 @@ from Models.Model import Model
 from Utils import PoincareUtils
 
 
+# TODO Work on this. Check other Poincare models.
 class HyperKG(Model):
     def __init__(self, ent_total, rel_total, dim, beta=None):
         super(HyperKG, self).__init__(ent_total, rel_total)

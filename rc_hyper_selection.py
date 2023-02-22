@@ -2,6 +2,7 @@ from DataLoader.TripleManager import TripleManager
 from Train.Evaluator import Evaluator, RankCollector
 from Train.Trainer import Trainer
 from Utils import ModelUtils, LossUtils, DatasetUtils, HyperparameterUtils
+from ax.service.managed_loop import optimize
 import time
 import os
 import sys
@@ -42,6 +43,8 @@ def run():
     corruption_mode = "LCWA"
     # Metric to use.
     metric_str = "mr"
+    # Total trials indicate how many points we will inspect in the hyperparameter value optimization.
+    total_trials = 32
 
     # Get the name of the dataset.
     dataset_name = DatasetUtils.get_dataset_name(dataset)
@@ -71,43 +74,28 @@ def run():
     hyperparameters["head_context"] = train_manager.headDict
     hyperparameters["tail_context"] = train_manager.tailDict
 
-    # Hyperparameters to find optimal values.
-    # TODO Add more dimensions and establish which position corresponds to each hyperparameter value. Note that in the
-    #   future we may need to add more hyperparameters, so we need to account for them now. I think using d=15 should
-    #   work. Make sure each position is established in HyperparameterUtils.
-    points = HyperparameterUtils.get_points(d=7, m=7, seed=seed)
-
     # Get checkpoint file.
     checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(index)
     checkpoint_file = os.path.join(checkpoint_dir + ".ckpt")
 
-    selected, current = None, last_inspected
-    # If a checkpoint exists, we are resuming, so let's continue where we left it.
-    if os.path.exists(checkpoint_file):
-        # We need the hyperparameters first.
-        model_hyperparameters = torch.load(checkpoint_file).pop("hyperparameters")
-        model = ModelUtils.getModel(model_name, model_hyperparameters)
-        model.set_hyperparameters(model_hyperparameters)
-        model.load_checkpoint(checkpoint_file)
-        loss = LossUtils.getLoss(margin=model_hyperparameters["margin"],
-                                 other_margin=model_hyperparameters["other_margin"],
-                                 model=model, reg_type=model_hyperparameters["reg_type"])
-        selected = loss
-        selected.model = model
+    params_to_optimize = [
+        # Regularization.
+        {"name": "lmbda", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        {"name": "reg_type", "value_type": "str", "type": "choice", "values": ['L1', 'L2', 'L3'], "is_ordered":True},
+        # Weight of constraints over parameters.
+        {"name": "weight_constraints", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        # Margin of loss functions with margins.
+        {"name": "margin", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        {"name": "other_margin", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        # Norms of models that use vector norms.
+        {"name": "pnorm", "value_type": "int", "type": "choice", "values": [1, 2], "is_ordered":True},
+        # Whether using Bernoulli or not for sampling negatives.
+        {"name": "use_bern", "value_type": "bool", "type": "choice", "values": [False, True], "is_ordered":True},
+    ]
 
-    for current in range(0, len(points)):
-        point = points[current]
-        current += 1
-        print('Current point:', current)
-        HyperparameterUtils.decode(hyperparameters, point)
-
-        # Copy to print but not all hyperparameters.
-        hyper_copy = dict(hyperparameters)
-        hyper_copy.pop("pred_count", None)
-        hyper_copy.pop("pred_loc_count", None)
-        hyper_copy.pop("head_context", None)
-        hyper_copy.pop("tail_context", None)
-        print("Trying hyperparameters:", hyper_copy)
+    def train_evaluate(parameterization, saving=None):
+        # Update the existing hyperparameters with the ones provided.
+        hyperparameters.update(parameterization)
 
         # Loading model and loss.
         start = time.perf_counter()
@@ -144,28 +132,37 @@ def run():
 
         # Let's train!
         trainer = Trainer(loss=loss, train=train_manager, validation=validation, train_times=train_times,
-                              save_steps=validation_epochs, optimizer=optimizer)
+                          save_steps=validation_epochs, optimizer=optimizer)
         trainer.run(metric_str=metric_str)
         end = time.perf_counter()
         print("Time elapsed during training: ", end - start)
 
-        if selected is None:
-            # Nothing selected yet, just save.
-            selected = loss
-            selected.model.save_checkpoint(path=checkpoint_file, epoch=validation_epochs)
-        else:
-            # Get current collector.
-            current_collector = RankCollector()
-            current_collector.load(loss.model.ranks, loss.model.totals)
+        # Get collector.
+        current_collector = RankCollector()
+        current_collector.load(loss.model.ranks, loss.model.totals)
 
-            # Get other collector.
-            other_collector = RankCollector()
-            other_collector.load(selected.model.ranks, selected.model.totals)
+        # Save model.
+        if saving is not None:
+            saving(loss)
 
-            # If false, it means it was not improved. If true, it was improved and significant.
-            if current_collector.stop_train(other_collector, metric_str=metric_str):
-                selected = loss
-                selected.model.save_checkpoint(path=checkpoint_file, epoch=validation_epochs)
+        # Return MR.
+        return current_collector.get_metric().get()
+
+    # Optimize using Ax.
+    best_parameters, values, experiment, model = optimize(
+        parameters=params_to_optimize,
+        evaluation_function=train_evaluate,
+        objective_name='mr',
+        minimize=True,
+        # Note that this does not guarantee reproducibility. See:
+        #   https://github.com/facebook/Ax/issues/151#issuecomment-524446967
+        random_seed=seed,
+        total_trials=total_trials,
+    )
+
+    # Train again with best hyperparameter values and save.
+    train_evaluate(parameterization=best_parameters,
+                   saving=lambda loss: loss.model.save_checkpoint(path=checkpoint_file, epoch=validation_epochs))
 
 
 if __name__ == '__main__':

@@ -4,8 +4,16 @@ import torch
 from Models.Model import Model
 
 
+# TODO: There is also a PyTorch implementation.
 # https://github.com/tensorflow/neural-structured-learning/blob/master/research/kg_hyp_emb/models/hyperbolic.py#L116
 class AttE(Model):
+    """
+    Ines Chami, Adva Wolf, Da-Cheng Juan, Frederic Sala, Sujith Ravi, Christopher Ré: Low-Dimensional Hyperbolic
+        Knowledge Graph Embeddings. ACL 2020: 6901-6914.
+    From the paper: "we evaluate the performance of AttE, which is equivalent to AttH with curvatures set to zero."
+        This is parameter c?
+    TODO: Work on this and all the Hyperbolic operations.
+    """
     def __init__(self, ent_total, rel_total, dim):
         super(AttE, self).__init__(ent_total, rel_total)
         self.dim = dim
@@ -17,7 +25,8 @@ class AttE(Model):
         self.create_embedding(self.dim, emb_type="entity", name="e")
         self.create_embedding(self.dim, emb_type="relation", name="r")
         self.create_embedding(1, emb_type="entity", name="b")
-        self.create_embedding(1, emb_type="relation", name="a")
+        # Unclear in the paper, but it seems dim size: https://github.com/tensorflow/neural-structured-learning/blob/master/research/kg_hyp_emb/models/euclidean.py#L161
+        self.create_embedding(self.dim, emb_type="relation", name="a")
         # Note: we do not include c as we are not learning in the Poincare space.
         self.c = 1
 
@@ -29,6 +38,7 @@ class AttE(Model):
                               init="uniform", init_params=[0, 2 * math.pi], reg=True)
 
     def get_matrix(self, r, batch_size, optype):
+        # TODO: Did we do this for Analogy already?
         # r = [a, b]
         # r as a block-diagonal matrix using rotation:
         #   cos(a), -sin(a), 0, 0, 0

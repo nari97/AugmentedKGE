@@ -2,6 +2,7 @@ import torch
 from Models.Model import Model
 
 
+# TODO: Work on this one!
 class lppTransE(Model):
     """
     Hee-Geun Yoon, Hyun-Je Song, Seong-Bae Park, Se-Young Park: A Translation-Based Knowledge Graph Embedding Preserving

@@ -158,7 +158,7 @@ class Evaluator(object):
             n_positives_ranked_before_expected[r] = 0
             total += 1
             # print (str(r) + ":Started")
-            print(f"Relation {r}: {total}/{len(relations)}")
+            #print(f"Relation {r}: {total}/{len(relations)}")
             if materialize:
                 triple_stats = {}
             for t in relations[r]:
