@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from Utils.Embedding import Embedding
+
+from AugmentedKGE.AugmentedKGE.Utils.Embedding import Embedding
 import os
 
 

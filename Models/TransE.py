@@ -1,5 +1,5 @@
 import torch
-from Models.Model import Model
+from .Model import Model
 
 
 class TransE(Model):
