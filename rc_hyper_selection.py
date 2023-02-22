@@ -53,7 +53,7 @@ def run():
 
     # Hyperparameters that are constant.
     # If you set weight decay, you are using L2 regularization without control.
-    hyperparameters = {"batch_size": 10000, "nr": 25, "dim": 250, "dime": 250, "dimr": 250,
+    hyperparameters = {"batch_size": 10000, "nr": 100, "dim": 250, "dime": 250, "dimr": 250,
                        "lr": None, "momentum": None, "weight_decay": None, "opt_method": "adam", "seed": seed}
 
     # Loading dataset.
@@ -82,11 +82,12 @@ def run():
         # Regularization.
         {"name": "lmbda", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
         {"name": "reg_type", "value_type": "str", "type": "choice", "values": ['L1', 'L2', 'L3'], "is_ordered":True},
-        # Weight of constraints over parameters.
+        # Weight of constraints over parameters and negatives.
         {"name": "weight_constraints", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        {"name": "weight_negatives", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
         # Margin of loss functions with margins.
-        {"name": "margin", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
-        {"name": "other_margin", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        {"name": "margin", "value_type": "float", "type": "range", "bounds": [1e-4, 10.0]},
+        {"name": "other_margin", "value_type": "float", "type": "range", "bounds": [1e-4, 10.0]},
         # Norms of models that use vector norms.
         {"name": "pnorm", "value_type": "int", "type": "choice", "values": [1, 2], "is_ordered":True},
         # Whether using Bernoulli or not for sampling negatives.
@@ -103,8 +104,9 @@ def run():
         mu.set_hyperparameters(hyperparameters)
         print("Model name : ", mu.get_model_name())
 
-        loss = LossUtils.getLoss(margin=hyperparameters["margin"], other_margin=hyperparameters["other_margin"],
-                                 model=mu, reg_type=hyperparameters["reg_type"])
+        loss = LossUtils.getLoss(model=mu, margin=hyperparameters["margin"],
+                                 other_margin=hyperparameters["other_margin"], reg_type=hyperparameters["reg_type"],
+                                 neg_weight=hyperparameters["weight_negatives"])
 
         validation = Evaluator(TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
                                              batch_size=hyperparameters["batch_size"], neg_rate=hyperparameters["nr"],

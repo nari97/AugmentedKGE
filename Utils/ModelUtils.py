@@ -71,6 +71,12 @@ def getModel(model_name, params):
     """
 
     kwargs = {"ent_total":params["ent_total"], "rel_total":params["rel_total"]}
+
+    # Dealing with variants. The convention is that if a model name contains _ (underscore), it means it is a variant.
+    if '_' in model_name:
+        model_name, variant = model_name.split('_')
+        kwargs.update({'variant': variant})
+
     if model_name == "transd" or model_name == "transr" or model_name == "tucker" or model_name == "transsparse":
         kwargs.update({"dim_e":params["dime"], "dim_r":params["dimr"]})
     else:

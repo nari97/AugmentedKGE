@@ -6,13 +6,13 @@ from Loss.MarginLimitLoss import MarginLimitLoss
 import torch.nn as nn
 
 
-def getLoss(model, loss_str=None, margin=0, other_margin=0, reg_type='L2'):
+def getLoss(model, loss_str=None, margin=0, other_margin=0, neg_weight=1.0, reg_type='L2'):
     """
         Gets the loss function based on model
 
         Args:
             model (Model): Model to get wrap with loss function.
-            gamma (float): Margin for loss functions.
+            margin (float): Margin for loss functions.
             
 
         Returns:
@@ -45,12 +45,12 @@ def getLoss(model, loss_str=None, margin=0, other_margin=0, reg_type='L2'):
         loss = BCELoss(**kwargs)
     elif loss_str is 'limit':
         kwargs.pop('margin')
-        kwargs.update({"margin_p": margin, "margin_n": other_margin})
+        kwargs.update({"margin_p": margin, "margin_n": other_margin, "alpha": neg_weight})
         print ('Loss: Limit-based with positive margin:', margin, ' and negative margin:', other_margin)
         loss = LimitLoss(**kwargs)
     elif loss_str is 'margin_limit':
         kwargs.pop('margin')
-        kwargs.update({"margin_r": margin, "margin_s": other_margin})
+        kwargs.update({"margin_r": margin, "margin_s": other_margin, "lmbda": neg_weight})
         print ('Loss: Margin-based Ranking with margin:', margin, ' and limit-based with margin:', other_margin)
         loss = MarginLimitLoss(**kwargs)
     else:
