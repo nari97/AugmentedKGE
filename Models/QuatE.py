@@ -8,7 +8,6 @@ class QuatE(Model):
     """
     Shuai Zhang, Yi Tay, Lina Yao, Qi Liu: Quaternion Knowledge Graph Embeddings. NeurIPS 2019: 2731-2741.
     """
-
     def __init__(self, ent_total, rel_total, dim):
         """
             dim (int): Number of dimensions for embeddings

@@ -8,17 +8,21 @@ class TuckER(Model):
         EMNLP/IJCNLP (1) 2019: 5184-5193.
     The authors used batch normalization and dropout during training. We are not using any of those.
     """
-    def __init__(self, ent_total, rel_total, dim_e, dim_r):
+    def __init__(self, ent_total, rel_total, dim_e, dim_r, apply_sigmoid=False):
         """
         Args:
             ent_total (int): Total number of entities
             rel_total (int): Total number of relations
             dim_e (int): Number of dimensions for entity embeddings
             dim_r (int): Number of dimensions for relation embeddings
+            apply_sigmoid (Bool): Whether sigmoid must be applied to scores during training. Note that BCEWithLogitsLoss
+                already applies sigmoid, so, if this is the loss function used, apply_sigmoid must be set to False. If
+                a different loss function is applied, then apply_sigmoid should be set to True.
         """
         super(TuckER, self).__init__(ent_total, rel_total)
         self.dim_e = dim_e
         self.dim_r = dim_r
+        self.apply_sigmoid = apply_sigmoid
 
     def get_default_loss(self):
         # Eq. (3).
@@ -60,7 +64,8 @@ class TuckER(Model):
         scores = torch.bmm(bt, prod_two_rolled)
 
         # Apply only sigmoid when predicting. From the paper: "...We apply logistic sigmoid to each score..."
-        if is_predict:
+        # Apply sigmoid when predicting or when indicated by apply_sigmoid.
+        if is_predict or self.apply_sigmoid:
             scores = torch.sigmoid(scores)
 
         return scores

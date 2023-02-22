@@ -6,7 +6,6 @@ from Models.BoxE import BoxE
 from Models.CombinE import CombinE
 from Models.ComplEx import ComplEx
 from Models.CrossE import CrossE
-from Models.CrossES import CrossES
 from Models.CyclE import CyclE
 from Models.DistMult import DistMult
 from Models.DensE import DensE
@@ -22,7 +21,6 @@ from Models.lppTransE import lppTransE
 from Models.MAKR import MAKR
 from Models.ManifoldE import ManifoldE
 from Models.MDE import MDE
-from Models.ModE import ModE
 from Models.MRotatE import MRotatE
 from Models.MuRE import MuRE
 from Models.MuRP import MuRP
@@ -77,12 +75,14 @@ def getModel(model_name, params):
         kwargs.update({"dim_e":params["dime"], "dim_r":params["dimr"]})
     else:
         kwargs.update({"dim": params["dim"]})
-    if model_name == "transe" or model_name == "stranse" or model_name == "transsparse" or \
+    if model_name == "transe" or model_name == "stranse" or model_name == "transsparse" or model_name == "rotpro" or \
         model_name == "boxe" or model_name == "makr" or model_name == "transms" or model_name == "transers" or \
-            model_name == "lpptranse" or model_name == "transeft" or \
+            model_name == "lpptranse" or model_name == "transeft" or model_name == "cycle" or \
+            model_name == "combine" or model_name == "transgate" or  model_name == "aprile" or \
             model_name == "combine" or model_name == "transgate" or  model_name == "aprile" or \
             model_name == "reflecte" or model_name == "structure" or model_name == "transedt" or \
-            model_name == "transedge" or model_name == "harotate" or model_name == "manifolde":
+            model_name == "transedge" or model_name == "harotate" or model_name == "manifolde" or \
+            model_name == "transm":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse" or model_name == "transm":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
@@ -126,8 +126,6 @@ def getModel(model_name, params):
         m = STransE(**kwargs)
     elif model_name == "crosse":
         m = CrossE(**kwargs)
-    elif model_name == "crosses":
-        m = CrossES(**kwargs)
     elif model_name == "hake":
         m = HAKE(**kwargs)
     elif model_name == "transa":
@@ -210,8 +208,6 @@ def getModel(model_name, params):
         m = TransEdge(**kwargs)
     elif model_name == "se":
         m = SE(**kwargs)
-    elif model_name == "mode":
-        m = ModE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -259,7 +255,6 @@ def getModel(model_name, params):
     #   Translations.
     # PTransE: Yankai Lin, Zhiyuan Liu, Huanbo Luan, Maosong Sun, Siwei Rao, and Song Liu. 2015a. Modeling Relation
     #   Paths for Representation Learning of Knowledge Bases.
-    # ReflectE: https://www.sciencedirect.com/science/article/abs/pii/S0950705121010418
     # TimE: https://www.sciencedirect.com/science/article/abs/pii/S0950705120306936
     # ProtoE: https://www.mdpi.com/2078-2489/13/8/354
     # GTransE: https://link.springer.com/chapter/10.1007/978-3-030-39878-1_16

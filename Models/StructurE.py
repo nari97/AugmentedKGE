@@ -10,7 +10,7 @@ class StructurE(Model):
     def __init__(self, ent_total, rel_total, dim, norm=2):
         """
             dim (int): Number of dimensions for embeddings
-            norm (int): L1 or L2 norm. Default: TODO
+            norm (int): L1 or L2 norm. Default: 2 (never mentioned in the paper).
         """
         super(StructurE, self).__init__(ent_total, rel_total)
         self.dim = dim

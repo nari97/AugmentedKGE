@@ -7,15 +7,15 @@ class DistMult(Model):
     Bishan Yang, Wen-tau Yih, Xiaodong He, Jianfeng Gao, Li Deng: Embedding Entities and Relations for Learning and
         Inference in Knowledge Bases. ICLR (Poster) 2015
     """
-    def __init__(self, ent_total, rel_total, dim, apply_tanh=False):
+    def __init__(self, ent_total, rel_total, dim, variant='notanh'):
         """
             dim (int): Number of dimensions for embeddings
-            apply_tanh (Bool): Indicates whether tanh should be used to project entity embeddings (see Table 4 in the
-                                paper, DistMult-tanh).
+            variant can be either notanh or tanh. Indicates whether tanh should be used to project entity embeddings
+                (see Table 4 in the paper, DistMult-tanh).
         """
         super(DistMult, self).__init__(ent_total, rel_total)
         self.dim = dim
-        self.apply_tanh = apply_tanh
+        self.variant = variant
 
     def get_default_loss(self):
         # Eq. (3).
@@ -29,7 +29,7 @@ class DistMult(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r", reg=True)
         
     def _calc(self, h, r, t):
-        if self.apply_tanh:
+        if self.variant is 'tanh':
             h, t = torch.tanh(h), torch.tanh(t)
         # Eq. (2).
         return torch.sum(h * r * t, -1)

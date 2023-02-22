@@ -2,6 +2,7 @@ import torch
 from Models.Model import Model
 
 
+# TODO Work on this! There are a bunch of variants.
 class ReflectE(Model):
     def __init__(self, ent_total, rel_total, dim, norm=2):
         super(ReflectE, self).__init__(ent_total, rel_total)

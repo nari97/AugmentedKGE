@@ -1,6 +1,6 @@
 import math
 import torch
-from .Model import Model
+from Models.Model import Model
 
 
 class pRotatE(Model):

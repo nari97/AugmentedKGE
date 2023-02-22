@@ -11,7 +11,7 @@ class HARotatE(Model):
     def __init__(self, ent_total, rel_total, dim, norm=1, mp=None):
         """
             dim (int): Number of dimensions for embeddings
-            norm (int): L1 or L2 norm. Default: 1 as in RotatE.
+            norm (int): L1 or L2 norm. Default: 1 as in RotatE but it is a hyperparameter in the paper.
             mp (float): .5 <= m < 0. Number of divisions of embeddings. It is not specified as a percentage; however,
                             it indicates the number of "divisions" of dim.
         """

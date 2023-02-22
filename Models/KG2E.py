@@ -8,12 +8,12 @@ class KG2E(Model):
     Shizhu He, Kang Liu, Guoliang Ji, Jun Zhao: Learning to Represent Knowledge Graphs with Gaussian Embedding. CIKM
         2015: 623-632.
     """
-    def __init__(self, ent_total, rel_total, dim, cmin=.05, cmax=5, variant='kl-divergence'):
+    def __init__(self, ent_total, rel_total, dim, cmin=.05, cmax=5, variant='kldivergence'):
         """
             dim (int): Number of dimensions for embeddings
             cmin, cmax (float): restrictions values for covariance; cmin > 0, cmax > 0, cmax > cmin. From the paper:
                 "the default configuration is as follows... (cmin, cmax)=(0.05, 5)."
-            variant: either kl-divergence or expected-likelihood
+            variant: either kldivergence or elikelihood
         """
         super(KG2E, self).__init__(ent_total, rel_total)
         self.dim = dim
@@ -51,7 +51,7 @@ class KG2E(Model):
         # This is an auxiliary term that is used several times.
         re_mean = r_mean - e_mean
 
-        if self.variant == 'kl-divergence':
+        if self.variant == 'kldivergence':
             # Eq. (1).
 
             # Using diagonal matrices, r_cov_matrix^-1 is the matrix that multiplied by r_cov_matrix gives the identity.
@@ -71,7 +71,7 @@ class KG2E(Model):
             third_term = torch.log(torch.abs(torch.prod(e_cov, dim=-1)/torch.prod(r_cov, dim=-1)))
 
             scores = .5 * (first_term + second_term - third_term - self.dim)
-        elif self.variant == 'expected-likelihood':
+        elif self.variant == 'elikelihood':
             # Eq. (2).
 
             re_cov = e_cov + r_cov
