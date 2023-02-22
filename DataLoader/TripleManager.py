@@ -2,7 +2,9 @@ import numpy as np
 import random
 import sys
 import math
-from .DataLoader import DataLoader
+from DataLoader.DataLoader import DataLoader
+
+
 class DataSampler(object):
 
     def __init__(self, nbatches, datasampler):
@@ -21,6 +23,7 @@ class DataSampler(object):
 
     def __len__(self):
         return self.nbatches
+
 
 class TripleManager():
     """
@@ -240,14 +243,18 @@ class TripleManager():
         return self.next_corrupted(h, self.tailCorruptedDict[r], self.tailEntities[r], self.tailDict[r])
 
     def next_corrupted(self, e, corrupted_dict, all_entities, these_entities):
-        if e in corrupted_dict:
-            while True:
+        while True:
+            if e in corrupted_dict:
                 ret = all_entities[corrupted_dict[e]]
                 corrupted_dict[e] = corrupted_dict[e] + 1
                 if corrupted_dict[e] == len(all_entities):
                     corrupted_dict[e] = 0
                 if ret not in these_entities[e]:
                     return ret
+            else:
+                # e is not in the dictionary, just pick any random entity. This 'else' branch is typically reached when
+                #   corrupting several times the same triple.
+                return all_entities[random.randint(0, len(all_entities)-1)]
 
     """ All corrupted heads or tails. """
     def get_corrupted(self, h, r, t, type='head'):
@@ -315,8 +322,6 @@ class TripleManager():
             "batch_r": batch_r,
             "batch_y": batch_y
         }
-
-
 
     def __next__(self):
         # This is required by python to iterate through an object
