@@ -38,7 +38,7 @@ def run():
     # All predicates will be considered.
     rel_anomaly_min, rel_anomaly_max = 0, 1.0
     # Validation and max epochs.
-    validation_epochs, train_times = 25, 25
+    validation_epochs, train_times = 10, 10
     # Strategy to generate negatives.
     corruption_mode = "LCWA"
     # Metric to use.
@@ -53,7 +53,7 @@ def run():
 
     # Hyperparameters that are constant.
     # If you set weight decay, you are using L2 regularization without control.
-    hyperparameters = {"batch_size": 10000, "nr": 100, "dim": 250, "dime": 250, "dimr": 250,
+    hyperparameters = {"batch_size": 1000, "nr": 25, "dim": 100, "dime": 100, "dimr": 100,
                        "lr": None, "momentum": None, "weight_decay": None, "opt_method": "adam", "seed": seed}
 
     # Loading dataset.

@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import torch
 from Models.Model import Model
 
@@ -29,34 +30,42 @@ class Analogy(Model):
         #   where m is the embedding dimension.
         self.create_embedding(self.dim, emb_type="relation", name="r")
 
-    def get_matrix(self, r):
-        # r = [a, b, c, d, e]
+    def _calc(self, h, r, t):
+        # r = [r0, r1, r2, r3, r4]
         # r as a block-diagonal matrix:
-        #   a, b, 0, 0, 0
-        #  -b, a, 0, 0, 0
-        #   0, 0, c, d, 0
-        #   0, 0,-d, c, 0
-        #   0, 0, 0, 0, e
+        #   r0, r1,  0,  0, 0
+        #  -r1, r0,  0,  0, 0
+        #    0,  0, r2, r3, 0
+        #    0,  0,-r3, r2, 0
+        #    0,  0,  0,  0, r4
+        # h = [h0, h1, h2, h3, h4]
+        # h^T*r = [h0r0-h1r1, h1r0+h0r1, h2r2-h3r3, h3r2+h2r3, h4r4]
+        # r_diag = [r0, r0, r2, r2, r4] (of the block-diagonal matrix)
+        # h*r_diag gives all the first elements in h^T*r: [h0r0, h1r0, h2r2, h3r2, h4r4] => This is h_times_r
+        # (Discarding the last position when dim is odd. We use even and odd indexes; note that we start in 0 (even).)
+        # h_times_r[even] -= h[odd]*r[odd] (the even positions of the result)
+        # h_times_r[odd] += h[even]*r[odd] (the odd positions of the result)
+
+        batch_size = h.shape[0]
+        # Even and odd indexes.
         even_indexes = torch.LongTensor(np.arange(0, self.dim, 2))
         odd_indexes = torch.LongTensor(np.arange(1, self.dim, 2))
 
         r_diag = r[:, even_indexes].repeat_interleave(2, dim=1)
-
         if r_diag.shape[1] != self.dim:
             # Get rid of the last position.
             r_diag = r_diag[:,:self.dim]
+        h_times_r = h*r_diag
 
-        r_u = r[:, odd_indexes].repeat_interleave(2, dim=1)
-        # Get rid of the last position.
-        r_u = r_u[:,:self.dim - 1]
+        if even_indexes.shape[0] % 2 != 0:
+            # Get rid of the last position.
+            even_indexes = even_indexes[:math.floor(self.dim/2)]
 
-        r_l = r_u*-1
+        h_times_r[:, even_indexes] -= h[:, odd_indexes] * r[:, odd_indexes]
+        h_times_r[:, odd_indexes] += h[:, even_indexes] * r[:, odd_indexes]
 
-        return torch.diag_embed(r_diag) + torch.diag_embed(r_u, offset=1) + torch.diag_embed(r_l, offset=-1)
-
-    def _calc(self, h, r, t):
-        # h*r-t (Eq. (1))
-        return torch.sum(torch.bmm(self.get_matrix(r), h.view(-1, self.dim, 1)).view(-1, self.dim) - t, dim=1)
+        # h^T*B_r*t (Eq. (13))
+        return torch.sum(h_times_r * t, dim=1)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

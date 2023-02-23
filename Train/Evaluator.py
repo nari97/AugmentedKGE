@@ -1,10 +1,9 @@
 import heapq
 import pickle
-
-import pandas as pd
 import torch
 import numpy as np
 import math
+#import time
 from scipy.stats import wilcoxon
 
 
@@ -157,8 +156,8 @@ class Evaluator(object):
         for r in relations.keys():
             n_positives_ranked_before_expected[r] = 0
             total += 1
-            # print (str(r) + ":Started")
-            #print(f"Relation {r}: {total}/{len(relations)}")
+            #start = time.perf_counter()
+            #print("Relation", r, ":", total, "out of", len(relations))
             if materialize:
                 triple_stats = {}
             for t in relations[r]:
@@ -240,8 +239,9 @@ class Evaluator(object):
                     rankhEq, ranktEq = 1, 1
 
                 if materialize:
-
                     # Compute ranks and expected rank
+                    # TODO fractional ranks are computed again below.
+                    # TODO Expected rank is computed in the collector.
                     rankH = self.frac_rank(rankhLess, rankhEq)
                     rankT = self.frac_rank(ranktLess, ranktEq)
                     expectedH = (len(corruptedHeads) + 1) / 2
@@ -300,6 +300,9 @@ class Evaluator(object):
                     # that were part of top-k or the ones that were ranked better (predictions)
                     if triple_stats[key][1] == 1 or triple_stats[key][3] == 1:
                         triple_stats_across_relations[(key[0], r, key[1])] = triple_stats[key]
+
+            #end = time.perf_counter()
+            #print('Took:', end-start)
 
         if materialize:
             for key in triple_stats_across_relations.keys():
