@@ -55,11 +55,8 @@ class BoxE(Model):
         within_box = (torch.min(low <= base, dim=1) and torch.min(base <= high, dim=1))[0] == True
         # This is common in both cases in the function.
         common = torch.abs(base + bump) - center
-        # For those within box, divide by width; otherwise, do nothing.
-        common = torch.where(within_box.view(-1, 1), common/width, common)
-        # For those outside box, multiply by width and minus kappa; otherwise, just do nothing.
-        common = torch.where(~within_box.view(-1, 1), common * width - .5*(width-1)*(width-1/width), common)
-        return common
+        # For those within box, divide by width; otherwise, or those outside box, multiply by width and minus kappa.
+        return torch.where(within_box.view(-1, 1), common/width, common * width - .5*(width-1)*(width-1/width))
 
     def _calc(self, hbase, hbump, r_base_1, r_delta_1, r_base_2, r_delta_2, tbase, tbump):
         # Get boxes, center points and widths.

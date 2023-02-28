@@ -3,6 +3,7 @@ from Train.Evaluator import Evaluator, RankCollector
 from Train.Trainer import Trainer
 from Utils import ModelUtils, LossUtils, DatasetUtils, HyperparameterUtils
 from ax.service.managed_loop import optimize
+from ax.service.utils.best_point import get_best_raw_objective_point
 import time
 import os
 import sys
@@ -42,9 +43,7 @@ def run():
     # Strategy to generate negatives.
     corruption_mode = "LCWA"
     # Metric to use.
-    metric_str = "mr"
-    # Total trials indicate how many points we will inspect in the hyperparameter value optimization.
-    total_trials = 32
+    metric_str = "matsize"
 
     # Get the name of the dataset.
     dataset_name = DatasetUtils.get_dataset_name(dataset)
@@ -53,7 +52,7 @@ def run():
 
     # Hyperparameters that are constant.
     # If you set weight decay, you are using L2 regularization without control.
-    hyperparameters = {"batch_size": 1000, "nr": 25, "dim": 100, "dime": 100, "dimr": 100,
+    hyperparameters = {"batch_size": 1000, "nr": 25, "dim": 75, "dime": 75, "dimr": 75,
                        "lr": None, "momentum": None, "weight_decay": None, "opt_method": "adam", "seed": seed}
 
     # Loading dataset.
@@ -63,6 +62,9 @@ def run():
     #   below, we select whether we are using it or not.
     train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=hyperparameters["batch_size"],
                               neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode, seed=seed, use_bern=True)
+    valid_manager = TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
+                  batch_size=hyperparameters["batch_size"], neg_rate=hyperparameters["nr"],
+                  corruption_mode=corruption_mode)
     end = time.perf_counter()
     print("Dataset initialization time: ", end - start)
 
@@ -75,7 +77,7 @@ def run():
     hyperparameters["tail_context"] = train_manager.tailDict
 
     # Get checkpoint file.
-    checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(index)
+    checkpoint_dir = folder+"Model/"+str(dataset)+"/"+model_name+"_"+split_prefix+"_"+str(index)+"_Expl"
     checkpoint_file = os.path.join(checkpoint_dir + ".ckpt")
 
     params_to_optimize = [
@@ -87,7 +89,6 @@ def run():
         {"name": "weight_negatives", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
         # Margin of loss functions with margins.
         {"name": "margin", "value_type": "float", "type": "range", "bounds": [1e-4, 10.0]},
-        {"name": "other_margin", "value_type": "float", "type": "range", "bounds": [1e-4, 10.0]},
         # Norms of models that use vector norms.
         {"name": "pnorm", "value_type": "int", "type": "choice", "values": [1, 2], "is_ordered":True},
         # Whether using Bernoulli or not for sampling negatives.
@@ -105,12 +106,12 @@ def run():
         mu.set_hyperparameters(hyperparameters)
         print("Model name : ", mu.get_model_name())
 
-        loss = LossUtils.getLoss(model=mu, margin=hyperparameters["margin"],
-                                 other_margin=hyperparameters["other_margin"], reg_type=hyperparameters["reg_type"],
-                                 neg_weight=hyperparameters["weight_negatives"])
+        # Use always margin loss.
+        loss = LossUtils.getLoss(model=mu, loss_str='margin', margin=hyperparameters["margin"],
+                                 reg_type=hyperparameters["reg_type"], neg_weight=hyperparameters["weight_negatives"])
 
-        validation = Evaluator(train_manager, rel_anomaly_max=rel_anomaly_max,
-                               rel_anomaly_min=rel_anomaly_min, batched=False)
+        validation = Evaluator(valid_manager, rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min,
+                               batched=False)
 
         # Initialize model from scratch
         loss.model.initialize_model()
@@ -130,6 +131,9 @@ def run():
             train_manager.pairing_mode = "Unpaired"
         # Whether to use Bernoulli or uniform when corrupting heads/tails.
         train_manager.use_bern = hyperparameters["use_bern"]
+
+        # Restart the managers.
+        train_manager.restart()
 
         # Let's train!
         trainer = Trainer(loss=loss, train=train_manager, validation=validation, train_times=train_times,
@@ -158,9 +162,10 @@ def run():
         # Note that this does not guarantee reproducibility. See:
         #   https://github.com/facebook/Ax/issues/151#issuecomment-524446967
         random_seed=seed,
-        total_trials=total_trials,
     )
 
+    # The previous best hyperparameter values may be predictions; we want the actual values found in the "raw" data.
+    best_parameters, values = get_best_raw_objective_point(experiment)
     print('Best hyperparameters found:', best_parameters)
     # Train again with best hyperparameter values and save.
     train_evaluate(parameterization=best_parameters, saving_file=checkpoint_file)

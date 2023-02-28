@@ -156,8 +156,8 @@ class Evaluator(object):
         for r in relations.keys():
             n_positives_ranked_before_expected[r] = 0
             total += 1
-            #start = time.perf_counter()
-            #print("Relation", r, ":", total, "out of", len(relations))
+            # start = time.perf_counter()
+            # print("Relation", r, ":", total, "out of", len(relations))
             if materialize:
                 triple_stats = {}
             for t in relations[r]:
@@ -301,8 +301,8 @@ class Evaluator(object):
                     if triple_stats[key][1] == 1 or triple_stats[key][3] == 1:
                         triple_stats_across_relations[(key[0], r, key[1])] = triple_stats[key]
 
-            #end = time.perf_counter()
-            #print('Took:', end-start)
+            # end = time.perf_counter()
+            # print('Took:', end-start)
 
         if materialize:
             for key in triple_stats_across_relations.keys():
@@ -314,8 +314,13 @@ class Evaluator(object):
             save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats_across_relations,
                                             folder_to_save=f"{folder_to_save}\\{dataset_name}\\{model_name}",
                                             model_name=model_name, dataset_name=dataset_name)
-            # add_triple moved outside evaluator
+        # add_triple moved outside evaluator
         return collector
+
+    def add_triple(self, tree, h, r, t, i):
+        if (h, t) not in tree.keys():
+            tree[(h, t)] = np.array((0, 0))
+        tree[(h, t)][i] = tree[(h, t)][i] + 1
 
     def frac_rank(self, less, eq):
         return (2 * less + eq + 1) / 2
@@ -397,6 +402,7 @@ class RankCollector():
         self.all_anomalies.append(anomaly)
         self.all_anomalies.append(anomaly)
 
+    # TODO This method and 'get_expected' are doing the same.
     def get_ranks_below_expected(self):
         below = []
         for i in range(len(self.all_totals)):
@@ -438,7 +444,8 @@ class RankCollector():
             return Metric(0)
         if metric_str == 'mr':
             value = np.sum(ranks) / len(totals)
-        if metric_str == 'wmr':
+        elif metric_str == 'wmr':
+            # TODO Can this be done using Numpy?
             value, divisor = 0, 0
             for i in range(len(ranks)):
                 value += totals[i] * ranks[i]
@@ -448,11 +455,20 @@ class RankCollector():
             a = np.log(ranks)
             value = np.exp(a.sum() / len(a))
         elif metric_str == 'wgmr':
+            # TODO Can this be done using Numpy?
             value, divisor = 0, 0
             for i in range(len(ranks)):
                 value += totals[i] * math.log(ranks[i])
                 divisor += totals[i]
             value = math.exp(value / divisor)
+        elif metric_str == 'matsize':
+            value = np.sum(ranks)
+        if metric_str == 'mrr':
+            # TODO Can this be done using Numpy?
+            value = 0
+            for i in range(len(ranks)):
+                value += 1/ranks[i]
+            value = value / len(totals)
         return Metric(value)
 
 

@@ -129,6 +129,7 @@ class TripleManager():
                 # self.tailProb[r] = hpt[r]/(tph[r]+hpt[r])
 
         if seed is not None:
+            self.seed = seed
             np.random.seed(seed)
             random.seed(seed)
 
@@ -234,6 +235,19 @@ class TripleManager():
                     if len(corruptedTails) != 0:
                         self.tailCorruptedDict[r][h] = 0
 
+    # We use this method to restart the manager without recomputing everything.
+    def restart(self):
+        if self.seed is not None:
+            np.random.seed(self.seed)
+            random.seed(self.seed)
+
+        for r in self.headCorruptedDict.keys():
+            for t in self.headCorruptedDict[r].keys():
+                self.headCorruptedDict[r][t] = 0
+
+        for r in self.tailCorruptedDict.keys():
+            for h in self.tailCorruptedDict[r].keys():
+                self.tailCorruptedDict[r][h] = 0
     def corrupt_head(self, h, r, t):
         # TODO This should also work for Global now.
         return self.next_corrupted(t, self.headCorruptedDict[r], self.headEntities[r], self.headDict[r])

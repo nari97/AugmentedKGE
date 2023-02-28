@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from Utils.Embedding import Embedding
-import os
 
 
 class Model(nn.Module):
@@ -338,23 +337,6 @@ class Model(nn.Module):
 
     def get_hyperparameters(self):
         return self.hyperparameters
-
-    # These methods save and load models.
-    def load_checkpoint(self, path):
-        dic = torch.load(os.path.join(path))
-        self.epoch = dic.pop("epoch", None)
-        self.embeddings = dic.pop("embeddings")
-        self.ranks = dic.pop("ranks")
-        self.totals = dic.pop("totals")
-        self.hyperparameters = dic.pop("hyperparameters")
-
-        self.eval()
-
-    def save_checkpoint(self, path, epoch=0):
-        to_save = {"embeddings": self.embeddings, "ranks": self.ranks, "totals": self.totals,
-                   "epoch": epoch, "hyperparameters": self.hyperparameters}
-
-        torch.save(to_save, path)
 
 
 

@@ -54,17 +54,17 @@ def get_optimizer(hyperparameters, loss):
         momentum=hyperparameters["momentum"], ).items() if v is not None}
 
     optimizer = None
-    if hyperparameters["opt_method"] is "adagrad":
+    if hyperparameters["opt_method"] == "adagrad":
         optimizer = optim.Adagrad(
             loss.parameters(),
             **optimargs,
         )
-    elif hyperparameters["opt_method"] is "adadelta":
+    elif hyperparameters["opt_method"] == "adadelta":
         optimizer = optim.Adadelta(
             loss.parameters(),
             **optimargs,
         )
-    elif hyperparameters["opt_method"] is "adam":
+    elif hyperparameters["opt_method"] == "adam":
         optimizer = optim.Adam(
             loss.parameters(),
             **optimargs,
