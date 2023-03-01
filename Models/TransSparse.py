@@ -27,10 +27,10 @@ class TransSparse(Model):
         self.pnorm = norm
         self.variant = variant
 
-        if variant is 'share':
+        if variant == 'share':
             pc = pred_count
             locations = ['global']
-        elif variant is 'separate':
+        elif variant == 'separate':
             pc = pred_loc_count
             locations = ['domain', 'range']
 
@@ -56,9 +56,9 @@ class TransSparse(Model):
         self.create_embedding(self.dim_e, emb_type="entity", name="e")
         self.create_embedding(self.dim_r, emb_type="relation", name="r")
         # Create one or two embeddings.
-        if self.variant is 'share':
+        if self.variant == 'share':
             names_locations = [('m', 'global')]
-        elif self.variant is 'separate':
+        elif self.variant == 'separate':
             names_locations = [('mh', 'domain'), ('mt', 'range')]
 
         for (name, loc) in names_locations:
@@ -105,9 +105,9 @@ class TransSparse(Model):
         r = rel_emb["r"]
 
         # When share, mh and mt are the same.
-        if self.variant is 'share':
+        if self.variant == 'share':
             mh, mt = rel_emb["m"], rel_emb["m"]
-        elif self.variant is 'separate':
+        elif self.variant == 'separate':
             mh, mt = rel_emb["mh"], rel_emb["mt"]
 
         return self._calc(h, mh, r, t, mt, is_predict)

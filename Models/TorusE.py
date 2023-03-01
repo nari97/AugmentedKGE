@@ -39,13 +39,13 @@ class TorusE(Model):
         x_frac, y_frac = x - torch.floor(x), y - torch.floor(y)
 
         # See Section 5.3 in TKDE.
-        if self.variant is "L1":
+        if self.variant == 'L1':
             d = torch.abs(x_frac - y_frac)
             scores = 2 * torch.sum(torch.minimum(d, 1 - d), dim=-1)
-        elif self.variant is "L2":
+        elif self.variant == 'L2':
             d = torch.pow(x_frac - y_frac, 2)
             scores = 4 * torch.pow(torch.sum(torch.minimum(d, 1 - d), dim=-1), 2)
-        elif self.variant is "eL2":
+        elif self.variant == 'eL2':
             scores = torch.pow(torch.sum(2 - 2 * torch.cos(2 * math.pi * (x - y)), dim=-1), 2)/4
 
         return scores

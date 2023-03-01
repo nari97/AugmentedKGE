@@ -11,7 +11,7 @@ import os
 
 def run():
     folder = ''
-    model_name, dataset, split_prefix, point = 'makr', 6, '', 0
+    model_name, dataset, split_prefix, point = 'boxe', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0

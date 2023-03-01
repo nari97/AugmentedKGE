@@ -1,4 +1,3 @@
-import math
 import torch
 from Models.Model import Model
 
@@ -21,14 +20,14 @@ class NagE(Model):
         return 'soft_margin'
 
     def initialize_model(self):
-        if self.variant is 'so3':
+        if self.variant == 'so3':
             # Above Eq. (4).
             for component in ['x', 'y', 'z']:
                 self.create_embedding(self.dim, emb_type="entity", name="e_" + component)
             for component in ['phi', 'theta', 'psi']:
                 self.create_embedding(self.dim, emb_type="relation", name="r_" + component)
 
-        if self.variant is 'su2':
+        if self.variant == 'su2':
             # Below Eq. (16).
             for component in ['xreal', 'ximg', 'yreal', 'yimg']:
                 self.create_embedding(self.dim, emb_type="entity", name="e_" + component)
@@ -36,7 +35,7 @@ class NagE(Model):
                 self.create_embedding(self.dim, emb_type="relation", name="r_" + component)
 
     def _calc(self, h, r, t):
-        if self.variant is 'so3':
+        if self.variant == 'so3':
             (t_x, t_y, t_z) = t
             (r_phi, r_theta, r_psi) = r
             (cph, cth, cps) = (torch.cos(r_phi), torch.cos(r_theta), torch.cos(r_psi))
@@ -55,7 +54,7 @@ class NagE(Model):
 
             components = [prod_x-t_x, prod_y-t_y, prod_z-t_z]
 
-        if self.variant is 'su2':
+        if self.variant == 'su2':
             (h_xreal, h_ximg, h_yreal, h_yimg) = h
             (t_xreal, t_ximg, t_yreal, t_yimg) = t
             (r_alpha, r_theta, r_phi) = r
@@ -97,12 +96,12 @@ class NagE(Model):
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
-        if self.variant is 'so3':
+        if self.variant == 'so3':
             h = (head_emb["e_x"], head_emb["e_y"], head_emb["e_z"])
             t = (tail_emb["e_x"], tail_emb["e_y"], tail_emb["e_z"])
             r = (rel_emb["r_phi"], rel_emb["r_theta"], rel_emb["r_psi"])
 
-        if self.variant is 'su2':
+        if self.variant == 'su2':
             h = (head_emb["e_xreal"], head_emb["e_ximg"], head_emb["e_yreal"], head_emb["e_yimg"])
             t = (tail_emb["e_xreal"], tail_emb["e_ximg"], tail_emb["e_yreal"], tail_emb["e_yimg"])
             r = (rel_emb["r_alpha"], rel_emb["r_theta"], rel_emb["r_phi"])

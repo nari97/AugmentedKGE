@@ -32,7 +32,7 @@ class HAKE(Model):
                               norm_method="rescaling", norm_params={"a": 0, "b": 1})
 
         # Include all embeddings related to phases.
-        if self.variant is 'both':
+        if self.variant == 'both':
             # All phases must be between 0 and 2*pi (see Table 1).
             self.create_embedding(self.dim, emb_type="entity", name="ep",
                                   init_method="uniform", init_params=[0, 2 * math.pi],
@@ -50,7 +50,7 @@ class HAKE(Model):
         modulus_scores = torch.linalg.norm(hm*((1-rmprime)/(rm+rmprime))-tm, dim=-1, ord=2)
         scores = -modulus_scores
 
-        if self.variant is 'both':
+        if self.variant == 'both':
             # This is d_{r,p}(h, t) in the paper.
             phase_scores = torch.linalg.norm(torch.sin((hp+rp-tp)/2), dim=-1, ord=1)
             # See Training Protocol in Section 4.
@@ -65,7 +65,7 @@ class HAKE(Model):
         rm, rmprime, rp = rel_emb["rm"], rel_emb["rmprime"], rel_emb.get("rp", None)
 
         l1, l2 = None, None
-        if self.variant is 'both':
+        if self.variant == 'both':
             l1 = self.current_global_embeddings["lambda1"].item()
             l2 = self.current_global_embeddings["lambda2"].item()
 

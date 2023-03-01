@@ -29,7 +29,7 @@ class DistMult(Model):
         self.create_embedding(self.dim, emb_type="relation", name="r", reg=True)
         
     def _calc(self, h, r, t):
-        if self.variant is 'tanh':
+        if self.variant == 'tanh':
             h, t = torch.tanh(h), torch.tanh(t)
         # Eq. (2).
         return torch.sum(h * r * t, -1)

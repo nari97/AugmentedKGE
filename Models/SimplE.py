@@ -41,7 +41,7 @@ class SimplE(Model):
         tei, tej = head_emb["te"], tail_emb["te"]
         r, r_inv = rel_emb["r"], rel_emb["r_inv"]
 
-        if self.variant is 'ignr' and is_predict:
+        if self.variant == 'ignr' and is_predict:
             return self._calc_ignr(hei, r, tej)
         else:
             return self._calc_avg(hei, hej, tei, tej, r, r_inv)

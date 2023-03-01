@@ -28,7 +28,7 @@ class CrossE(Model):
         # Section 3 and loss function after Eq. (8).
         self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)
         self.create_embedding(self.dim, emb_type="relation", name="r", reg=True)
-        if self.variant is 'interactions':
+        if self.variant == 'interactions':
             self.create_embedding(self.dim, emb_type="relation", name="c", reg=True)
         # After Eq. (5). Section 5.1.2: "b is initialized to zero."
         self.create_embedding(self.dim, emb_type="global", name="b",
@@ -50,9 +50,9 @@ class CrossE(Model):
         h = head_emb["e"]
         t = tail_emb["e"]
         r = rel_emb["r"]
-        if self.variant is 'interactions':
+        if self.variant == 'interactions':
             c = rel_emb["c"]
-        elif self.variant is 'nointeractions':
+        elif self.variant == 'nointeractions':
             c = torch.ones_like(r)
         b = self.current_global_embeddings["b"]
 
