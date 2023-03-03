@@ -11,8 +11,7 @@ class MarginLoss(Loss):
         self.criterion = criterion
 
     def lossFn(self, p_score, n_score):
-        # We wish the positives to have a larger value than negatives, this is because our predict
-        #   function changes the sign of the score!
+        # We wish the positives to have a larger value than negatives.
         targets = torch.ones_like(p_score)
         if self.criterion is not None:
             p_score, n_score = self.criterion(p_score), self.criterion(n_score)

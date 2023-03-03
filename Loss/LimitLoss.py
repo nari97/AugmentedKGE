@@ -13,8 +13,7 @@ class LimitLoss(Loss):
         self.criterion = criterion
 
     def lossFn(self, p_score, n_score):
-        # We wish the positives to have a larger value than negatives, this is because our predict
-        #   function changes the sign of the score!
+        # We wish the positives to have a larger value than negatives.
         targets_p, targets_n = torch.ones_like(p_score), torch.ones_like(n_score)
         zeros_p, zeros_n = torch.zeros_like(p_score), torch.zeros_like(n_score)
         if self.criterion is not None:

@@ -226,9 +226,11 @@ class Evaluator(object):
                 cTails = triples[corruptedHeadsEnd:, 3]
                 positive_triple_score = triples[0, 3]
 
-                # Chaned PyTorch.sum to numpy.sum as positive_triple_score, cHeads, cTails are all numpy arrays now
-                rankhLess, ranktLess = np.sum(positive_triple_score > cHeads).item(), np.sum(
-                    positive_triple_score > cTails).item()
+                # Changed PyTorch.sum to numpy.sum as positive_triple_score, cHeads, cTails are all numpy arrays now.
+                # We are expecting positives to have higher scores than negatives, so we need to add to the rank when
+                #   the negatives scores are higher.
+                rankhLess, ranktLess = np.sum(positive_triple_score < cHeads).item(), np.sum(
+                    positive_triple_score < cTails).item()
                 rankhEq, ranktEq = 1 + np.sum(positive_triple_score == cHeads).item(), 1 + np.sum(
                     positive_triple_score == cTails).item()
 
@@ -442,8 +444,13 @@ class RankCollector():
     def get(self, ranks, totals, metric_str):
         if len(ranks) == 0:
             return Metric(0)
+        cmp = 'low'
         if metric_str == 'mr':
             value = np.sum(ranks) / len(totals)
+        elif metric_str == 'amr':
+            value = np.sum(ranks) / len(totals)
+            value = 1 - (value/self.get_expected(metric_str='mr').get())
+            cmp = 'high'
         elif metric_str == 'wmr':
             # TODO Can this be done using Numpy?
             value, divisor = 0, 0
@@ -469,7 +476,8 @@ class RankCollector():
             for i in range(len(ranks)):
                 value += 1/ranks[i]
             value = value / len(totals)
-        return Metric(value)
+            cmp = 'high'
+        return Metric(value, cmp)
 
 
 class Metric():

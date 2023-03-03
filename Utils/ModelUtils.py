@@ -58,13 +58,14 @@ from Models.TorusE import TorusE
 from Models.TuckER import TuckER
 
 
-def getModel(model_name, params):
+def getModel(model_name, params, other_params=None):
     """
     Gets the model object
 
     Args:
         model_name (str): Model name
-        params (dict) : Dictionary containing the hyperparameters of the experiment
+        params (dict): Dictionary containing the hyperparameters of the experiment
+        other_params (dict): these are special hyperparameters that will go directly to the construction of the model.
 
     Returns:
         m (Model): Instantiated model object
@@ -94,6 +95,9 @@ def getModel(model_name, params):
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
     if model_name == "gcote" or model_name == "gtrans":
         kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
+
+    if other_params is not None:
+        kwargs.update(other_params)
 
     # TODO Can we do this dynamically?
     # TODO Careful with models implemented like DistMult using tanh (extra parameters). KG2E also has extra.

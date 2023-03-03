@@ -21,6 +21,10 @@ class HAKE(Model):
         # See Loss Function paragraph before Section 4.
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (see Table 1).
+        return -1
+
     def initialize_model(self):
         # Section 3.
         self.create_embedding(self.dim, emb_type="entity", name="em")
@@ -48,13 +52,13 @@ class HAKE(Model):
     def _calc(self, hm, hp, rm, rmprime, rp, tm, tp, l1, l2):
         # This is d'_{r,m}(h, t) in the paper.
         modulus_scores = torch.linalg.norm(hm*((1-rmprime)/(rm+rmprime))-tm, dim=-1, ord=2)
-        scores = -modulus_scores
+        scores = modulus_scores
 
         if self.variant == 'both':
             # This is d_{r,p}(h, t) in the paper.
             phase_scores = torch.linalg.norm(torch.sin((hp+rp-tp)/2), dim=-1, ord=1)
             # See Training Protocol in Section 4.
-            scores = - l1 * modulus_scores - l2 * phase_scores
+            scores = l1 * modulus_scores + l2 * phase_scores
         return scores
 
     def return_score(self, is_predict=False):

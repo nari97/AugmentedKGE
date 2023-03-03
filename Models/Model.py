@@ -86,7 +86,14 @@ class Model(nn.Module):
         scores = self.return_score(is_predict=is_predict).flatten()
         #self.embeddings_to_cpu()
 
-        return scores
+        return self.get_score_sign() * scores
+
+    # This method provides the sign of the computed scores. If scores of positive triples are expected to be greater
+    #   than those of negatives, return +1. Otherwise, return -1. For instance, TransE is -1 because it uses norm;
+    #   Analogy is +1 because it uses similarity. This must be figured out for every model. If it is not clear from the
+    #   paper, one should look into the loss function used.
+    def get_score_sign(self):
+        raise NotImplementedError
 
     # This method creates embeddings.
     def create_embedding(self, dim, emb_type=None, name=None, register=True,

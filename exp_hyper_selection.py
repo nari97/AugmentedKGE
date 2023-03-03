@@ -102,7 +102,11 @@ def run():
 
         # Loading model and loss.
         start = time.perf_counter()
-        mu = ModelUtils.getModel(model_name, hyperparameters)
+        extra_params = None
+        # TuckER by default uses BCEWithLogitsLoss; we need to apply sigmoid to the output.
+        if model_name.startswith('tucker'):
+            extra_params = {'apply_sigmoid': True}
+        mu = ModelUtils.getModel(model_name, hyperparameters, extra_params)
         mu.set_hyperparameters(hyperparameters)
         print("Model name : ", mu.get_model_name())
 

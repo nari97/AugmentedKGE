@@ -18,6 +18,10 @@ class HolE(Model):
         # In Experiments: "...we reimplemented all models and used the identical... ranking loss of Eq. (3)."
         return 'margin'
 
+    def get_score_sign(self):
+        # See Eq. (9).
+        return 1
+
     def initialize_model(self):
         # Eq. (12). In Eq. (3) of the loss function no regularization is used.
         self.create_embedding(self.dim, emb_type="entity", name="e")

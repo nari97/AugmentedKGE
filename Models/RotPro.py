@@ -21,6 +21,10 @@ class RotPro(Model):
         # Eq. (9).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # Parameters like RotatE.
         # From the paper: "Both the real and imaginary parts of the entity embeddings are uniformly initialized..."
@@ -70,7 +74,7 @@ class RotPro(Model):
         # Equation 8.
         hr = torch.view_as_complex(torch.stack(rotation(pr(h_real, h_img), r_phase), dim=-1))
         tt = torch.view_as_complex(torch.stack(pr(t_real, t_img), dim=-1))
-        return -torch.linalg.norm(hr - tt, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(hr - tt, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

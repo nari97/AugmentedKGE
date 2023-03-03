@@ -62,6 +62,11 @@ def run():
         model = torch.load(checkpoint_file)
         hyperparameters = model.get_hyperparameters()
 
+        # TODO Only to make sure TuckER is applying sigmoid (it should be stored in the model).
+        if model_name.startswith('tucker'):
+            print('Is TuckER applying sigmoid?:',
+                  model.apply_sigmoid if hasattr(model, 'apply_sigmoid') else 'No attribute!')
+
         # We assume we will be using Bernouilli, this is because TripleManager computes extra stuff if it is enabled. Then,
         #   below, we select whether we are using it or not.
         train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=hyperparameters["batch_size"],

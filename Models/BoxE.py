@@ -20,6 +20,10 @@ class BoxE(Model):
         # Negative sampling loss (reference to RotatE).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance.
+        raise -1
+
     def initialize_model(self):
         # From the paper: "every entity is represented by two vectors e and b, where e defines the base position of the
         #   entity, and b defines its translational bump, which translates all the entities co-occuring in a fact with

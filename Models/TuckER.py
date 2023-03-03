@@ -28,6 +28,10 @@ class TuckER(Model):
         # Eq. (3).
         return 'bce'
 
+    def get_score_sign(self):
+        # "We apply logistic sigmoid to each score to obtain the predicted probability of a triple being true."
+        return 1
+
     def initialize_model(self):
         # See below Eq. (2).
         self.create_embedding(self.dim_e, emb_type="entity", name="e")

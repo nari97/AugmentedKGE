@@ -19,6 +19,10 @@ class QuatE(Model):
         # Eq. (7).
         return 'soft'
 
+    def get_score_sign(self):
+        # The paper uses soft loss, so that means positive scores will be larger than negative scores.
+        return 1
+
     def initialize_model(self):
         # See paragraph "Quaternion Embeddings of Knowledge Graphs" for embeddings and Eq. (7). for regularization.
         for component in ['a', 'b', 'c', 'd']:

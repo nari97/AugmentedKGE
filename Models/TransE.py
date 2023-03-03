@@ -27,6 +27,10 @@ class TransE(Model):
         # Eq. (1).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # Entity embeddings using ||e||_2=1 (L2-norm is by default).
         # From the paper: "the L2-norm of the embeddings of the entities is 1"; this is implemented as a vector

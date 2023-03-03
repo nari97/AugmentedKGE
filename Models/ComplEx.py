@@ -16,6 +16,10 @@ class ComplEx(Model):
         # Eq. (12).
         return 'soft'
 
+    def get_score_sign(self):
+        # The paper uses soft loss, so that means positive scores will be larger than negative scores.
+        return 1
+
     def initialize_model(self):
         # Eq. (11)
         # Regularization is mentioned in Eq. (12). In the supplement, it is mentioned that it is equivalent to

@@ -22,6 +22,10 @@ class TorusE(Model):
         # Eq. (3). The TKDE paper proposes a new loss function but the results in the experiments are quite similar.
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance. They use norms even though our implementation does not have norms.
+        return -1
+
     def initialize_model(self):
         # Like TransE. See Table 1. From the paper: "Regularization is not required, in contrast with the other
         #   embedding methods."
