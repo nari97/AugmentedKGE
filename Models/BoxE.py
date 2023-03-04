@@ -22,7 +22,7 @@ class BoxE(Model):
 
     def get_score_sign(self):
         # It is a distance.
-        raise -1
+        return -1
 
     def initialize_model(self):
         # From the paper: "every entity is represented by two vectors e and b, where e defines the base position of the
