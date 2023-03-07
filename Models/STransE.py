@@ -21,6 +21,10 @@ class STransE(Model):
         # See Section 2.
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance ("distance-based score function").
+        return -1
+
     def initialize_model(self):
         # See Table 1.
         self.create_embedding(self.dim, emb_type="entity", name="e")
@@ -47,7 +51,7 @@ class STransE(Model):
             self.onthefly_constraints.append(self.scale_constraint(tt))
 
         # See Table 1 and Section 2.
-        return -torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

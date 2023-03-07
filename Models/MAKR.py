@@ -20,6 +20,10 @@ class MAKR(Model):
         # Eq. (24).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e")
         self.create_embedding(self.dim, emb_type="relation", name="rh")
@@ -34,7 +38,7 @@ class MAKR(Model):
 
     def _calc(self, h, rh, t, rt, dr):
         # Eqs. (22) and (23).
-        return -torch.linalg.norm(rh * h - rt * t - torch.pow(dr, 2), dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(rh * h - rt * t - torch.pow(dr, 2), dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

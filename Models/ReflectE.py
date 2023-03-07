@@ -12,6 +12,10 @@ class ReflectE(Model):
     def get_default_loss(self):
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e")
         self.create_embedding(self.dim, emb_type="entity", name="ec")
@@ -45,7 +49,7 @@ class ReflectE(Model):
                                      tcrt, dim=-1, ord=self.pnorm)
 
         # The original paper differentiates between predicting head or tail; we take the minimum between the two.
-        return -torch.minimum(hpredict, tpredict)
+        return torch.minimum(hpredict, tpredict)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

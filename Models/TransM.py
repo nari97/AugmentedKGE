@@ -31,6 +31,10 @@ class TransM(Model):
         # Eq. (2).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e", norm_method="norm")
         self.create_embedding(self.dim, emb_type="relation", name="r")
@@ -42,7 +46,7 @@ class TransM(Model):
 
     def _calc(self, h, r, wr, t):
         # Eq. (1). The power of 2 is mentioned in Section 3.3.
-        return -wr.flatten() * torch.pow(torch.linalg.norm(h + r - t, dim=-1, ord=self.pnorm), 2)
+        return wr.flatten() * torch.pow(torch.linalg.norm(h + r - t, dim=-1, ord=self.pnorm), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

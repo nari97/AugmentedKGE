@@ -24,6 +24,10 @@ class CrossE(Model):
         # Loss function after Eq. (8).
         return 'bce'
 
+    def get_score_sign(self):
+        # It uses log-likelihood to learn the parameters.
+        return 1
+
     def initialize_model(self):
         # Section 3 and loss function after Eq. (8).
         self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)

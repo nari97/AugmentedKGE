@@ -21,6 +21,10 @@ class TransMS(Model):
         # Eq. (5).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # See Section 3.2.
         self.create_embedding(self.dim, emb_type="entity", name="e")
@@ -32,7 +36,7 @@ class TransMS(Model):
 
     def _calc(self, h, r, alpha, t):
         # Eq. (4).
-        return -torch.linalg.norm(-torch.tanh(t*r)*h + r + alpha*(h*t) - torch.tanh(h*r)*t, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(-torch.tanh(t*r)*h + r + alpha*(h*t) - torch.tanh(h*r)*t, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

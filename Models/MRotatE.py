@@ -21,6 +21,10 @@ class MRotatE(Model):
         # Eq. (7).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # See Eq. (1). Similar to RotatE.
         self.create_embedding(self.dim, emb_type="entity", name="e_real")
@@ -50,7 +54,7 @@ class MRotatE(Model):
                                  torch.linalg.norm(r, dim=-1, ord=self.pnorm)
 
         # Eq. (6). Note that omega + phi = 1, so phi = 1 - omega.
-        return -omega * relation_rotation_scores - (1 - omega) * entity_rotation_scores
+        return omega * relation_rotation_scores + (1 - omega) * entity_rotation_scores
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

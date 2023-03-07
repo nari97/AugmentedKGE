@@ -19,6 +19,10 @@ class DensE(Model):
         # Eq. (13).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It uses norm.
+        return -1
+
     def initialize_model(self):
         # After Eq. (12). Entity embeddings are 3D space and relation embeddings are quaternions.
         for component in ['x', 'y', 'z']:
@@ -77,7 +81,7 @@ class DensE(Model):
             scores += torch.linalg.norm(c, dim=-1, ord=2)
 
         # Eq. (12).
-        return -.5 * scores
+        return .5 * scores
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

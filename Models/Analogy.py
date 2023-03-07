@@ -20,6 +20,10 @@ class Analogy(Model):
         # -log sig(y \phi) = -log 1 + log(1+exp(-y \phi) = log(1+exp(-y \phi), which is SoftMarginLoss
         return 'soft'
 
+    def get_score_sign(self):
+        # "Our goal is to learn ... such that ... gives high scores to valid triples, and low scores to invalid ones."
+        return 1
+
     def initialize_model(self):
         # Section 2.1.
         self.create_embedding(self.dim, emb_type="entity", name="e")

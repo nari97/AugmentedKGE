@@ -20,6 +20,10 @@ class RotatE3D(Model):
         # Eq. (13).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance ("distance-based score function").
+        return -1
+
     def initialize_model(self):
         # The real part, a, is zero for entity embeddings (see above Eq. (9)).
         for component in ['b', 'c', 'd']:
@@ -51,7 +55,7 @@ class RotatE3D(Model):
             QuaternionUtils.hamilton_product(q, (h_a, h_b, h_c, h_d)), qc)
         (t_b, t_c, t_d) = t
         # Eq. (11).
-        return -torch.sum(QuaternionUtils.quat_norm((hr_a*b, hr_b*b - t_b, hr_c*b - t_c, hr_d*b - t_d)), dim=-1)
+        return torch.sum(QuaternionUtils.quat_norm((hr_a*b, hr_b*b - t_b, hr_c*b - t_c, hr_d*b - t_d)), dim=-1)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

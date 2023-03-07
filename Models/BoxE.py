@@ -72,7 +72,7 @@ class BoxE(Model):
         dist_2 = self.dist(tbase, hbump, box_lower_2, box_higher_2, box_center_2, box_width_2)
 
         # Apply norms (see score function).
-        return -torch.linalg.norm(dist_1, dim=-1, ord=self.pnorm) -torch.linalg.norm(dist_2, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(dist_1, dim=-1, ord=self.pnorm) + torch.linalg.norm(dist_2, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

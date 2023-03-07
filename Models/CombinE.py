@@ -21,6 +21,10 @@ class CombinE(Model):
         # Eq. (5)
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a norm.
+        return -1
+
     def initialize_model(self):
         # Section 3.
         # Eq. (8) proposes L1/L2 regularization.
@@ -38,8 +42,8 @@ class CombinE(Model):
 
     def _calc(self, hp, hm, rp, rm, tp, tm):
         # Eq. (3)
-        return -torch.pow(torch.linalg.norm(hp + tp - rp, dim=-1, ord=self.pnorm), 2) + \
-                    -torch.pow(torch.linalg.norm(hm - tm - rm, dim=-1, ord=self.pnorm), 2)
+        return torch.pow(torch.linalg.norm(hp + tp - rp, dim=-1, ord=self.pnorm), 2) + \
+                    torch.pow(torch.linalg.norm(hm - tm - rm, dim=-1, ord=self.pnorm), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

@@ -21,6 +21,10 @@ class AprilE(Model):
         # Eq. (9).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a norm.
+        return -1
+
     def initialize_model(self):
         # From the paper: "AprilE divides embeddings into two equal-size partitions, first and second."
         self.create_embedding(self.dim, emb_type="entity", name="e_first")
@@ -55,7 +59,7 @@ class AprilE(Model):
         h_s_dot, r_s_dot, t_f_dot = torch.unbind(a, dim=1)
 
         # Eqs. (6) and (7)
-        return -torch.linalg.norm(h_f + h_s_dot + r_f + r_s_dot - (t_s + t_f_dot), dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(h_f + h_s_dot + r_f + r_s_dot - (t_s + t_f_dot), dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

@@ -18,6 +18,10 @@ class QuatDE(Model):
         # Eq. (13).
         return 'soft'
 
+    def get_score_sign(self):
+        # 1 for positives and -1 for negatives, so assuming similarity.
+        return 1
+
     def initialize_model(self):
         for component in ['a', 'b', 'c', 'd']:
             # Regular embeddings like in QuatE.

@@ -28,6 +28,10 @@ class KG2E(Model):
         # Eq. (9).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a similarity.
+        return 1
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e_mean")
         self.create_embedding(self.dim, emb_type="relation", name="r_mean")

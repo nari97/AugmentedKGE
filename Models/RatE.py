@@ -21,6 +21,10 @@ class RatE(Model):
         # Eq. (7).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # Section 2.3. Same embeddings as RotatE plus weights.
         self.create_embedding(self.dim, emb_type="entity", name="e_real")
@@ -49,7 +53,7 @@ class RatE(Model):
         mult = torch.view_as_complex(torch.stack((mult_real, mult_img), dim=-1))
         tc = torch.view_as_complex(torch.stack((t_real, t_img), dim=-1))
         # Eq. (4).
-        return -torch.linalg.norm(mult - tc, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(mult - tc, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

@@ -27,6 +27,10 @@ class HARotatE(Model):
         # Eq. (6).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e_real")
         self.create_embedding(self.dim, emb_type="entity", name="e_img")
@@ -51,7 +55,7 @@ class HARotatE(Model):
         rc = torch.polar(torch.ones_like(r_phase), r_phase)
 
         # Eq. (4).
-        return -torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(hc * rc - tc, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

@@ -20,6 +20,10 @@ class TransDR(Model):
     def get_default_loss(self):
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # Section 3.B.
         self.create_embedding(self.dim, emb_type="entity", name="ee")
@@ -55,7 +59,7 @@ class TransDR(Model):
             self.onthefly_constraints.append(Model.scale_constraint(t))
             # The paper says ||wr||=1, but they implement it as ||wr||>=1 (see Eq. 8).
             self.onthefly_constraints.append(Model.scale_constraint(wr, ctype='ge'))
-        return -torch.pow(torch.linalg.norm(wr.view(-1, 1) * result, dim=-1, ord=self.pnorm), 2)
+        return torch.pow(torch.linalg.norm(wr.view(-1, 1) * result, dim=-1, ord=self.pnorm), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

@@ -19,6 +19,10 @@ class NagE(Model):
         # Section 4.4.
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         if self.variant == 'so3':
             # Above Eq. (4).
@@ -91,7 +95,7 @@ class NagE(Model):
         for c in components:
             scores += torch.linalg.norm(c, dim=-1, ord=2)
 
-        return -scores
+        return scores
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

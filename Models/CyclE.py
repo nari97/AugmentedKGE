@@ -20,6 +20,10 @@ class CyclE(Model):
         # After Eq. (8).
         return 'margin'
 
+    def get_score_sign(self):
+        # It uses norm, but unclear.
+        return -1
+
     def initialize_model(self):
         # From the paper: "CyclE replace[s] Minkowski in [T]ransE with Cycle metric, which continues the simplicity of
         #   [T]ransE without adding additional parameter[s]." So we just mimic TransE parameters and normalizations.
@@ -37,7 +41,7 @@ class CyclE(Model):
         # The paper does not specify how to get a single value from h+r-t. However, the different discussions in the
         #   paper like in Section 5.3 ("TransE d = h+r−t = 0") suggests that d is exactly TransE's scoring function.
         # This is Eq. (8). The minus sign is because this is a distance like TransE.
-        return -a * torch.sin(w * torch.linalg.norm(h + r - t, dim=-1, ord=self.pnorm) + b) + g
+        return a * torch.sin(w * torch.linalg.norm(h + r - t, dim=-1, ord=self.pnorm) + b) + g
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

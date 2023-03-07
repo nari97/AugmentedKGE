@@ -17,6 +17,10 @@ class TransA(Model):
         # Eq. (7).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance ("Mahalanobis distance").
+        return -1
+
     def initialize_model(self):
         # See Eq. (7) for regularization.
         self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)

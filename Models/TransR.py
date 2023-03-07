@@ -26,6 +26,10 @@ class TransR(Model):
         # Eq. (10).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # See TransR section.
         self.create_embedding(self.dim_e, emb_type="entity", name="e")
@@ -49,7 +53,7 @@ class TransR(Model):
             self.onthefly_constraints.append(self.scale_constraint(hr))
             self.onthefly_constraints.append(self.scale_constraint(tr))
         # Eq. (8).
-        return -torch.linalg.norm(hr + r - tr, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(hr + r - tr, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

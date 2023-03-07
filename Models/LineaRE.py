@@ -20,6 +20,10 @@ class LineaRE(Model):
         # Eq. (5).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # See Table 1. See Eq. (5) for regularization.
         self.create_embedding(self.dim, emb_type="entity", name="e", reg=True)
@@ -29,7 +33,7 @@ class LineaRE(Model):
 
     def _calc(self, h, w_1, w_2, b, t):
         # Eq. (2).
-        return -torch.linalg.norm(w_1 * h + b - w_2 * t, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(w_1 * h + b - w_2 * t, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

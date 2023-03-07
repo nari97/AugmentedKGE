@@ -42,7 +42,7 @@ class TransE(Model):
 
     def _calc(self, h, r, t):
         # Eq. (1).
-        return -torch.linalg.norm(h + r - t, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(h + r - t, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

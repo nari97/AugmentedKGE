@@ -20,6 +20,10 @@ class StructurE(Model):
         # Eq. (8).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance ("distance-based score function").
+        return -1
+
     def initialize_model(self):
         # See Table 1.
         self.create_embedding(self.dim, emb_type="entity", name="e")
@@ -41,7 +45,7 @@ class StructurE(Model):
         # Eq. (6).
         estruct = torch.linalg.norm(h + r - interaction_edge_structure_context(t, tc, -r, rt), dim=-1, ord=self.pnorm)
         # Eq. (7). See Section 4.2.2 for lr and le.
-        return -lr * rstruct - le * estruct
+        return lr * rstruct + le * estruct
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

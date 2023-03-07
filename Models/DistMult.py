@@ -21,6 +21,11 @@ class DistMult(Model):
         # Eq. (3).
         return 'margin'
 
+    def get_score_sign(self):
+        # "...encourages the scores of positive relationships (triplets) to be higher than the scores of any negative
+        #   relationships (triplets)."
+        return 1
+
     def initialize_model(self):
         # From the paper: "The entity vectors are renormalized to have unit length after each gradient step (it is an
         #   effective technique that empirically improved all the models)."

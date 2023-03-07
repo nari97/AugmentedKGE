@@ -20,6 +20,10 @@ class PairRE(Model):
         # Eq. (8).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # See below Eq. (1).
         self.create_embedding(self.dim, emb_type="entity", name="e", norm_method="norm")
@@ -28,7 +32,7 @@ class PairRE(Model):
 
     def _calc(self, h, rh, rt, t):
         # Eq. (1).
-        return -torch.linalg.norm(h * rh - t * rt, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(h * rh - t * rt, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

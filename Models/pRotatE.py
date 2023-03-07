@@ -22,6 +22,10 @@ class pRotatE(Model):
         # Eq. (4).
         return 'soft_margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # Only phases.
         self.create_embedding(self.dim, emb_type="entity", name="e_phase")
@@ -34,7 +38,7 @@ class pRotatE(Model):
 
     def _calc(self, h_phase, r_phase, t_phase, c):
         # See Section 4.1 and Eq. (17).
-        return - 2 * c * torch.linalg.norm(torch.sin((h_phase+r_phase-t_phase)/2), dim=-1, ord=self.pnorm)
+        return 2 * c * torch.linalg.norm(torch.sin((h_phase+r_phase-t_phase)/2), dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

@@ -22,6 +22,10 @@ class ManifoldE(Model):
         # Eq. (3).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         self.create_embedding(self.dim, emb_type="entity", name="e")
         self.create_embedding(self.dim, emb_type="relation", name="rh")
@@ -43,7 +47,7 @@ class ManifoldE(Model):
                 2*torch.sum(h*t, dim=-1) - 2*torch.sum(rh*t, dim=-1) - 2*torch.sum(rh*h, dim=-1)
 
         # Eq. (1).
-        return -torch.pow(m_hrt - torch.pow(dr, 2).flatten(), 2)
+        return torch.pow(m_hrt - torch.pow(dr, 2).flatten(), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

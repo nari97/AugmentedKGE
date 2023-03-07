@@ -37,6 +37,10 @@ class TransD(Model):
         # Eq. (15).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # Section 3.2.
         self.create_embedding(self.dim_e, emb_type="entity", name="e")
@@ -68,7 +72,7 @@ class TransD(Model):
             self.onthefly_constraints.append(Model.scale_constraint(ht))
             self.onthefly_constraints.append(Model.scale_constraint(tt))
         # Eq. (14).
-        return -torch.pow(torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm), 2)
+        return torch.pow(torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

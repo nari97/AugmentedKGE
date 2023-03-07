@@ -19,6 +19,10 @@ class SimplE(Model):
         # The "Learning SimplE Models" paragraph mentions soft.
         return 'soft'
 
+    def get_score_sign(self):
+        # It is a similarity function.
+        return 1
+
     def initialize_model(self):
         # The "Learning SimplE Models" paragraph mentions L2 regularization.
         self.create_embedding(self.dim, emb_type="entity", name="he", reg=True)

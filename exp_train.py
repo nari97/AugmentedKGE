@@ -60,17 +60,14 @@ def run():
     # If this exists, we are done; otherwise, let's go for it.
     if not os.path.exists(model_file):
         model = torch.load(checkpoint_file)
+        init_epoch = model.epoch
         hyperparameters = model.get_hyperparameters()
-
-        # TODO Only to make sure TuckER is applying sigmoid (it should be stored in the model).
-        if model_name.startswith('tucker'):
-            print('Is TuckER applying sigmoid?:',
-                  model.apply_sigmoid if hasattr(model, 'apply_sigmoid') else 'No attribute!')
 
         # We assume we will be using Bernouilli, this is because TripleManager computes extra stuff if it is enabled. Then,
         #   below, we select whether we are using it or not.
         train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=hyperparameters["batch_size"],
-                                  neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode, seed=seed, use_bern=True)
+                                      neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode, seed=seed,
+                                      use_bern=True)
         end = time.perf_counter()
         print("Model and dataset initialization time: ", end - start)
 
@@ -122,7 +119,7 @@ def run():
         # Let's train!
         trainer = Trainer(loss=loss, train=train_manager, validation=validation, train_times=train_times,
                           save_steps=validation_epochs, optimizer=optimizer, load_valid=load_valid,
-                          save_valid=save_valid, save_checkpoint=save_checkpoint,)
+                          save_valid=save_valid, save_checkpoint=save_checkpoint, init_epoch=init_epoch)
         trainer.run(metric_str=metric_str)
         end = time.perf_counter()
         print("Time elapsed during training: ", end - start)
@@ -159,7 +156,6 @@ def run():
     end = time.perf_counter()
     print("Test time: ", end - start)
 
-    # TODO Remove!
     print('Length of main ranks:', len(main_collector.all_ranks))
     print('Length of main ties:', len(main_collector.all_ties))
 
@@ -174,7 +170,6 @@ def run():
             print()
             continue
 
-        # TODO Remove!
         print('Length of ranks:', len(current_collector.all_ranks))
         print('Length of ties:', len(current_collector.all_ties))
 

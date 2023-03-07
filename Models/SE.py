@@ -20,6 +20,10 @@ class SE(Model):
         # Step 3 in the training subsection.
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # See below Eq. (3). The norm of e is mentioned in the training subsection.
         self.create_embedding(self.dim, emb_type="entity", name="e", norm_method="norm")
@@ -30,7 +34,7 @@ class SE(Model):
         # Eq. (3).
         hrh = torch.bmm(rh, h.view(-1, self.dim, 1)).view(-1, self.dim)
         trt = torch.bmm(rt, t.view(-1, self.dim, 1)).view(-1, self.dim)
-        return -torch.linalg.norm(hrh - trt, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(hrh - trt, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

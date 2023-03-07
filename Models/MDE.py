@@ -22,6 +22,10 @@ class MDE(Model):
         #   follows the TransEdge paper. Therefore, beta_1=1 in our case.
         return 'limit'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # See above Eq. (5).
         for c in ['i', 'j', 'k', 'l']:
@@ -53,8 +57,8 @@ class MDE(Model):
         (ri, rj, rk, rl) = r
         (ti, tj, tk, tl) = t
         # Eq. (5).
-        return -(self.si(wi, hi, ri, ti) + self.sj(wj, hj, rj, tj) + self.sk(wk, hk, rk, tk) + \
-                    self.sl(wl, hl, rl, tl) - psi)
+        return self.si(wi, hi, ri, ti) + self.sj(wj, hj, rj, tj) + self.sk(wk, hk, rk, tk) + \
+                    self.sl(wl, hl, rl, tl) - psi
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

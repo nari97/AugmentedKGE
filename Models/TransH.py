@@ -33,6 +33,10 @@ class TransH(Model):
         # Eq. (4).
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
+
     def initialize_model(self):
         # See Translating on Hyperplanes (TransH) section.
         self.create_embedding(self.dim, emb_type="entity", name="e")
@@ -62,7 +66,7 @@ class TransH(Model):
         # Get transfers.
         ht, tt = transfer(h), transfer(t)
         # See score function.
-        return -torch.pow(torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm), 2)
+        return torch.pow(torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm), 2)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
