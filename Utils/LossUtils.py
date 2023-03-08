@@ -24,31 +24,31 @@ def getLoss(model, loss_str=None, margin=0, other_margin=0, neg_weight=1.0, reg_
     if loss_str is None:
         loss_str = model.get_default_loss()
 
-    if loss_str is 'margin':
+    if loss_str == 'margin':
         loss = MarginLoss(**kwargs)
         print ('Loss: Margin-based Ranking Loss')
-    elif loss_str is 'margin_sigmoid':
+    elif loss_str == 'margin_sigmoid':
         kwargs.update({"criterion": nn.Sigmoid()})
         loss = MarginLoss(**kwargs)
         print ('Loss: Margin-based Ranking Sigmoid Loss')
-    elif loss_str is 'soft_margin':
+    elif loss_str == 'soft_margin':
         loss = SoftMarginLoss(**kwargs)
         print ('Loss: Soft Margin Loss with margin:', margin)
-    elif loss_str is 'soft':
+    elif loss_str == 'soft':
         kwargs.pop('margin')
         loss = SoftMarginLoss(**kwargs)
         print('Loss: Soft Margin Loss')
-    elif loss_str is 'bce':
+    elif loss_str == 'bce':
         kwargs.pop('margin')
         kwargs.update({"with_logits": True})
         print ('Loss: BCE Loss with logits')
         loss = BCELoss(**kwargs)
-    elif loss_str is 'limit':
+    elif loss_str == 'limit':
         kwargs.pop('margin')
         kwargs.update({"margin_p": margin, "margin_n": other_margin, "alpha": neg_weight})
         print ('Loss: Limit-based with positive margin:', margin, ' and negative margin:', other_margin)
         loss = LimitLoss(**kwargs)
-    elif loss_str is 'margin_limit':
+    elif loss_str == 'margin_limit':
         kwargs.pop('margin')
         kwargs.update({"margin_r": margin, "margin_s": other_margin, "lmbda": neg_weight})
         print ('Loss: Margin-based Ranking with margin:', margin, ' and limit-based with margin:', other_margin)

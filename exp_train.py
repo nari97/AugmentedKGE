@@ -119,8 +119,8 @@ def run():
         # Let's train!
         trainer = Trainer(loss=loss, train=train_manager, validation=validation, train_times=train_times,
                           save_steps=validation_epochs, optimizer=optimizer, load_valid=load_valid,
-                          save_valid=save_valid, save_checkpoint=save_checkpoint, init_epoch=init_epoch)
-        trainer.run(metric_str=metric_str)
+                          save_valid=save_valid, save_checkpoint=save_checkpoint)
+        trainer.run(metric_str=metric_str, init_epoch=init_epoch)
         end = time.perf_counter()
         print("Time elapsed during training: ", end - start)
 

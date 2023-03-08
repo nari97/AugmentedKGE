@@ -192,15 +192,15 @@ class Model(nn.Module):
         for key in all_constraints.keys():
             for c in all_constraints[key]:
                 v = []
-                if key is 'custom':
+                if key == 'custom':
                     v.append(c(head_emb, rel_emb, tail_emb))
-                elif key is 'scale':
+                elif key == 'scale':
                     if c['emb_type'] == 'entity':
                         v.append(Model.scale_constraint(head_emb[c['name']], c['p'], c['z'], c['ctype']))
                         v.append(Model.scale_constraint(tail_emb[c['name']], c['p'], c['z'], c['ctype']))
                     elif c['emb_type'] == 'relation':
                         v.append(Model.scale_constraint(rel_emb[c['name']], c['p'], c['z'], c['ctype']))
-                elif key is 'onthefly':
+                elif key == 'onthefly':
                     v.append(c)
 
                 for x in v:
@@ -238,19 +238,20 @@ class Model(nn.Module):
         head_emb = self.get_head_embeddings(data)
         tail_emb = self.get_tail_embeddings(data)
         rel_emb = self.get_relation_embeddings(data)
+        global_emb = self.get_global_embeddings()
 
         for etype in self.embeddings_regularization.keys():
             embeds_to_apply = []
-            if etype is 'entity':
+            if etype == 'entity':
                 embeds_to_apply.append(head_emb)
                 embeds_to_apply.append(tail_emb)
-            elif etype is 'relation':
+            elif etype == 'relation':
                 embeds_to_apply.append(rel_emb)
-            #elif type is 'global':
-                #TODO: What to add?
+            elif etype == 'global':
+                embeds_to_apply.append(global_emb)
 
             for ename in self.embeddings_regularization[etype].keys():
-                if type is 'global':
+                if etype == 'global':
                     # TODO What to do with global!
                     raise NotImplementedError
 
@@ -262,16 +263,16 @@ class Model(nn.Module):
 
         for etype in self.embeddings_regularization_complex.keys():
             embeds_to_apply = []
-            if etype is 'entity':
+            if etype == 'entity':
                 embeds_to_apply.append(head_emb)
                 embeds_to_apply.append(tail_emb)
-            elif etype is 'relation':
+            elif etype == 'relation':
                 embeds_to_apply.append(rel_emb)
-            # elif type is 'global':
-                # TODO: What to add?
+            elif type == 'global':
+                embeds_to_apply.append(global_emb)
 
             for d in self.embeddings_regularization_complex[etype]:
-                if type is 'global':
+                if etype == 'global':
                     # TODO What to do with global!
                     raise NotImplementedError
 
@@ -292,9 +293,9 @@ class Model(nn.Module):
         # Clear on-the-fly regularization.
         self.onthefly_regularization = []
 
-        if reg_type is 'L2':
+        if reg_type == 'L2':
             reg = 1/2 * reg
-        elif reg_type is 'L3':
+        elif reg_type == 'L3':
             reg = 1/3 * reg
 
         if total > 0:
@@ -304,13 +305,13 @@ class Model(nn.Module):
 
     # This method applies regularization to the parameters.
     def apply_individual_regularization(self, x, reg_type, reg_params):
-        if reg_type is 'L1':
+        if reg_type == 'L1':
             p = 1
             f = torch.abs
-        elif reg_type is 'L2':
+        elif reg_type == 'L2':
             p = 2
             f = torch.pow
-        elif reg_type is 'L3':
+        elif reg_type == 'L3':
             p = 3
             f = torch.pow
 

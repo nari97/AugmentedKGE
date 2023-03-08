@@ -62,7 +62,7 @@ class QuatE(Model):
         # Eq. (8).
         for idx, component in enumerate(['a', 'b', 'c', 'd']):
             e, r = self.get_embedding('entity', 'e_' + component), self.get_embedding('relation', 'r_' + component)
-            if component is 'a':
+            if component == 'a':
                 e.emb.data = phi * torch.cos(theta_e)
                 r.emb.data = phi * torch.cos(theta_r)
             else:

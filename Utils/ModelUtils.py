@@ -5,6 +5,7 @@ from Models.AttH import AttH
 from Models.BoxE import BoxE
 from Models.CombinE import CombinE
 from Models.ComplEx import ComplEx
+from Models.ConvE import ConvE
 from Models.CrossE import CrossE
 from Models.CyclE import CyclE
 from Models.DistMult import DistMult
@@ -218,6 +219,8 @@ def getModel(model_name, params, other_params=None):
         m = TransEdge(**kwargs)
     elif model_name == "se":
         m = SE(**kwargs)
+    elif model_name == "conve":
+        m = ConvE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 

@@ -59,7 +59,7 @@ class AttE(Model):
         if r_diag.shape[1] != self.dim:
             r_diag = torch.cat((r_diag, torch.zeros(batch_size, 1)), dim=1)
 
-        if optype is 'ref':
+        if optype == 'ref':
             # Make odd indexes negative.
             r_diag[:,odd_indexes] *= -1
 
@@ -67,7 +67,7 @@ class AttE(Model):
         # Make odd indexes zero.
         r_u[:, odd_indexes] *= 0
 
-        if optype is 'rot':
+        if optype == 'rot':
             # Make even indexes negative.
             r_u[:,even_indexes] *= -1
 

@@ -50,13 +50,13 @@ class Embedding(nn.Module):
         """
         Initialises embeddings using the type of initialisation specified.
         """
-        if self.init is "xavier_uniform":
+        if self.init == "xavier_uniform":
             torch.nn.init.xavier_uniform_(self.emb.data)
-        elif self.init is "xavier_normal":
+        elif self.init == "xavier_normal":
             torch.nn.init.xavier_normal_(self.emb.data)
-        elif self.init is "uniform":
+        elif self.init == "uniform":
             torch.nn.init.uniform_(self.emb.data, a=self.init_params[0], b=self.init_params[1])
-        elif self.init is "kaiming_uniform":
+        elif self.init == "kaiming_uniform":
             torch.nn.init.kaiming_uniform_(self.emb.data)
 
         # From time to time, using kaiming gives nan, we avoid that.
