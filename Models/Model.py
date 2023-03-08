@@ -268,7 +268,7 @@ class Model(nn.Module):
                 embeds_to_apply.append(tail_emb)
             elif etype == 'relation':
                 embeds_to_apply.append(rel_emb)
-            elif type == 'global':
+            elif etype == 'global':
                 embeds_to_apply.append(global_emb)
 
             for d in self.embeddings_regularization_complex[etype]:
