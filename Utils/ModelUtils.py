@@ -14,6 +14,7 @@ from Models.GCOTE import GCOTE
 from Models.HAKE import HAKE
 from Models.HARotatE import HARotatE
 from Models.HolE import HolE
+from Models.HypER import HypER
 from Models.HyperKG import HyperKG
 from Models.GTrans import GTrans
 from Models.KG2E import KG2E
@@ -79,7 +80,8 @@ def getModel(model_name, params, other_params=None):
         model_name, variant = model_name.split('_')
         kwargs.update({'variant': variant})
 
-    if model_name == "transd" or model_name == "transr" or model_name == "tucker" or model_name == "transsparse":
+    if model_name == "transd" or model_name == "transr" or model_name == "tucker" or model_name == "transsparse" or \
+        model_name == "hyper":
         kwargs.update({"dim_e":params["dime"], "dim_r":params["dimr"]})
     else:
         kwargs.update({"dim": params["dim"]})
@@ -221,6 +223,8 @@ def getModel(model_name, params, other_params=None):
         m = SE(**kwargs)
     elif model_name == "conve":
         m = ConvE(**kwargs)
+    elif model_name == "hyper":
+        m = HypER(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -283,8 +287,6 @@ def getModel(model_name, params, other_params=None):
 
 
     # Neural networks
-    # ConvE: https://arxiv.org/abs/1707.01476
-    # Hyper: https://arxiv.org/pdf/1808.07018v5.pdf
     # CapsE: https://arxiv.org/pdf/1808.04122v3.pdf
     # MDE has a MDENN version.
     # ConKB: https://aclanthology.org/N18-2053/

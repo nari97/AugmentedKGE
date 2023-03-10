@@ -251,10 +251,6 @@ class Model(nn.Module):
                 embeds_to_apply.append(global_emb)
 
             for ename in self.embeddings_regularization[etype].keys():
-                if etype == 'global':
-                    # TODO What to do with global!
-                    raise NotImplementedError
-
                 for e in embeds_to_apply:
                     reg_params = self.embeddings_regularization[etype][ename]
                     r = self.apply_individual_regularization(e[ename], reg_type, reg_params)
@@ -272,10 +268,6 @@ class Model(nn.Module):
                 embeds_to_apply.append(global_emb)
 
             for d in self.embeddings_regularization_complex[etype]:
-                if etype == 'global':
-                    # TODO What to do with global!
-                    raise NotImplementedError
-
                 for e in embeds_to_apply:
                     real_part, img_part = e[d["real_part"]], e[d["img_part"]]
                     reg_params = d["params"]
