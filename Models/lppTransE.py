@@ -2,7 +2,6 @@ import torch
 from Models.Model import Model
 
 
-# TODO: Work on this one!
 class lppTransE(Model):
     """
     Hee-Geun Yoon, Hyun-Je Song, Seong-Bae Park, Se-Young Park: A Translation-Based Knowledge Graph Embedding Preserving
@@ -18,8 +17,12 @@ class lppTransE(Model):
         self.pnorm = norm
 
     def get_default_loss(self):
-        # Like TransE.
+        # Eq. (1).
         return 'margin'
+
+    def get_score_sign(self):
+        # It is a distance (norm).
+        return -1
 
     def initialize_model(self):
         # Same as TransE.
@@ -36,7 +39,7 @@ class lppTransE(Model):
         mmh = torch.matmul(mh, h.view(batch_size, -1, 1)).view(batch_size, self.dim)
         mmt = torch.matmul(mt, t.view(batch_size, -1, 1)).view(batch_size, self.dim)
 
-        return -torch.linalg.norm(mmh + r - mmt, dim=-1, ord=self.pnorm)
+        return torch.linalg.norm(mmh + r - mmt, dim=-1, ord=self.pnorm)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch

@@ -19,7 +19,9 @@ from Models.HyperKG import HyperKG
 from Models.GTrans import GTrans
 from Models.KG2E import KG2E
 from Models.LineaRE import LineaRE
+from Models.lppTransD import lppTransD
 from Models.lppTransE import lppTransE
+from Models.lppTransR import lppTransR
 from Models.MAKR import MAKR
 from Models.ManifoldE import ManifoldE
 from Models.MDE import MDE
@@ -40,6 +42,7 @@ from Models.RotPro import RotPro
 from Models.SE import SE
 from Models.SimplE import SimplE
 from Models.STransE import STransE
+from Models.SpacE import SpacE
 from Models.StructurE import StructurE
 from Models.TransA import TransA
 from Models.TransAt import TransAt
@@ -52,10 +55,14 @@ from Models.TransEFT import TransEFT
 from Models.TransERS import TransERS
 from Models.TransGate import TransGate
 from Models.TransH import TransH
+from Models.TransHFT import TransHFT
 from Models.TransM import TransM
 from Models.TransMS import TransMS
 from Models.TransR import TransR
+from Models.TransRDT import TransRDT
+from Models.TransRFT import TransRFT
 from Models.TransSparse import TransSparse
+from Models.TransSparseDT import TransSparseDT
 from Models.TorusE import TorusE
 from Models.TuckER import TuckER
 
@@ -81,20 +88,21 @@ def getModel(model_name, params, other_params=None):
         kwargs.update({'variant': variant})
 
     if model_name == "transd" or model_name == "transr" or model_name == "tucker" or model_name == "transsparse" or \
-        model_name == "hyper":
+        model_name == "hyper" or model_name == "lpptransr" or model_name == "lpptransd" or model_name == "transrdt" or \
+            model_name == "transsparsedt" or model_name == "transrft":
         kwargs.update({"dim_e":params["dime"], "dim_r":params["dimr"]})
     else:
         kwargs.update({"dim": params["dim"]})
     if model_name == "transe" or model_name == "stranse" or model_name == "transsparse" or model_name == "rotpro" or \
         model_name == "boxe" or model_name == "makr" or model_name == "transms" or model_name == "transers" or \
-            model_name == "lpptranse" or model_name == "transeft" or model_name == "cycle" or \
-            model_name == "combine" or model_name == "transgate" or  model_name == "aprile" or \
-            model_name == "combine" or model_name == "transgate" or  model_name == "aprile" or \
-            model_name == "reflecte" or model_name == "structure" or model_name == "transedt" or \
-            model_name == "transedge" or model_name == "harotate" or model_name == "manifolde" or \
-            model_name == "transm" or model_name == "transat":
+            model_name == "lpptranse" or model_name == "cycle" or model_name == "combine" or \
+            model_name == "transgate" or  model_name == "aprile" or model_name == "combine" or \
+            model_name == "transgate" or  model_name == "aprile" or model_name == "reflecte" or \
+            model_name == "structure" or model_name == "transedt" or model_name == "harotate" or \
+            model_name == "manifolde" or model_name == "transm" or model_name == "transat" or \
+            model_name == "transrdt" or model_name == "transsparsedt" or model_name == "space":
         kwargs.update({"norm": params["pnorm"]})
-    if model_name == "transsparse" or model_name == "transm":
+    if model_name == "transsparse" or model_name == "transm" or model_name == "transsparsedt":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
     if model_name == "gcote" or model_name == "gtrans":
         kwargs.update({"head_context":params["head_context"], "tail_context":params["tail_context"]})
@@ -225,6 +233,20 @@ def getModel(model_name, params, other_params=None):
         m = ConvE(**kwargs)
     elif model_name == "hyper":
         m = HypER(**kwargs)
+    elif model_name == "lpptransr":
+        m = lppTransR(**kwargs)
+    elif model_name == "lpptransd":
+        m = lppTransD(**kwargs)
+    elif model_name == "transrdt":
+        m = TransRDT(**kwargs)
+    elif model_name == "transsparsedt":
+        m = TransSparseDT(**kwargs)
+    elif model_name == "transhft":
+        m = TransHFT(**kwargs)
+    elif model_name == "transrft":
+        m = TransRFT(**kwargs)
+    elif model_name == "space":
+        m = SpacE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -259,7 +281,6 @@ def getModel(model_name, params, other_params=None):
     # MEIM: Tran, Hung-Nghiep; Takasu, Atsuhiro (2022). "MEIM: Multi-partition Embedding Interaction Beyond Block
     #           Term Format for Efficient and Expressive Link Prediction". IJCAI.
     # TransComplex: https://arxiv.org/pdf/1909.00519.pdf
-    # SpacE: https://link.springer.com/content/pdf/10.1007/978-3-030-62419-4_25.pdf
     # GeomE: https://aclanthology.org/2020.coling-main.46.pdf
     # RUGE: https://arxiv.org/abs/1711.11231
     # SEEK: Wentao Xu, Shun Zheng, Liang He, Bin Shao, Jian Yin, and Tie-Yan Liu. 2020. SEEK: Segmented embedding of
@@ -267,7 +288,6 @@ def getModel(model_name, params, other_params=None):
     # ALMP: https://link.springer.com/chapter/10.1007/978-3-031-10983-6_50
     # Tatec: https://jair.org/index.php/jair/article/view/10993
     # HypE: https://www.ijcai.org/proceedings/2020/303
-    # CapsE: https://aclanthology.org/N19-1226/
     # RTransE: Alberto Garc´ıa-Dur´an, Antoine Bordes, and Nicolas Usunier. 2015. Composing Relationships with
     #   Translations.
     # PTransE: Yankai Lin, Zhiyuan Liu, Huanbo Luan, Maosong Sun, Siwei Rao, and Song Liu. 2015a. Modeling Relation
@@ -275,12 +295,13 @@ def getModel(model_name, params, other_params=None):
     # TimE: https://www.sciencedirect.com/science/article/abs/pii/S0950705120306936
     # ProtoE: https://www.mdpi.com/2078-2489/13/8/354
     # GTransE: https://link.springer.com/chapter/10.1007/978-3-030-39878-1_16
-    # lppTransE, TransEDT, TransEFT, TransERS propose modifications over all trans* models (so far, Trans{E|R|H|DR|D|M|
-    #   Sparse|Gate|M|MS} and STransE. Try to create a framework that lpp*, Trans*DT, Trans*FT and Trans*RS are
-    #   implemented.
+    # TransERS propose modifications over all trans* models.
     # TransMVG: https://link.springer.com/chapter/10.1007/978-3-030-62005-9_21
     # RGKE: https://link.springer.com/chapter/10.1007/978-3-030-16142-2_37
-    #
+    # KALE: https://aclanthology.org/D16-1019.pdf
+    # ProjE: Shi, B., Weninger, T.: ProjE: embedding projection for knowledge graph completion. In: AAAI, pp. 1236–1242
+    #   (2017).
+
 
 
 
@@ -288,15 +309,18 @@ def getModel(model_name, params, other_params=None):
 
     # Neural networks
     # CapsE: https://arxiv.org/pdf/1808.04122v3.pdf
+    # CapsE: https://aclanthology.org/N19-1226/
     # MDE has a MDENN version.
     # ConKB: https://aclanthology.org/N18-2053/
     # WGE: https://arxiv.org/abs/2112.09231
     # https://www.sciencedirect.com/science/article/abs/pii/S095070512200870X
     # https://www.sciencedirect.com/science/article/abs/pii/S0950705121004500
     # https://aclanthology.org/2020.emnlp-main.460/
-    # TransEdge uses NNs (MLPs).
-    # TransGate as well.
     # https://arxiv.org/abs/2205.12102
+    # R-GCN: Schlichtkrull, M., Kipf, T.N., Bloem, P., van den Berg, R., Titov, I., Welling, M.: Modeling relational
+    #   data with graph convolutional networks. ESWC 2018. 593–607.
+    # CACL: Oh, B., Seo, S., Lee, K.: Knowledge graph completion by context-aware convolutional learning with multi-hop
+    #   neighborhoods. In: CIKM, pp. 257–266 (2018).
     #
 
 
