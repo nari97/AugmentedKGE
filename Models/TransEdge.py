@@ -31,14 +31,10 @@ class TransEdge(Model):
 
     # Input dimension, out dimension, batch normalization (either 1d or 2d), dropout rate.
     @staticmethod
-    def register_mlp(input, output, norm=1, dropout_rate=.2):
+    def register_mlp(input, output, dropout_rate=.2):
         fc = torch.nn.Linear(input, output, dtype=torch.float64)
         # The paper does not propose batch normalization or dropout rate, but we will use them.
-        #if norm == 1:
-        # TODO I think all of them are 1d.
         norm = torch.nn.BatchNorm1d(output, dtype=torch.float64)
-        #elif norm == 2:
-        #    norm = torch.nn.BatchNorm2d(output, dtype=torch.float64)
         dropout = torch.nn.Dropout(dropout_rate)
         # This is the activation proposed by the paper.
         activation = torch.tanh

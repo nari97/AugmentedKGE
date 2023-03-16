@@ -15,8 +15,8 @@ class Embedding(nn.Module):
         Args:
             n_emb (int): Number of embeddings
             n_dim (int or tuple): Dimension of embedding
-            rep (str): Type of representation of embeddings, 'real' for embeddings containing real numbers and 'complex' for embeddings containing complex numbers. Default : 'real'
-            c_rep (str): For complex representations of embeddings, 'real' represents each individual dimension in the embedding as a vector [x, y] where the complex number c = x+iy, 'complex' represents each individual dimension as a complex number x+iy. Default: 'complex'
+            emb_type (str): Type of representation of embeddings: entity, relation or global.
+            name (str): Name of the embedding to be accessed.
             init (str): Type of initialization for the embedding, 'xavier_uniform' uses the inbuilt xavier_uniform function and 'uniform' uses the inbuilt uniform function. Default: 'xavier_uniform'
             init_params (str): Contains the parameters required for initialization, for example, uniform initialization requires a lower and upper bound for each value. Default: None
             seed (int): seed to use for initialization

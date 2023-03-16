@@ -11,12 +11,13 @@ from Models.CyclE import CyclE
 from Models.DistMult import DistMult
 from Models.DensE import DensE
 from Models.GCOTE import GCOTE
+from Models.GTrans import GTrans
 from Models.HAKE import HAKE
 from Models.HARotatE import HARotatE
 from Models.HolE import HolE
 from Models.HypER import HypER
 from Models.HyperKG import HyperKG
-from Models.GTrans import GTrans
+from Models.ITransF import ITransF
 from Models.KG2E import KG2E
 from Models.LineaRE import LineaRE
 from Models.lppTransD import lppTransD
@@ -40,13 +41,16 @@ from Models.RotatE import RotatE
 from Models.RotatE3D import RotatE3D
 from Models.RotPro import RotPro
 from Models.SE import SE
+from Models.SEEK import SEEK
 from Models.SimplE import SimplE
 from Models.STransE import STransE
 from Models.SpacE import SpacE
 from Models.StructurE import StructurE
+from Models.Trans4E import Trans4E
 from Models.TransA import TransA
 from Models.TransAt import TransAt
 from Models.TransD import TransD
+from Models.TransComplEx import TransComplEx
 from Models.TransDR import TransDR
 from Models.TransE import TransE
 from Models.TransEDT import TransEDT
@@ -100,7 +104,8 @@ def getModel(model_name, params, other_params=None):
             model_name == "transgate" or  model_name == "aprile" or model_name == "reflecte" or \
             model_name == "structure" or model_name == "transedt" or model_name == "harotate" or \
             model_name == "manifolde" or model_name == "transm" or model_name == "transat" or \
-            model_name == "transrdt" or model_name == "transsparsedt" or model_name == "space":
+            model_name == "transrdt" or model_name == "transsparsedt" or model_name == "space" or \
+            model_name == "itransf" or model_name == "transcomplex" or model_name == "trans4e":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse" or model_name == "transm" or model_name == "transsparsedt":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
@@ -247,6 +252,14 @@ def getModel(model_name, params, other_params=None):
         m = TransRFT(**kwargs)
     elif model_name == "space":
         m = SpacE(**kwargs)
+    elif model_name == "seek":
+        m = SEEK(**kwargs)
+    elif model_name == "itransf":
+        m = ITransF(**kwargs)
+    elif model_name == "transcomplex":
+        m = TransComplEx(**kwargs)
+    elif model_name == "trans4e":
+        m = Trans4E(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -256,7 +269,6 @@ def getModel(model_name, params, other_params=None):
     # TODO: https://github.com/xinguoxia/KGE
     # TODO: https://github.com/LIANGKE23/Awesome-Knowledge-Graph-Reasoning
     # ConE (https://arxiv.org/pdf/2110.14923v2.pdf) works with hierarchies that can be pre-computed, see Appendix H.
-    # ITransF: https://aclanthology.org/P17-1088.pdf
     # DihEdral: https://aclanthology.org/P19-1026.pdf
     # TransC (requires instanceOf and subclassOf triples): https://aclanthology.org/D18-1222.pdf
     # KEC (requires concepts): https://www.sciencedirect.com/science/article/pii/S0950705118304945
@@ -267,11 +279,8 @@ def getModel(model_name, params, other_params=None):
     #           tensor networks for knowledge base completion. In NIPS, 2013.
     # https://www.ijcai.org/Abstract/16/421 (requires types)
     # RodE: https://ieeexplore.ieee.org/document/9240950
-    # Trans4E: https://arxiv.org/pdf/2107.03297.pdf
     # 5*E: https://ojs.aaai.org/index.php/AAAI/article/view/17095
     # ODE: https://aclanthology.org/2021.emnlp-main.750/
-    # TransG: https://aclanthology.org/P16-1219/
-    # GAKE: https://aclanthology.org/C16-1062/
     # Flexible: https://dl.acm.org/doi/10.5555/3032027.3032102
     # AEM: https://ieeexplore.ieee.org/document/8545570
     # TRPE: https://www.sciencedirect.com/science/article/pii/S092523122200889X
@@ -283,8 +292,6 @@ def getModel(model_name, params, other_params=None):
     # TransComplex: https://arxiv.org/pdf/1909.00519.pdf
     # GeomE: https://aclanthology.org/2020.coling-main.46.pdf
     # RUGE: https://arxiv.org/abs/1711.11231
-    # SEEK: Wentao Xu, Shun Zheng, Liang He, Bin Shao, Jian Yin, and Tie-Yan Liu. 2020. SEEK: Segmented embedding of
-    #   knowledge graphs. In ACL 2020, pages 3888–3897.
     # ALMP: https://link.springer.com/chapter/10.1007/978-3-031-10983-6_50
     # Tatec: https://jair.org/index.php/jair/article/view/10993
     # HypE: https://www.ijcai.org/proceedings/2020/303
@@ -299,8 +306,13 @@ def getModel(model_name, params, other_params=None):
     # TransMVG: https://link.springer.com/chapter/10.1007/978-3-030-62005-9_21
     # RGKE: https://link.springer.com/chapter/10.1007/978-3-030-16142-2_37
     # KALE: https://aclanthology.org/D16-1019.pdf
-    # ProjE: Shi, B., Weninger, T.: ProjE: embedding projection for knowledge graph completion. In: AAAI, pp. 1236–1242
-    #   (2017).
+    # KGE-CL: Zhiping Luo, Wentao Xu, Weiqing Liu, Jiang Bian, Jian Yin, Tie-Yan Liu: KGE-CL: Contrastive Learning of
+    #   Tensor Decomposition Based Knowledge Graph Embeddings. COLING 2022: 2598-2607
+    # RefH: Ines Chami, Adva Wolf, Da-Cheng Juan, Frederic Sala, Sujith Ravi, and Christopher Ré. 2020. Low-Dimensional
+    #   Hyperbolic Knowledge Graph Embeddings.ACL, 6901–6914.
+    # UltraE: https://dl.acm.org/doi/10.1145/3534678.3539333
+    # https://ieeexplore.ieee.org/document/9533372 (several models partially trained and combined)
+
 
 
 
@@ -321,11 +333,14 @@ def getModel(model_name, params, other_params=None):
     #   data with graph convolutional networks. ESWC 2018. 593–607.
     # CACL: Oh, B., Seo, S., Lee, K.: Knowledge graph completion by context-aware convolutional learning with multi-hop
     #   neighborhoods. In: CIKM, pp. 257–266 (2018).
-    #
+    # ProjE: Shi, B., Weninger, T.: ProjE: embedding projection for knowledge graph completion. In: AAAI, pp. 1236–1242
+    #   (2017).
+    # LogicENN: https://arxiv.org/pdf/1908.07141.pdf
 
 
     # ???
     # NoGE: https://dl.acm.org/doi/10.1145/3488560.3502183
     # https://arxiv.org/abs/1909.03821
     # https://www.hindawi.com/journals/sp/2020/7084958/
-    #
+    # GAKE: https://aclanthology.org/C16-1062/ (even though it supports knowledge graphs, it is for regular graphs.)
+    # TransG: https://aclanthology.org/P16-1219/ (talks about CRP and how to get M_r from it.)
