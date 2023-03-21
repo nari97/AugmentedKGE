@@ -288,7 +288,7 @@ class Evaluator(object):
             ranked_before_expected_file = open(f"{materialize_basefile}_ranked_before_expected.pickle", 'wb')
             triple_stats_file = open(f"{materialize_basefile}_triple_stats.pickle", 'wb')
             pickle.dump(n_positives_ranked_before_expected, ranked_before_expected_file)
-            pickle.dump(triple_stats, triple_stats_file)
+            pickle.dump(triple_stats_across_relations, triple_stats_file)
             triple_stats_file.close()
             ranked_before_expected_file.close()
 
