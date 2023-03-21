@@ -10,6 +10,7 @@ from Models.CrossE import CrossE
 from Models.CyclE import CyclE
 from Models.DistMult import DistMult
 from Models.DensE import DensE
+from Models.GeomE import GeomE
 from Models.GCOTE import GCOTE
 from Models.GTrans import GTrans
 from Models.HAKE import HAKE
@@ -260,6 +261,8 @@ def getModel(model_name, params, other_params=None):
         m = TransComplEx(**kwargs)
     elif model_name == "trans4e":
         m = Trans4E(**kwargs)
+    elif model_name == "geome":
+        m = GeomE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -275,6 +278,7 @@ def getModel(model_name, params, other_params=None):
     # ConnectE (requires type info): https://www.sciencedirect.com/science/article/abs/pii/S0950705120301921
     # TransRHS (requires subrelationOf): https://doi.org/10.24963/ijcai.2020/413
     # SSE (requires concepts): https://www.aclweb.org/anthology/P15-1009/
+    # RUGE (requires logic rules): https://arxiv.org/abs/1711.11231
     # NTN: Socher, Richard, Chen, Danqi, Manning, Christopher D., and Ng, Andrew Y. Reasoning with neural
     #           tensor networks for knowledge base completion. In NIPS, 2013.
     # https://www.ijcai.org/Abstract/16/421 (requires types)
@@ -289,9 +293,6 @@ def getModel(model_name, params, other_params=None):
     #           Format for Knowledge Graph Completion". ECAI.
     # MEIM: Tran, Hung-Nghiep; Takasu, Atsuhiro (2022). "MEIM: Multi-partition Embedding Interaction Beyond Block
     #           Term Format for Efficient and Expressive Link Prediction". IJCAI.
-    # TransComplex: https://arxiv.org/pdf/1909.00519.pdf
-    # GeomE: https://aclanthology.org/2020.coling-main.46.pdf
-    # RUGE: https://arxiv.org/abs/1711.11231
     # ALMP: https://link.springer.com/chapter/10.1007/978-3-031-10983-6_50
     # Tatec: https://jair.org/index.php/jair/article/view/10993
     # HypE: https://www.ijcai.org/proceedings/2020/303

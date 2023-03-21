@@ -59,7 +59,7 @@ def sort_by_score(item):
     Returns:
         The score of the triple to be used for sorting.
     """
-    return item[3]
+    return -item[3]
 
 
 def get_top_k_triples(triples, k):
@@ -77,34 +77,6 @@ def get_top_k_triples(triples, k):
     top_k_triples = heapq.nsmallest(k, triples, key=sort_by_score)
 
     return top_k_triples
-
-
-def save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats, folder_to_save, model_name,
-                                    dataset_name):
-    """
-    Saves the number of positives ranked before expected and the triple statistics to pickle files in the specified folder.
-
-    Args:
-        n_positives_ranked_before_expected (dict): The number of positive triples ranked that were correctly predicted
-            for each relation.
-        triple_stats (dict): A dictionary that maps pairs of entities (heads and tails) to information
-            about triples involving those entities.
-        folder_to_save (str): The path to the folder where the files should be saved.
-        model_name (str): The name of the model used to generate the rankings.
-        dataset_name (str): The name of the dataset the triples come from.
-
-    Returns:
-        None
-    """
-    ranked_before_expected_file = open(f"{folder_to_save}\\{dataset_name}_{model_name}_ranked_before_expected.pickle",
-                                       'wb')
-    triple_stats_file = open(f"{folder_to_save}\\{dataset_name}_{model_name}_triple_stats.pickle", 'wb')
-
-    pickle.dump(n_positives_ranked_before_expected, ranked_before_expected_file)
-    pickle.dump(triple_stats, triple_stats_file)
-
-    triple_stats_file.close()
-    ranked_before_expected_file.close()
 
 
 class Evaluator(object):
@@ -136,7 +108,7 @@ class Evaluator(object):
 
         return totals
 
-    def evaluate(self, model, materialize=False, folder_to_save=None, model_name=None, dataset_name=None, k=25):
+    def evaluate(self, model, materialize=False, materialize_basefile=None, k=25):
         collector = RankCollector()
 
         is_nan_cnt, total = 0, 0
@@ -279,7 +251,7 @@ class Evaluator(object):
                             add_triple(triple_stats, k_triple[0], k_triple[2], is_top_k=True, is_negative=True)
 
                     for i in range(1, totalTriples):
-                        if positive_triple_score >= triples[i, 3]:
+                        if positive_triple_score <= triples[i, 3]:
 
                             # Same as before now adding more information for each triples
                             add_triple(triple_stats, triples[i, 0], triples[i, 2], is_ranked_better=True)
@@ -313,9 +285,13 @@ class Evaluator(object):
                     collector.update_unique_materialized(key[1])
 
             # Save positives_before_expected and triple_stats_across_relations into pickle files
-            save_positives_and_triple_stats(n_positives_ranked_before_expected, triple_stats_across_relations,
-                                            folder_to_save=f"{folder_to_save}\\{dataset_name}\\{model_name}",
-                                            model_name=model_name, dataset_name=dataset_name)
+            ranked_before_expected_file = open(f"{materialize_basefile}_ranked_before_expected.pickle", 'wb')
+            triple_stats_file = open(f"{materialize_basefile}_triple_stats.pickle", 'wb')
+            pickle.dump(n_positives_ranked_before_expected, ranked_before_expected_file)
+            pickle.dump(triple_stats, triple_stats_file)
+            triple_stats_file.close()
+            ranked_before_expected_file.close()
+
         # add_triple moved outside evaluator
         return collector
 
@@ -339,7 +315,7 @@ class Evaluator(object):
         })
 
 
-class RankCollector():
+class RankCollector:
     def __init__(self):
         self.all_ranks = []
         self.all_totals = []
@@ -448,8 +424,7 @@ class RankCollector():
         if metric_str == 'mr':
             value = np.sum(ranks) / len(totals)
         elif metric_str == 'amr':
-            value = np.sum(ranks) / len(totals)
-            value = 1 - (value/self.get_expected(metric_str='mr').get())
+            value = 1.0 - (self.get(ranks, totals, 'mr').get() / self.get_expected(metric_str='mr').get())
             cmp = 'high'
         elif metric_str == 'wmr':
             # TODO Can this be done using Numpy?

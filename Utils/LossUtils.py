@@ -3,6 +3,7 @@ from Loss.BCELoss import BCELoss
 from Loss.SoftMarginLoss import SoftMarginLoss
 from Loss.LimitLoss import LimitLoss
 from Loss.MarginLimitLoss import MarginLimitLoss
+from Loss.LogSoftmaxLoss import LogSoftmaxLoss
 import torch.nn as nn
 
 
@@ -43,6 +44,10 @@ def getLoss(model, loss_str=None, margin=0, other_margin=0, neg_weight=1.0, reg_
         kwargs.update({"with_logits": True})
         print ('Loss: BCE Loss with logits')
         loss = BCELoss(**kwargs)
+    elif loss_str == 'logsoftmax':
+        kwargs.pop('margin')
+        print ('Loss: Log-Softmax Loss')
+        loss = LogSoftmaxLoss(**kwargs)
     elif loss_str == 'limit':
         kwargs.pop('margin')
         kwargs.update({"margin_p": margin, "margin_n": other_margin, "alpha": neg_weight})
