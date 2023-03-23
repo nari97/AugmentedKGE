@@ -8,6 +8,7 @@ from Models.ComplEx import ComplEx
 from Models.ConvE import ConvE
 from Models.CrossE import CrossE
 from Models.CyclE import CyclE
+from Models.DihEdral import DihEdral
 from Models.DistMult import DistMult
 from Models.DensE import DensE
 from Models.GeomE import GeomE
@@ -38,6 +39,7 @@ from Models.QuatE import QuatE
 from Models.RatE import RatE
 from Models.RESCAL import RESCAL
 from Models.ReflectE import ReflectE
+from Models.RodE import RodE
 from Models.RotatE import RotatE
 from Models.RotatE3D import RotatE3D
 from Models.RotPro import RotPro
@@ -263,6 +265,10 @@ def getModel(model_name, params, other_params=None):
         m = Trans4E(**kwargs)
     elif model_name == "geome":
         m = GeomE(**kwargs)
+    elif model_name == "dihedral":
+        m = DihEdral(**kwargs)
+    elif model_name == "rode":
+        m = RodE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -272,17 +278,15 @@ def getModel(model_name, params, other_params=None):
     # TODO: https://github.com/xinguoxia/KGE
     # TODO: https://github.com/LIANGKE23/Awesome-Knowledge-Graph-Reasoning
     # ConE (https://arxiv.org/pdf/2110.14923v2.pdf) works with hierarchies that can be pre-computed, see Appendix H.
-    # DihEdral: https://aclanthology.org/P19-1026.pdf
     # TransC (requires instanceOf and subclassOf triples): https://aclanthology.org/D18-1222.pdf
     # KEC (requires concepts): https://www.sciencedirect.com/science/article/pii/S0950705118304945
     # ConnectE (requires type info): https://www.sciencedirect.com/science/article/abs/pii/S0950705120301921
     # TransRHS (requires subrelationOf): https://doi.org/10.24963/ijcai.2020/413
     # SSE (requires concepts): https://www.aclweb.org/anthology/P15-1009/
     # RUGE (requires logic rules): https://arxiv.org/abs/1711.11231
+    # https://www.ijcai.org/Abstract/16/421 (requires types)
     # NTN: Socher, Richard, Chen, Danqi, Manning, Christopher D., and Ng, Andrew Y. Reasoning with neural
     #           tensor networks for knowledge base completion. In NIPS, 2013.
-    # https://www.ijcai.org/Abstract/16/421 (requires types)
-    # RodE: https://ieeexplore.ieee.org/document/9240950
     # 5*E: https://ojs.aaai.org/index.php/AAAI/article/view/17095
     # ODE: https://aclanthology.org/2021.emnlp-main.750/
     # Flexible: https://dl.acm.org/doi/10.5555/3032027.3032102
@@ -313,6 +317,7 @@ def getModel(model_name, params, other_params=None):
     #   Hyperbolic Knowledge Graph Embeddings.ACL, 6901–6914.
     # UltraE: https://dl.acm.org/doi/10.1145/3534678.3539333
     # https://ieeexplore.ieee.org/document/9533372 (several models partially trained and combined)
+    # CP: http://proceedings.mlr.press/v80/lacroix18a/lacroix18a.pdf
 
 
 
