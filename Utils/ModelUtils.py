@@ -1,11 +1,11 @@
 from Models.Analogy import Analogy
 from Models.AprilE import AprilE
-from Models.AttE import AttE
 from Models.AttH import AttH
 from Models.BoxE import BoxE
 from Models.CombinE import CombinE
 from Models.ComplEx import ComplEx
 from Models.ConvE import ConvE
+from Models.CP import CP
 from Models.CrossE import CrossE
 from Models.CyclE import CyclE
 from Models.DihEdral import DihEdral
@@ -29,7 +29,6 @@ from Models.MAKR import MAKR
 from Models.ManifoldE import ManifoldE
 from Models.MDE import MDE
 from Models.MRotatE import MRotatE
-from Models.MuRE import MuRE
 from Models.MuRP import MuRP
 from Models.NagE import NagE
 from Models.pRotatE import pRotatE
@@ -63,6 +62,7 @@ from Models.TransERS import TransERS
 from Models.TransGate import TransGate
 from Models.TransH import TransH
 from Models.TransHFT import TransHFT
+from Models.TransHRS import TransHRS
 from Models.TransM import TransM
 from Models.TransMS import TransMS
 from Models.TransR import TransR
@@ -163,10 +163,6 @@ def getModel(model_name, params, other_params=None):
         m = RESCAL(**kwargs)
     elif model_name == "murp":
         m = MuRP(**kwargs)
-    elif model_name == "mure":
-        m = MuRE(**kwargs)
-    elif model_name == "atte":
-        m = AttE(**kwargs)
     elif model_name == "atth":
         m = AttH(**kwargs)
     elif model_name == "transat":
@@ -269,6 +265,10 @@ def getModel(model_name, params, other_params=None):
         m = DihEdral(**kwargs)
     elif model_name == "rode":
         m = RodE(**kwargs)
+    elif model_name == "cp":
+        m = CP(**kwargs)
+    elif model_name == "transhrs":
+        m = TransHRS(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -285,14 +285,16 @@ def getModel(model_name, params, other_params=None):
     # SSE (requires concepts): https://www.aclweb.org/anthology/P15-1009/
     # RUGE (requires logic rules): https://arxiv.org/abs/1711.11231
     # https://www.ijcai.org/Abstract/16/421 (requires types)
+    # GTransE (it is for uncertain knowledge graphs): https://link.springer.com/chapter/10.1007/978-3-030-39878-1_16
+
+    # GIE: https://ojs.aaai.org/index.php/AAAI/article/view/20491 (hyperbolic)
+
     # NTN: Socher, Richard, Chen, Danqi, Manning, Christopher D., and Ng, Andrew Y. Reasoning with neural
     #           tensor networks for knowledge base completion. In NIPS, 2013.
     # 5*E: https://ojs.aaai.org/index.php/AAAI/article/view/17095
     # ODE: https://aclanthology.org/2021.emnlp-main.750/
-    # Flexible: https://dl.acm.org/doi/10.5555/3032027.3032102
     # AEM: https://ieeexplore.ieee.org/document/8545570
     # TRPE: https://www.sciencedirect.com/science/article/pii/S092523122200889X
-    # GIE: https://ojs.aaai.org/index.php/AAAI/article/view/20491
     # MEI: Tran, Hung Nghiep; Takasu, Atsuhiro (2020). "Multi-Partition Embedding Interaction with Block Term
     #           Format for Knowledge Graph Completion". ECAI.
     # MEIM: Tran, Hung-Nghiep; Takasu, Atsuhiro (2022). "MEIM: Multi-partition Embedding Interaction Beyond Block
@@ -306,8 +308,6 @@ def getModel(model_name, params, other_params=None):
     #   Paths for Representation Learning of Knowledge Bases.
     # TimE: https://www.sciencedirect.com/science/article/abs/pii/S0950705120306936
     # ProtoE: https://www.mdpi.com/2078-2489/13/8/354
-    # GTransE: https://link.springer.com/chapter/10.1007/978-3-030-39878-1_16
-    # TransERS propose modifications over all trans* models.
     # TransMVG: https://link.springer.com/chapter/10.1007/978-3-030-62005-9_21
     # RGKE: https://link.springer.com/chapter/10.1007/978-3-030-16142-2_37
     # KALE: https://aclanthology.org/D16-1019.pdf
@@ -317,7 +317,12 @@ def getModel(model_name, params, other_params=None):
     #   Hyperbolic Knowledge Graph Embeddings.ACL, 6901–6914.
     # UltraE: https://dl.acm.org/doi/10.1145/3534678.3539333
     # https://ieeexplore.ieee.org/document/9533372 (several models partially trained and combined)
-    # CP: http://proceedings.mlr.press/v80/lacroix18a/lacroix18a.pdf
+    # TransESS: https://ieeexplore.ieee.org/document/9360502
+    # CFAG: https://ojs.aaai.org/index.php/AAAI/article/view/20337
+    # TransGH: https://link.springer.com/chapter/10.1007/978-3-319-93698-7_48
+    # CKRL: Xie, R., Liu, Z., Lin, F., Lin, L.: Does William Shakespeare really write hamlet? Knowledge representation
+    #   learning with confidence. AAAI, 2018.
+
 
 
 
@@ -342,6 +347,8 @@ def getModel(model_name, params, other_params=None):
     # ProjE: Shi, B., Weninger, T.: ProjE: embedding projection for knowledge graph completion. In: AAAI, pp. 1236–1242
     #   (2017).
     # LogicENN: https://arxiv.org/pdf/1908.07141.pdf
+    # CRNN: https://ieeexplore.ieee.org/document/8890615
+    # NTransGH: https://www.sciencedirect.com/science/article/pii/S1877750318310172
 
 
     # ???

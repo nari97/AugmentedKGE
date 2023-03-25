@@ -4,59 +4,76 @@ from Models.Model import Model
 from Utils import PoincareUtils
 
 
-# TODO Work on this. Check other Poincare models.
 class HyperKG(Model):
-    def __init__(self, ent_total, rel_total, dim, beta=None):
+    """
+    Prodromos Kolyvakis, Alexandros Kalousis, Dimitris Kiritsis: Hyperbolic Knowledge Graph Embeddings for Knowledge
+        Base Completion. ESWC 2020: 199-214.
+    """
+    def __init__(self, ent_total, rel_total, dim, beta=None, variant="euclidean"):
+        """
+            dim (int): Number of dimensions for embeddings
+            variant can be either euclidean or mobius.
+        """
         super(HyperKG, self).__init__(ent_total, rel_total)
         self.dim = dim
         if beta is None:
+            # In the experiments, beta={3*dim/4, dim/2, dim/4, 0}. In the supplemental, dim/2 was consistently the best.
             self.beta = math.floor(self.dim/2)
         else:
             self.beta = beta
-        # Note: we do not include c as we are not learning in the Poincare space.
-        self.c = 1
+        self.variant = variant
 
     def get_default_loss(self):
+        # Eq. (7).
+        # There is a regularization term R (see Eq. (8)) that we do not implement.
         return 'margin'
 
+    def get_score_sign(self):
+        # It is a distance.
+        return -1
+
     def initialize_model(self):
+        # From the paper: "We initialise the embeddings using the Xavier initialization scheme."
         self.create_embedding(self.dim, emb_type="entity", name="e")
         self.create_embedding(self.dim, emb_type="relation", name="r")
+        # Note that c is not mentioned in the original paper; however, we use a parameter per relation similar to AttH.
+        self.create_embedding(1, emb_type="relation", name="c")
 
-        # Eq. 8: 1 - ||emb||^2, which is equivalent to ||emb|| >= 1.
-        self.register_scale_constraint(emb_type="entity", name="e", ctype='ge')
-        self.register_scale_constraint(emb_type="relation", name="r", ctype='ge')
-
-        # Eq. 9: ||emb||<=.5 if entity; ||emb||<=1 if relation.
-        self.register_scale_constraint(emb_type="entity", name="e", z=.5)
+        # From the paper: "To enforce the term embeddings to stay in the Poincare-ball, we constrain all the entity
+        #   embeddings to have a Euclidean norm less than 0.5. Namely, ||e|| < 0.5 and ||r|| < 1.0 for all entity and
+        #   relation vectors, respectively." See also Eq. (9).
+        # From the paper: "In the experiment where the Mobius addition was used, we removed the constraint for the
+        #   entity vectors to have a norm less than 0.5."
+        if self.variant == "euclidean":
+            self.register_scale_constraint(emb_type="entity", name="e", z=.5)
         self.register_scale_constraint(emb_type="relation", name="r")
 
-    def _calc_train(self, h, r, t):
+    # To train model in the hyperbolic, we need a special SGD (see
+    #   https://github.com/ibalazevic/multirelational-poincare/blob/master/rsgd.py).
+    # Instead, we optimize in the tangent space and map them to the Poincare ball. Check Section A.4 in the paper.
+    def _calc(self, h, r, c, t):
         # We want to rotate t beta times.
-        t_rolled = torch.roll(t, shifts=self.beta, dims=1)
+        t = torch.roll(t, shifts=self.beta, dims=1)
+        # c must be positive and is only present when dealing with Poincare.
+        c = torch.abs(c)
+        # Map r from Tangent to Poincare.
+        r = PoincareUtils.exp_map(r, c)
 
-        return -torch.linalg.norm(h + t_rolled - r, dim=-1, ord=2)
-
-    def _calc_predict(self, h, r, t):
-        # Map h, r and t from Euclidean to Poincare.
-        h, r, t = PoincareUtils.exp_map(h, self.c), PoincareUtils.exp_map(r, self.c), PoincareUtils.exp_map(t, self.c)
-
-        t_rolled = torch.roll(t, shifts=self.beta, dims=1)
-
-        return -PoincareUtils.distance(h + t_rolled, r)
+        if self.variant == "euclidean":
+            # Map from Tangent to Poincare.
+            h_plus_t = PoincareUtils.exp_map(h+t, c)
+        if self.variant == "mobius":
+            # Map h and t from Tangent to Poincare.
+            h, t = PoincareUtils.exp_map(h, c), PoincareUtils.exp_map(t, c)
+            h_plus_t = PoincareUtils.mobius_addition(h, t, c)
+        # Eq. (6).
+        return PoincareUtils.distance(h_plus_t, r)
 
     def return_score(self, is_predict=False):
         (head_emb, rel_emb, tail_emb) = self.current_batch
 
         h = head_emb["e"]
         t = tail_emb["e"]
-        r = rel_emb["r"]
+        r, c = rel_emb["r"], rel_emb["c"]
 
-        # This requires a special SGD: https://github.com/ibalazevic/multirelational-poincare/blob/master/rsgd.py
-        # Instead, we will optimize the tangent space, then, we map them back to the Poincare ball.
-        # Check A.4 in https://arxiv.org/pdf/2005.00545.pdf
-
-        if not is_predict:
-            return self._calc_train(h, r, t)
-        else:
-            return self._calc_predict(h, r, t)
+        return self._calc(h, r, c, t)
