@@ -16,4 +16,10 @@ def get_dataset_name(dataset):
         dataset_name = "WN18RR"
     if dataset == 7:
         dataset_name = "YAGO3-10"
+    if dataset == 8:
+        dataset_name = "BioKG"
+    if dataset == 9:
+        dataset_name = "Hetionet"
+    if dataset == 10:
+        dataset_name = "SNOMED"
     return dataset_name

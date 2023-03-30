@@ -44,7 +44,7 @@ class QuatDE(Model):
         # Hamilton products.
         htrans = QuaternionUtils.hamilton_product(h, QuaternionUtils.hamilton_product(nph, nvr))
         ttrans = QuaternionUtils.hamilton_product(t, QuaternionUtils.hamilton_product(npt, nvr))
-        # Final result.
+        # Final result. See Figure 3 (the four components are added at the end).
         return QuaternionUtils.inner_product(QuaternionUtils.hamilton_product(htrans, nr), ttrans)
 
     def return_score(self, is_predict=False):

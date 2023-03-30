@@ -1,17 +1,16 @@
 from DataLoader.TripleManager import TripleManager
 from Train.Evaluator import Evaluator
 from Train.Trainer import Trainer
-from Utils import ModelUtils
-from Utils import LossUtils
+from Utils import ModelUtils, LossUtils, DatasetUtils
 import torch
 import torch.optim as optim
 import time
 import os
 
 
-def run():
+def run(model_name=None):
     folder = ''
-    model_name, dataset, split_prefix, point = 'boxe', 6, '', 0
+    model_name, dataset, split_prefix, point = 'duale_full', 6, '', 0
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
@@ -56,23 +55,7 @@ def run():
 
     parameters["pnorm"] = 2
 
-    dataset_name = ""
-    if dataset == 0:
-        dataset_name = "FB13"
-    if dataset == 1:
-        dataset_name = "FB15K"
-    if dataset == 2:
-        dataset_name = "FB15K237"
-    if dataset == 3:
-        dataset_name = "NELL-995"
-    if dataset == 4:
-        dataset_name = "WN11"
-    if dataset == 5:
-        dataset_name = "WN18"
-    if dataset == 6:
-        dataset_name = "WN18RR"
-    if dataset == 7:
-        dataset_name = "YAGO3-10"
+    dataset_name = DatasetUtils.get_dataset_name(dataset)
 
     print("Model:", model_name, "; Dataset:", dataset_name, "; Corruption:", corruption_mode)
 
@@ -183,4 +166,13 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    # for model_name in [#'analogy', 'aprile', 'boxe', 'combine', 'complex', 'conve',
+    #                    'crosse', 'cycle', 'dense',
+    #                    'distmult', 'hake', 'harotate', 'hole', 'kg2e', 'lineare', 'makr', 'manifolde', 'mde',
+    #                    'mrotate', 'nage', 'pairre', 'protate', 'quatde', 'quate', 'rate', 'reflecte', 'rotate',
+    #                    'rotate3d', 'rotpro', 'se', 'simple', 'stranse', 'structure', 'toruse', 'transa', 'transd',
+    #                    'transe', 'transh', 'transm', 'transms', 'transr', 'transsparse', 'tucker']:
+    # for model_name in ['hyperkg_mobius', 'atth_atth', 'atth_roth', 'atth_refh', 'murp_murp']:
+    # for model_name in ['reflecte_s', 'reflecte_b', 'reflecte_m', 'reflecte_full']:
+    # for model_name in ['gie_gie1', 'gie_gie2', 'gie_full']:
+    run()#model_name=model_name)

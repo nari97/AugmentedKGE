@@ -14,8 +14,23 @@ def mobius_addition(x, y, c):
     return ret
 
 
+def mobius_matrix_multiplication(M, x, c):
+    batch_size = M.shape[0]
+    # c can be negative when dealing with hyperspherical space (check GIE).
+    sqrt = torch.sqrt(torch.abs(c))
+    m_times_x = torch.bmm(M, x.view(batch_size, -1, 1)).view(batch_size, -1)
+    mx_norm = torch.linalg.norm(m_times_x, dim=-1, ord=2).view(-1, 1)
+    x_norm = torch.linalg.norm(x, dim=-1, ord=2).view(-1, 1)
+    # In atanh(x), x \in (-1, 1).
+    ret = 1/sqrt * torch.tanh(mx_norm/x_norm * torch.atanh(torch.clamp(sqrt*x_norm, min=-1 + 1e-10, max=1 - 1e-10))) * \
+        m_times_x / mx_norm
+    project(ret, c)
+    return ret
+
+
 def geodesic_dist(x, y, c):
-    sqrt = torch.sqrt(c)
+    # c can be negative when dealing with hyperspherical space (check GIE).
+    sqrt = torch.sqrt(torch.abs(c))
     # In atanh(x), x \in (-1, 1).
     sqrt_add_norm = torch.clamp(
         sqrt * torch.linalg.norm(mobius_addition(-x, y, c), dim=-1, ord=2).view(-1, 1), min=-1+1e-10, max=1-1e-10)
@@ -48,14 +63,15 @@ def project(x, c):
     with torch.no_grad():
         # Compute L2-norms of x.
         x_norms = torch.linalg.norm(x, dim=-1, ord=2).view(-1, 1)
-        # Compute limits.
-        max_limits = 1-1e-10/torch.sqrt(c)
+        # Compute limits. # c can be negative when dealing with hyperspherical space (check GIE).
+        max_limits = 1-1e-10/torch.sqrt(torch.abs(c))
         x.data = torch.where(x_norms > max_limits, x * max_limits / x_norms, x)
 
 
 def map_(x, f, c, clamp=None):
     x_norm = torch.linalg.norm(x, ord=2, dim=-1).view(-1, 1)
-    sq_times_norm = torch.sqrt(c) * x_norm
+    # c can be negative when dealing with hyperspherical space (check GIE).
+    sq_times_norm = torch.sqrt(torch.abs(c)) * x_norm
     if clamp is not None:
         sq_times_norm = clamp(sq_times_norm)
     return (f(sq_times_norm) / sq_times_norm) * x

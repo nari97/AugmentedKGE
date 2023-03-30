@@ -12,6 +12,12 @@ def hamilton_product(x_1, x_2):
             a_1 * d_2 + b_1 * c_2 - c_1 * b_2 + d_1 * a_2)
 
 
+def addition(x, y):
+    (x_a, x_b, x_c, x_d) = x
+    (y_a, y_b, y_c, y_d) = y
+    return x_a + y_a, x_b + y_b, x_c + y_c, x_d + y_d
+
+
 def get_conjugate(x):
     (x_a, x_b, x_c, x_d) = x
     return x_a, -x_b, -x_c, -x_d

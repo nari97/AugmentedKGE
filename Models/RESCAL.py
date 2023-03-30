@@ -2,7 +2,7 @@ import torch
 from Models.Model import Model
 
 
-# TODO Work on this one!
+# TODO: Work on this one!
 class RESCAL(Model):
     """
     Maximilian Nickel, Volker Tresp, Hans-Peter Kriegel: A Three-Way Model for Collective Learning on Multi-Relational

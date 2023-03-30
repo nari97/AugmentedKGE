@@ -11,8 +11,10 @@ from Models.CyclE import CyclE
 from Models.DihEdral import DihEdral
 from Models.DistMult import DistMult
 from Models.DensE import DensE
-from Models.GeomE import GeomE
+from Models.DualE import DualE
 from Models.GCOTE import GCOTE
+from Models.GeomE import GeomE
+from Models.GIE import GIE
 from Models.GTrans import GTrans
 from Models.HAKE import HAKE
 from Models.HARotatE import HARotatE
@@ -269,6 +271,10 @@ def getModel(model_name, params, other_params=None):
         m = CP(**kwargs)
     elif model_name == "transhrs":
         m = TransHRS(**kwargs)
+    elif model_name == "gie":
+        m = GIE(**kwargs)
+    elif model_name == "duale":
+        m = DualE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -286,11 +292,9 @@ def getModel(model_name, params, other_params=None):
     # RUGE (requires logic rules): https://arxiv.org/abs/1711.11231
     # https://www.ijcai.org/Abstract/16/421 (requires types)
     # GTransE (it is for uncertain knowledge graphs): https://link.springer.com/chapter/10.1007/978-3-030-39878-1_16
+    # HypE (hypergraphs): https://www.ijcai.org/proceedings/2020/303
+    # Caps-OWKG (uses text descriptions): https://doi.org/10.1007/s13042-020-01259-4
 
-    # GIE: https://ojs.aaai.org/index.php/AAAI/article/view/20491 (hyperbolic)
-
-    # NTN: Socher, Richard, Chen, Danqi, Manning, Christopher D., and Ng, Andrew Y. Reasoning with neural
-    #           tensor networks for knowledge base completion. In NIPS, 2013.
     # 5*E: https://ojs.aaai.org/index.php/AAAI/article/view/17095
     # ODE: https://aclanthology.org/2021.emnlp-main.750/
     # AEM: https://ieeexplore.ieee.org/document/8545570
@@ -301,7 +305,6 @@ def getModel(model_name, params, other_params=None):
     #           Term Format for Efficient and Expressive Link Prediction". IJCAI.
     # ALMP: https://link.springer.com/chapter/10.1007/978-3-031-10983-6_50
     # Tatec: https://jair.org/index.php/jair/article/view/10993
-    # HypE: https://www.ijcai.org/proceedings/2020/303
     # RTransE: Alberto Garc´ıa-Dur´an, Antoine Bordes, and Nicolas Usunier. 2015. Composing Relationships with
     #   Translations.
     # PTransE: Yankai Lin, Zhiyuan Liu, Huanbo Luan, Maosong Sun, Siwei Rao, and Song Liu. 2015a. Modeling Relation
@@ -313,8 +316,6 @@ def getModel(model_name, params, other_params=None):
     # KALE: https://aclanthology.org/D16-1019.pdf
     # KGE-CL: Zhiping Luo, Wentao Xu, Weiqing Liu, Jiang Bian, Jian Yin, Tie-Yan Liu: KGE-CL: Contrastive Learning of
     #   Tensor Decomposition Based Knowledge Graph Embeddings. COLING 2022: 2598-2607
-    # RefH: Ines Chami, Adva Wolf, Da-Cheng Juan, Frederic Sala, Sujith Ravi, and Christopher Ré. 2020. Low-Dimensional
-    #   Hyperbolic Knowledge Graph Embeddings.ACL, 6901–6914.
     # UltraE: https://dl.acm.org/doi/10.1145/3534678.3539333
     # https://ieeexplore.ieee.org/document/9533372 (several models partially trained and combined)
     # TransESS: https://ieeexplore.ieee.org/document/9360502
@@ -322,6 +323,18 @@ def getModel(model_name, params, other_params=None):
     # TransGH: https://link.springer.com/chapter/10.1007/978-3-319-93698-7_48
     # CKRL: Xie, R., Liu, Z., Lin, F., Lin, L.: Does William Shakespeare really write hamlet? Knowledge representation
     #   learning with confidence. AAAI, 2018.
+    # SME: A. Bordes, X. Glorot, J. Weston, and Y. Bengio, ``Joint learning of words and meaning representations for
+    #   open-text semantic parsing,'' in JMLR, 2012.
+    # SME+: A. Bordes, X. Glorot, J. Weston, and Y. Bengio, ``A semantic matching energy function for learning with
+    #   multi-relational data - Application to word-sense disambiguation,'' Mach. Learn., vol. 94, no. 2, 2014.
+    # LFM: R. Jenatton, N. L. Roux, A. Bordes, and G. R. Obozinski, ``A latent factor model for highly multi-relational
+    #   data,'' in NIPS, 2012,.
+    # Yuhan Wang, Weidong Xiao, Zhen Tan, Xiang Zhao: Caps-OWKG: a capsule network model for open-world knowledge graph.
+    #   Int. J. Mach. Learn. Cybern. 12(6): 1627-1637 (2021).
+    # BiMult: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8353191
+    # SimEER: https://downloads.hindawi.com/journals/sp/2018/6325635.pdf
+    # BiTransE: https://ieeexplore.ieee.org/document/9754641
+    # Regularizer: https://ojs.aaai.org/index.php/AAAI/article/view/20490
 
 
 
@@ -349,6 +362,14 @@ def getModel(model_name, params, other_params=None):
     # LogicENN: https://arxiv.org/pdf/1908.07141.pdf
     # CRNN: https://ieeexplore.ieee.org/document/8890615
     # NTransGH: https://www.sciencedirect.com/science/article/pii/S1877750318310172
+    # SLM: R. Socher, D. Chen, C. D. Manning, and A. Y. Ng, ``Reasoning with neural tensor networks for knowledge base
+    #   completion,'' NIPS, 2013.
+    # NTN: Socher, Richard, Chen, Danqi, Manning, Christopher D., and Ng, Andrew Y. Reasoning with neural
+    #           tensor networks for knowledge base completion. In NIPS, 2013.
+    # ConvR: X. Jiang, Q. Wang, B. Wang, Adaptive convolution for multi-relational learning, in: Proc. NAACL-HLT, 2019.
+    # RelNN: RelNN: A Deep Neural Model for Relational Learning. Seyed Mehran Kazemi, David Poole. AAAI, 2018.
+    # Wang, S.; Wei, X.; dos Santos, C. N.; Wang, Z.; Nallapati, R.; Arnold, A.; Xiang, B.; Philip, S. Y.; and
+    #   Cruz, I. F. 2021. Mixed-Curvature Multi-Relational Graph Neural Network for Knowledge Graph Completion. WWW.
 
 
     # ???

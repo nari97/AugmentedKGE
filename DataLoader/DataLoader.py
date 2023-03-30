@@ -1,4 +1,5 @@
 import ast
+import os
 
 class Triple():
     """
@@ -88,22 +89,26 @@ class DataLoader(object):
         with open(entityPath,encoding='utf-8') as fp:
             self.entityTotal = int(fp.readline())
 
-        with open(path + "compatible_relations.txt") as fp:
-            self.domDomCompatible = ast.literal_eval(fp.readline())
-            self.domRanCompatible = ast.literal_eval(fp.readline())
-            self.ranDomCompatible = ast.literal_eval(fp.readline())
-            self.ranRanCompatible = ast.literal_eval(fp.readline())
+        if os.path.isfile(path + "compatible_relations.txt"):
+            with open(path + "compatible_relations.txt") as fp:
+                self.domDomCompatible = ast.literal_eval(fp.readline())
+                self.domRanCompatible = ast.literal_eval(fp.readline())
+                self.ranDomCompatible = ast.literal_eval(fp.readline())
+                self.ranRanCompatible = ast.literal_eval(fp.readline())
 
         filePath = path + type + "2id.txt"
         self.list = self.importFile(filePath)
 
         self.relation_anomaly = {}
-        with open(path + "relation2anomaly.txt") as fp:
-            line = fp.readline()
-            while line:
-                pair = line.strip().split()
-                self.relation_anomaly[int(pair[0])] = float(pair[1])
+        for r in self.relations:
+            self.relation_anomaly[r] = 0
+        if os.path.isfile(path + "relation2anomaly.txt"):
+            with open(path + "relation2anomaly.txt") as fp:
                 line = fp.readline()
+                while line:
+                    pair = line.strip().split()
+                    self.relation_anomaly[int(pair[0])] = float(pair[1])
+                    line = fp.readline()
 
     def importFile(self,filePath):
         """
