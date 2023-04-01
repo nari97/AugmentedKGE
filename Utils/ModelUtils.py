@@ -35,6 +35,7 @@ from Models.MuRP import MuRP
 from Models.NagE import NagE
 from Models.pRotatE import pRotatE
 from Models.PairRE import PairRE
+from Models.ProjE import ProjE
 from Models.QuatDE import QuatDE
 from Models.QuatE import QuatE
 from Models.RatE import RatE
@@ -67,6 +68,7 @@ from Models.TransHFT import TransHFT
 from Models.TransHRS import TransHRS
 from Models.TransM import TransM
 from Models.TransMS import TransMS
+from Models.TransMVG import TransMVG
 from Models.TransR import TransR
 from Models.TransRDT import TransRDT
 from Models.TransRFT import TransRFT
@@ -106,7 +108,7 @@ def getModel(model_name, params, other_params=None):
         model_name == "boxe" or model_name == "makr" or model_name == "transms" or model_name == "transers" or \
             model_name == "lpptranse" or model_name == "cycle" or model_name == "combine" or \
             model_name == "transgate" or  model_name == "aprile" or model_name == "combine" or \
-            model_name == "transgate" or  model_name == "aprile" or model_name == "reflecte" or \
+            model_name == "aprile" or model_name == "reflecte" or model_name == "transmvg" or \
             model_name == "structure" or model_name == "transedt" or model_name == "harotate" or \
             model_name == "manifolde" or model_name == "transm" or model_name == "transat" or \
             model_name == "transrdt" or model_name == "transsparsedt" or model_name == "space" or \
@@ -275,6 +277,10 @@ def getModel(model_name, params, other_params=None):
         m = GIE(**kwargs)
     elif model_name == "duale":
         m = DualE(**kwargs)
+    elif model_name == "proje":
+        m = ProjE(**kwargs)
+    elif model_name == "transmvg":
+        m = TransMVG(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -311,11 +317,8 @@ def getModel(model_name, params, other_params=None):
     #   Paths for Representation Learning of Knowledge Bases.
     # TimE: https://www.sciencedirect.com/science/article/abs/pii/S0950705120306936
     # ProtoE: https://www.mdpi.com/2078-2489/13/8/354
-    # TransMVG: https://link.springer.com/chapter/10.1007/978-3-030-62005-9_21
     # RGKE: https://link.springer.com/chapter/10.1007/978-3-030-16142-2_37
     # KALE: https://aclanthology.org/D16-1019.pdf
-    # KGE-CL: Zhiping Luo, Wentao Xu, Weiqing Liu, Jiang Bian, Jian Yin, Tie-Yan Liu: KGE-CL: Contrastive Learning of
-    #   Tensor Decomposition Based Knowledge Graph Embeddings. COLING 2022: 2598-2607
     # UltraE: https://dl.acm.org/doi/10.1145/3534678.3539333
     # https://ieeexplore.ieee.org/document/9533372 (several models partially trained and combined)
     # TransESS: https://ieeexplore.ieee.org/document/9360502
@@ -329,12 +332,31 @@ def getModel(model_name, params, other_params=None):
     #   multi-relational data - Application to word-sense disambiguation,'' Mach. Learn., vol. 94, no. 2, 2014.
     # LFM: R. Jenatton, N. L. Roux, A. Bordes, and G. R. Obozinski, ``A latent factor model for highly multi-relational
     #   data,'' in NIPS, 2012,.
-    # Yuhan Wang, Weidong Xiao, Zhen Tan, Xiang Zhao: Caps-OWKG: a capsule network model for open-world knowledge graph.
-    #   Int. J. Mach. Learn. Cybern. 12(6): 1627-1637 (2021).
     # BiMult: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8353191
     # SimEER: https://downloads.hindawi.com/journals/sp/2018/6325635.pdf
     # BiTransE: https://ieeexplore.ieee.org/document/9754641
+    # RotateCT: Yao Dong, Lei Wang, Ji Xiang, Xiaobo Guo, Yuqiang Xie: RotateCT: Knowledge Graph Embedding by Rotation
+    #   and Coordinate Transformation in Complex Space. COLING 2022: 4918-4932.
+    # DyHHE: Dingyang Duan, Daren Zha, Xiao Yang, Xiaobo Guo: Dynamic Heterogeneous Information Network Embedding in
+    #   Hyperbolic Space. SEKE 2022: 281-286.
+    # Wenying Feng, Daren Zha, Xiaobo Guo, Yao Dong, Yuanye He: Representing Knowledge Graphs with Gaussian Mixture
+    #   Embedding. KSEM 2021: 166-178.
+    # Yao Dong, Xiaobo Guo, Ji Xiang, Kai Liu, Zhihao Tang: HyperspherE: An Embedding Method for Knowledge Graph
+    #   Completion Based on Hypersphere. KSEM 2021: 517-528.
+    # Xiaobo Guo, Neng Gao, Jun Yuan, Lin Zhao, Lei Wang, Sibo Cai: TransBidiFilter: Knowledge Embedding Based on a
+    #   Bidirectional Filter. NLPCC (1) 2020: 232-243.
+
+
     # Regularizer: https://ojs.aaai.org/index.php/AAAI/article/view/20490
+    # Another regularizer: Zhanqiu Zhang, Jianyu Cai, and Jie Wang. 2020a. Duality-induced regularizer for tensor
+    #   factorization based knowledge graph completion. NIPS, 33.
+
+    # New loss function (contrastive learning): Zhiping Luo, Wentao Xu, Weiqing Liu, Jiang Bian, Jian Yin, Tie-Yan Liu:
+    #   KGE-CL: Contrastive Learning of Tensor Decomposition Based Knowledge Graph Embeddings. COLING 2022: 2598-2607.
+    #   (The problem with this loss function is that it does not generalize to the rest of the papers and framework as
+    #   it splits the triples into subparts.)
+    # New loss function: Shoukang Han, Xiaobo Guo, Lei Wang, Zeyi Liu, Nan Mu: Adaptive-Skip-TransE Model: Breaking
+    #   Relation Ambiguities for Knowledge Graph Embedding. KSEM (1) 2019: 549-560.
 
 
 
@@ -357,8 +379,6 @@ def getModel(model_name, params, other_params=None):
     #   data with graph convolutional networks. ESWC 2018. 593–607.
     # CACL: Oh, B., Seo, S., Lee, K.: Knowledge graph completion by context-aware convolutional learning with multi-hop
     #   neighborhoods. In: CIKM, pp. 257–266 (2018).
-    # ProjE: Shi, B., Weninger, T.: ProjE: embedding projection for knowledge graph completion. In: AAAI, pp. 1236–1242
-    #   (2017).
     # LogicENN: https://arxiv.org/pdf/1908.07141.pdf
     # CRNN: https://ieeexplore.ieee.org/document/8890615
     # NTransGH: https://www.sciencedirect.com/science/article/pii/S1877750318310172
@@ -370,6 +390,12 @@ def getModel(model_name, params, other_params=None):
     # RelNN: RelNN: A Deep Neural Model for Relational Learning. Seyed Mehran Kazemi, David Poole. AAAI, 2018.
     # Wang, S.; Wei, X.; dos Santos, C. N.; Wang, Z.; Nallapati, R.; Arnold, A.; Xiang, B.; Philip, S. Y.; and
     #   Cruz, I. F. 2021. Mixed-Curvature Multi-Relational Graph Neural Network for Knowledge Graph Completion. WWW.
+    # Conv3D: Wenying Feng, Daren Zha, Lei Wang, Xiaobo Guo: Convolutional 3D Embedding for Knowledge Graph Completion.
+    #   CSCWD 2022: 1197-1202
+    # GSDM: Xiaobo Guo, Neng Gao, Nan Mu, Yao Dong, Lei Wang, Yuanye He: GSDM: A Gated Semantic Discriminating Model for
+    #   Knowledge Graph Completion. CSCWD 2022: 1360-1365.
+    # Xiaobo Guo, Fali Wang, Neng Gao, Zeyi Liu, Kai Liu: ConvMB: Improving Convolution-Based Knowledge Graph Embeddings
+    #   by Adopting Multi-Branch 3D Convolution Filters. ISPA/BDCloud/SocialCom/SustainCom 2021: 382-389.
 
 
     # ???
@@ -378,3 +404,5 @@ def getModel(model_name, params, other_params=None):
     # https://www.hindawi.com/journals/sp/2020/7084958/
     # GAKE: https://aclanthology.org/C16-1062/ (even though it supports knowledge graphs, it is for regular graphs.)
     # TransG: https://aclanthology.org/P16-1219/ (talks about CRP and how to get M_r from it.)
+    # Xiaobo Guo, Neng Gao, Lei Wang, Xin Wang: TransI: Translating Infinite Dimensional Embeddings Based on Trend
+    #   Smooth Distance. KSEM (1) 2019: 511-523. (How do you compute the function?)

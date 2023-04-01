@@ -2,22 +2,26 @@ from DataLoader.TripleManager import TripleManager
 from Train.Evaluator import Evaluator, RankCollector
 from Train.Trainer import Trainer
 from Utils import ModelUtils, LossUtils, DatasetUtils, HyperparameterUtils
-from ax.service.managed_loop import optimize
+from ax.service.ax_client import AxClient
 import time
 import os
-import sys
 import torch
 
 
 def run():
+    # TODO Trying!!
     # This is the main folder where AKGE is located.
-    folder = sys.argv[1]
+    #folder = sys.argv[1]
     # This is the file that contains the configuration: algo,dataset,split.
-    config_file = sys.argv[2]
+    #config_file = sys.argv[2]
     # This is the line to read in the file.
-    index = int(sys.argv[3])
+    #index = int(sys.argv[3])
     # This seed will be used to generate the same points with Sobol sequence (the answer to the ultimate question).
     seed = 42
+
+    folder = ''
+    config_file = 'Expl'
+    index = 70
 
     # Read file.
     with open(config_file) as f:
@@ -40,7 +44,9 @@ def run():
     # Validation and max epochs.
     validation_epochs, train_times = 10, 10
     # Strategy to generate negatives.
-    corruption_mode = "LCWA"
+    # TODO Change!
+    #corruption_mode = "LCWA"
+    corruption_mode = "Global"
     # Metric to use.
     metric_str = "mr"
     # Total trials indicate how many points we will inspect in the hyperparameter value optimization.
@@ -53,7 +59,8 @@ def run():
 
     # Hyperparameters that are constant.
     # If you set weight decay, you are using L2 regularization without control.
-    hyperparameters = {"batch_size": 1000, "nr": 25, "dim": 100, "dime": 100, "dimr": 100,
+    # TODO Decide parameters!
+    hyperparameters = {"batch_size": 1000, "nr": 5, "dim": 10, "dime": 10, "dimr": 10,
                        "lr": None, "momentum": None, "weight_decay": None, "opt_method": "adam", "seed": seed}
 
     # Loading dataset.
@@ -62,7 +69,11 @@ def run():
     # We assume we will be using Bernouilli, this is because TripleManager computes extra stuff if it is enabled. Then,
     #   below, we select whether we are using it or not.
     train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=hyperparameters["batch_size"],
-                              neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode, seed=seed, use_bern=True)
+                                  neg_rate=hyperparameters["nr"], corruption_mode=corruption_mode, seed=seed,
+                                  use_bern=True)
+    valid_manager = TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
+                                  batch_size=hyperparameters["batch_size"], neg_rate=hyperparameters["nr"],
+                                  corruption_mode=corruption_mode)
     end = time.perf_counter()
     print("Dataset initialization time: ", end - start)
 
@@ -75,9 +86,12 @@ def run():
     hyperparameters["tail_context"] = train_manager.tailDict
 
     # Get checkpoint file.
-    checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + "_" + str(index)
+    checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + \
+                     "_" + str(index) + "_" + config_file
     checkpoint_file = os.path.join(checkpoint_dir + ".ckpt")
+    ax_file = os.path.join(checkpoint_dir + ".ax")
 
+    # TODO Decide parameters!
     params_to_optimize = [
         # Regularization.
         {"name": "lmbda", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
@@ -109,8 +123,8 @@ def run():
                                  other_margin=hyperparameters["other_margin"], reg_type=hyperparameters["reg_type"],
                                  neg_weight=hyperparameters["weight_negatives"])
 
-        validation = Evaluator(train_manager, rel_anomaly_max=rel_anomaly_max,
-                               rel_anomaly_min=rel_anomaly_min, batched=False)
+        validation = Evaluator(valid_manager, rel_anomaly_max=rel_anomaly_max, rel_anomaly_min=rel_anomaly_min,
+                               batched=False)
 
         # Initialize model from scratch
         loss.model.initialize_model()
@@ -131,6 +145,9 @@ def run():
         # Whether to use Bernoulli or uniform when corrupting heads/tails.
         train_manager.use_bern = hyperparameters["use_bern"]
 
+        # Restart the managers.
+        train_manager.restart()
+
         # Let's train!
         trainer = Trainer(loss=loss, train=train_manager, validation=validation, train_times=train_times,
                           save_steps=validation_epochs, optimizer=optimizer)
@@ -146,22 +163,35 @@ def run():
         if saving_file is not None:
             torch.save(loss.model, saving_file)
 
-        # Return MR.
-        return current_collector.get_metric().get()
+        # Return MR (and standard error, .0 in our case).
+        return current_collector.get_metric().get(), .0
 
     # Optimize using Ax.
-    best_parameters, values, experiment, model = optimize(
-        parameters=params_to_optimize,
-        evaluation_function=train_evaluate,
-        objective_name=metric_str,
-        minimize=True,
+    ax_client = AxClient(
         # Note that this does not guarantee reproducibility. See:
         #   https://github.com/facebook/Ax/issues/151#issuecomment-524446967
         random_seed=seed,
-        total_trials=total_trials,
     )
 
+    ax_client.create_experiment(
+        name="hyperparameter_optimization_experiment",
+        parameters=params_to_optimize,
+        objective_name=metric_str,
+        minimize=True, )
+
+    if os.path.exists(ax_file):
+        # Load for resume!
+        ax_client = ax_client.load_from_json_file(filepath=ax_file)
+        total_trials -= len(ax_client.experiment.trials)
+
+    for i in range(total_trials):
+        parameters, trial_index = ax_client.get_next_trial()
+        ax_client.complete_trial(trial_index=trial_index, raw_data=train_evaluate(parameters))
+        ax_client.save_to_json_file(filepath=ax_file)
+
+    best_parameters, values = ax_client.get_best_parameters()
     print('Best hyperparameters found:', best_parameters)
+
     # Train again with best hyperparameter values and save.
     train_evaluate(parameterization=best_parameters, saving_file=checkpoint_file)
 
