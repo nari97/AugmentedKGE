@@ -64,7 +64,7 @@ class Trainer(object):
                     if self.validation is not None:
                         start = time.perf_counter()
                         # TODO: Try with negative sign and pick the best value.
-                        new_collector = self.validation.evaluate(self.loss.model)
+                        new_collector = self.validation.evaluate_top_k(self.loss.model, None)
                         end = time.perf_counter()
                         print("Validation metric: ", new_collector.get_metric(metric_str=metric_str).get(),
                               "; Time:", end-start)
