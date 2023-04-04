@@ -86,7 +86,7 @@ class TopK(object):
 
                 totalTriples = 1 + len(corruptedHeads) + len(corruptedTails)
 
-                triples = np.zeros((totalTriples, 4))
+                triples = np.zeros((totalTriples, 3))
 
                 triples[0, 0:3] = [t.h, t.r, t.t]
 
@@ -100,29 +100,36 @@ class TopK(object):
                 triples[1 + len(corruptedHeads):, 1] = t.r
                 triples[1 + len(corruptedHeads):, 2] = list(corruptedTails)
 
-                scores = self.predict(triples[:, 0], triples[:, 1], triples[:, 2], model)
+                scores = self.predict(triples[:, 0], triples[:, 1], triples[:, 2], model).flatten()
 
-                triples[:, 3] = scores.detach().numpy()
+                positive_score = scores[0].unsqueeze(dim=0)
+                scores_head = scores[1:corruptedHeadsEnd]
+                scores_tail = scores[corruptedHeadsEnd:]
 
-                top_k_triples_head = get_top_k_triples(triples[0:corruptedHeadsEnd], k=k)
-                top_k_triples_tail = get_top_k_triples(np.vstack((triples[0, :], triples[corruptedHeadsEnd:, :])),
-                                                       k=k)
+                top_k_triples_head_index = torch.topk(torch.cat((positive_score, scores_head), dim=0), k=k).indices
+                top_k_triples_tail_index = torch.topk(torch.cat((positive_score, scores_tail), dim=0), k=k).indices
 
-                for index in range(len(top_k_triples_head)):
-                    k_triple = top_k_triples_head[index]
+                for ctr in range(0, len(top_k_triples_head_index)):
+                    index = top_k_triples_head_index[ctr]
+                    k_triple = triples[index, :]
                     triple_to_add = (int(k_triple[0]), int(r), int(k_triple[1]))
                     if triple_to_add in top_k_triples:
-                        top_k_triples[triple_to_add] = min(top_k_triples[triple_to_add], index + 1)
+                        top_k_triples[triple_to_add] = min(top_k_triples[triple_to_add], ctr + 1)
                     else:
-                        top_k_triples[triple_to_add] = index + 1
+                        top_k_triples[triple_to_add] = ctr + 1
 
-                for index in range(len(top_k_triples_tail)):
-                    k_triple = top_k_triples_tail[index]
+                for ctr in range(0, len(top_k_triples_tail_index)):
+                    index = top_k_triples_tail_index[ctr]
+                    if index == 0:
+                        k_triple = triples[index, :]
+                    else:
+                        k_triple = triples[corruptedHeadsEnd + index - 1][:]
+
                     triple_to_add = (int(k_triple[0]), int(r), int(k_triple[1]))
                     if triple_to_add in top_k_triples:
-                        top_k_triples[triple_to_add] = min(top_k_triples[triple_to_add], index + 1)
+                        top_k_triples[triple_to_add] = min(top_k_triples[triple_to_add], ctr + 1)
                     else:
-                        top_k_triples[triple_to_add] = index + 1
+                        top_k_triples[triple_to_add] = ctr + 1
 
         top_k_file = open(f"{materialize_basefile}_top_{k}.pickle", "wb")
         pickle.dump(top_k_triples, top_k_file)
