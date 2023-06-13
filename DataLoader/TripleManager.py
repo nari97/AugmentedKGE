@@ -186,6 +186,9 @@ class TripleManager():
                 headEntities = set()
                 if self.corruption_mode == "LCWA":
                     headEntities = self.entitySet
+                # Heads are those that are in the range but not in the domain.
+                elif self.corruption_mode == "Local":
+                    headEntities = ran[r] - dom[r]
                 elif self.corruption_mode == "TCLCWA":
                     headEntities = dom[r]
                 elif self.corruption_mode == "NLCWA":
@@ -214,6 +217,9 @@ class TripleManager():
                 tailEntities = set()
                 if self.corruption_mode == "LCWA":
                     tailEntities = self.entitySet
+                # Tails are those that are in the domain but not in the range.
+                elif self.corruption_mode == "Local":
+                    tailEntities = dom[r] - ran[r]
                 elif self.corruption_mode == "TCLCWA":
                     tailEntities = ran[r]
                 elif self.corruption_mode == "NLCWA":

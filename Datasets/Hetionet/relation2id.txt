@@ -1,0 +1,25 @@
+24
+AdG	0
+AeG	1
+AuG	2
+CbG	3
+CcSE	4
+CdG	5
+CpD	6
+CrC	7
+CtD	8
+CuG	9
+DaG	10
+DdG	11
+DlA	12
+DpS	13
+DrD	14
+DuG	15
+GcG	16
+GiG	17
+GpBP	18
+GpCC	19
+GpMF	20
+GpPW	21
+Gr>G	22
+PCiC	23
