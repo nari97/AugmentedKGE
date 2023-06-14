@@ -34,8 +34,8 @@ class Loss(nn.Module):
             loss_res = self.lossFn(score, data["batch_y"])
 
         # Apply constraints.
-        constraints = torch.tensor([self.model.constraints(data)], device=score.device)
+        constraints = self.model.constraints(data)
         # Apply regularization.
-        regularization = torch.tensor([self.model.regularization(data, reg_type=self.reg_type)], device=score.device)
+        regularization = self.model.regularization(data, reg_type=self.reg_type)
 
         return loss_res + self.wc * constraints + self.lmbda * regularization

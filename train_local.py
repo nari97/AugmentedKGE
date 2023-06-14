@@ -10,7 +10,16 @@ import os
 
 def run(model_name=None):
     folder = ''
-    model_name, dataset, split_prefix, point = 'duale_full', 6, '', 0
+    model_name, dataset, split_prefix, point = 'sattle', 6, '', 0
+
+    other_parameters = {}
+    # Only for TransSparse; either share or separate
+    #other_parameters["sparse_type"] = 'share'
+    # Only for SAttLE.
+    other_parameters["nhead"] = 1
+    other_parameters["num_encoder_layers"] = 1
+    other_parameters["num_decoder_layers"] = 1
+    other_parameters["dim_feedforward"] = 2
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
@@ -59,9 +68,8 @@ def run(model_name=None):
 
     print("Model:", model_name, "; Dataset:", dataset_name, "; Corruption:", corruption_mode)
 
-    # Only for TransSparse; either share or separate
-    parameters["sparse_type"] = 'share'
     print("Parameters:", parameters)
+    print("Other parameters:", other_parameters)
 
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
@@ -74,7 +82,7 @@ def run(model_name=None):
     parameters["head_context"] = train_manager.headDict
     parameters["tail_context"] = train_manager.tailDict
 
-    mu = ModelUtils.getModel(model_name, parameters)
+    mu = ModelUtils.getModel(model_name, parameters, other_parameters)
     mu.set_hyperparameters(parameters)
     print("Model name : ", mu.get_model_name())
 

@@ -45,6 +45,7 @@ from Models.RodE import RodE
 from Models.RotatE import RotatE
 from Models.RotatE3D import RotatE3D
 from Models.RotPro import RotPro
+from Models.SAttLE import SAttLE
 from Models.SE import SE
 from Models.SEEK import SEEK
 from Models.SimplE import SimplE
@@ -281,6 +282,8 @@ def getModel(model_name, params, other_params=None):
         m = ProjE(**kwargs)
     elif model_name == "transmvg":
         m = TransMVG(**kwargs)
+    elif model_name == "sattle":
+        m = SAttLE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -289,6 +292,7 @@ def getModel(model_name, params, other_params=None):
 
     # TODO: https://github.com/xinguoxia/KGE
     # TODO: https://github.com/LIANGKE23/Awesome-Knowledge-Graph-Reasoning
+    # TODO: https://www.mdpi.com/2079-9292/11/23/3866 (surveys software frameworks).
     # ConE (https://arxiv.org/pdf/2110.14923v2.pdf) works with hierarchies that can be pre-computed, see Appendix H.
     # TransC (requires instanceOf and subclassOf triples): https://aclanthology.org/D18-1222.pdf
     # KEC (requires concepts): https://www.sciencedirect.com/science/article/pii/S0950705118304945
@@ -300,6 +304,7 @@ def getModel(model_name, params, other_params=None):
     # GTransE (it is for uncertain knowledge graphs): https://link.springer.com/chapter/10.1007/978-3-030-39878-1_16
     # HypE (hypergraphs): https://www.ijcai.org/proceedings/2020/303
     # Caps-OWKG (uses text descriptions): https://doi.org/10.1007/s13042-020-01259-4
+    # TransO (requires ontology information): https://link.springer.com/article/10.1007/s11280-022-01016-3
 
     # 5*E: https://ojs.aaai.org/index.php/AAAI/article/view/17095
     # ODE: https://aclanthology.org/2021.emnlp-main.750/
@@ -373,6 +378,7 @@ def getModel(model_name, params, other_params=None):
     # WGE: https://arxiv.org/abs/2112.09231
     # https://www.sciencedirect.com/science/article/abs/pii/S095070512200870X
     # https://www.sciencedirect.com/science/article/abs/pii/S0950705121004500
+    # https://www.sciencedirect.com/science/article/pii/S0950705122012205
     # https://aclanthology.org/2020.emnlp-main.460/
     # https://arxiv.org/abs/2205.12102
     # R-GCN: Schlichtkrull, M., Kipf, T.N., Bloem, P., van den Berg, R., Titov, I., Welling, M.: Modeling relational
@@ -396,6 +402,14 @@ def getModel(model_name, params, other_params=None):
     #   Knowledge Graph Completion. CSCWD 2022: 1360-1365.
     # Xiaobo Guo, Fali Wang, Neng Gao, Zeyi Liu, Kai Liu: ConvMB: Improving Convolution-Based Knowledge Graph Embeddings
     #   by Adopting Multi-Branch 3D Convolution Filters. ISPA/BDCloud/SocialCom/SustainCom 2021: 382-389.
+    # HopfE: https://dl.acm.org/doi/10.1145/3459637.3482263
+    # CoKE: Q. Wang, P. Huang, H. Wang, S. Dai, W. Jiang, J. Liu, Y. Lyu, Y. Zhu, H. Wu, CoKE:
+    #   Contextualized knowledge graph embedding, 2019.
+    # HittER: S. Chen, X. Liu, J. Gao, J. Jiao, R. Zhang, Y. Ji, HittER: Hierarchical transformers for knowledge graph
+    #   embeddings, in: EMNLP, 2021, pp. 10395–10407. --> https://github.com/microsoft/HittER/blob/main/kge/model/trme.py#L190
+    # CompGCN: Shikhar Vashishth, Soumya Sanyal, Vikram Nitin, and Partha Talukdar. 2020. Composition-based multi-
+    #   relational graph convolutional networks. In ICLR.
+
 
 
     # ???

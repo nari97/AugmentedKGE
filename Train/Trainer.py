@@ -22,9 +22,14 @@ class Trainer(object):
         self.save_valid = save_valid
         self.save_checkpoint = save_checkpoint
 
-    def train_one_step(self, data):
+    def train_one_step(self, data, epoch):
         # Apply normalization.
         self.loss.model.start_batch()
+
+        # Checking constraints! This must be zero?
+        # checking = self.loss.model.constraints(data)
+        # if checking.item() > 0 and epoch > 1:
+        #     print('Constraints greater than zero:', checking.item())
 
         self.optimizer.zero_grad()
 
@@ -64,7 +69,7 @@ class Trainer(object):
                     if self.validation is not None:
                         start = time.perf_counter()
                         # TODO: Try with negative sign and pick the best value.
-                        new_collector = self.validation.evaluate_top_k(self.loss.model, None)
+                        new_collector = self.validation.evaluate(self.loss.model)
                         end = time.perf_counter()
                         print("Validation metric: ", new_collector.get_metric(metric_str=metric_str).get(),
                               "; Time:", end-start)
@@ -98,7 +103,7 @@ class Trainer(object):
                 for data in self.train:
                     end_neg = time.perf_counter()
                     time_neg += end_neg - start_neg
-                    res += self.train_one_step(data).item()
+                    res += self.train_one_step(data, epoch).item()
                     start_neg = time.perf_counter()
 
                 self.loss.model.epoch = epoch

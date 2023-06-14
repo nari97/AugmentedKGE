@@ -163,7 +163,7 @@ class Model(nn.Module):
                     with torch.no_grad():
                         a = norm_info['params'].get('a', None)
                         b = norm_info['params'].get('b', None)
-                        emb.emb.clamp(min=a, max=b)
+                        emb.emb.clamp_(min=a, max=b)
                 elif norm_info['method'] is None:
                     pass
                 else:
@@ -188,7 +188,7 @@ class Model(nn.Module):
         all_constraints = {'custom': self.custom_constraints, 'scale': self.scale_constraints,
                            'onthefly': self.onthefly_constraints}
 
-        constraints = 0
+        constraints = []
         for key in all_constraints.keys():
             for c in all_constraints[key]:
                 v = []
@@ -204,9 +204,12 @@ class Model(nn.Module):
                     v.append(c)
 
                 for x in v:
-                    constraints += torch.sum(x)
+                    constraints.append(x)
 
-        return constraints
+        if len(constraints) > 0:
+            return torch.sum(torch.concat(constraints))
+        else:
+            return 0
 
     # Applies the constraint ||x||_p<=z when ctype='le', and ||x||_p>=z when ctype='ge'.
     # Check, for instance, TransH and GTrans on how these are applied.
@@ -233,7 +236,7 @@ class Model(nn.Module):
 
     # Apply regularization.
     def regularization(self, data, reg_type='L2'):
-        reg, total = 0, 0
+        reg, total = [], 0
 
         head_emb = self.get_head_embeddings(data)
         tail_emb = self.get_tail_embeddings(data)
@@ -254,7 +257,7 @@ class Model(nn.Module):
                 for e in embeds_to_apply:
                     reg_params = self.embeddings_regularization[etype][ename]
                     r = self.apply_individual_regularization(e[ename], reg_type, reg_params)
-                    reg += torch.sum(r)
+                    reg.append(r)
                     total += len(r)
 
         for etype in self.embeddings_regularization_complex.keys():
@@ -273,13 +276,18 @@ class Model(nn.Module):
                     reg_params = d["params"]
                     complex = torch.view_as_complex(torch.stack((real_part, img_part), dim=-1))
                     r = self.apply_individual_regularization(complex, reg_type, reg_params)
-                    reg += torch.sum(r)
+                    reg.append(r)
                     total += len(r)
 
         for (x, reg_params) in self.onthefly_regularization:
             r = self.apply_individual_regularization(x, reg_type, reg_params)
-            reg += torch.sum(r)
+            reg.append(r)
             total += len(r)
+
+        if len(reg) > 0:
+            reg = torch.sum(torch.concat(reg))
+        else:
+            reg = 0
 
         # TODO Clear here?
         # Clear on-the-fly regularization.

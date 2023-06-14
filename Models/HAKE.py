@@ -30,10 +30,14 @@ class HAKE(Model):
         self.create_embedding(self.dim, emb_type="entity", name="em")
         # rm is always positive (see Table 1 and Section 3).
         self.create_embedding(self.dim, emb_type="relation", name="rm",
-                              norm_method="rescaling", norm_params={"a": 0})
+                              # If it is negative, rescaling includes many zeroes and makes the modulus scores be very
+                              #     large.
+                              init_method="uniform", init_params=[0, 1],
+                              norm_method="rescaling", norm_params={"a": 1e-10})
         # Every element in rmprime must be between 0 and 1. From the paper: "0 < r_m' < 1."
         self.create_embedding(self.dim, emb_type="relation", name="rmprime",
-                              norm_method="rescaling", norm_params={"a": 0, "b": 1})
+                              init_method="uniform", init_params=[0, 1],
+                              norm_method="rescaling", norm_params={"a": 1e-10, "b": 1-1e-10})
 
         # Include all embeddings related to phases.
         if self.variant == 'both':

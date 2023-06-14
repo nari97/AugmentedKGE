@@ -300,6 +300,7 @@ class Evaluator(object):
             tree[(h, t)] = np.array((0, 0))
         tree[(h, t)][i] = tree[(h, t)][i] + 1
 
+    # TODO This can be inline!
     def frac_rank(self, less, eq):
         return (2 * less + eq + 1) / 2
 
