@@ -10,16 +10,16 @@ import os
 
 def run(model_name=None):
     folder = ''
-    model_name, dataset, split_prefix, point = 'sattle', 6, '', 0
+    model_name, dataset, split_prefix, point = 'fivestare', 6, '', 0
 
     other_parameters = {}
     # Only for TransSparse; either share or separate
     #other_parameters["sparse_type"] = 'share'
     # Only for SAttLE.
-    other_parameters["nhead"] = 1
-    other_parameters["num_encoder_layers"] = 1
-    other_parameters["num_decoder_layers"] = 1
-    other_parameters["dim_feedforward"] = 2
+    #other_parameters["nhead"] = 1
+    #other_parameters["num_encoder_layers"] = 1
+    #other_parameters["num_decoder_layers"] = 1
+    #other_parameters["dim_feedforward"] = 2
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0

@@ -20,11 +20,10 @@ class SAttLE(Model):
         self.dim = dim
         self.apply_sigmoid = apply_sigmoid
         # dim*2 because we stack h and r.
-        self.transformer = torch.nn.Transformer(d_model=self.dim*2, nhead=nhead, num_encoder_layers=num_encoder_layers,
-                                                num_decoder_layers=num_decoder_layers, dim_feedforward=dim_feedforward,
-                                                dtype=torch.float64)
-        # This will give us the scores.
-        self.fc = torch.nn.Linear(self.dim*2, 1, dtype=torch.float64)
+        self.encoder_layer = torch.nn.TransformerEncoderLayer(d_model=self.dim*2, nhead=nhead,
+                                                              dim_feedforward=dim_feedforward, batch_first=True,
+                                                              dtype=torch.float64)
+        self.encoder = torch.nn.TransformerEncoder(self.encoder_layer, num_encoder_layers)
 
     def get_default_loss(self):
         # See Eq. (8).
@@ -41,11 +40,11 @@ class SAttLE(Model):
 
     # Check: https://github.com/pbaghershahi/SAttLE/blob/main/model.py#L214
     def _calc(self, h, r, t, is_predict=False):
-        # Transform: encoding stack of h and r, and decoding t duplicated.
-        transformation = self.transformer(torch.hstack((h, r)), torch.hstack((t, t)))
-        # In the paper, only the transformed r is used (Eq. (5)), which is the second part of the transformation. We use
-        #   the whole vector here.
-        scores = self.fc(transformation)
+        # We stack h and r to provide them to the encoder.
+        # In the paper, only the transformed r is used (Eq. (5)), which is the second part of the transformation.
+        transformation = self.encoder(torch.hstack((h, r)))[:,self.dim:self.dim*2]
+        # Decoding is just multiplying.
+        scores = torch.sum(transformation * t, dim=-1)
 
         # Apply sigmoid when predicting or when indicated by apply_sigmoid.
         if is_predict or self.apply_sigmoid:

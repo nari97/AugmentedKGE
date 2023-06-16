@@ -12,6 +12,7 @@ from Models.DihEdral import DihEdral
 from Models.DistMult import DistMult
 from Models.DensE import DensE
 from Models.DualE import DualE
+from Models.FiveStarE import FiveStarE
 from Models.GCOTE import GCOTE
 from Models.GeomE import GeomE
 from Models.GIE import GIE
@@ -19,6 +20,7 @@ from Models.GTrans import GTrans
 from Models.HAKE import HAKE
 from Models.HARotatE import HARotatE
 from Models.HolE import HolE
+from Models.HopfE import HopfE
 from Models.HypER import HypER
 from Models.HyperKG import HyperKG
 from Models.ITransF import ITransF
@@ -44,6 +46,7 @@ from Models.ReflectE import ReflectE
 from Models.RodE import RodE
 from Models.RotatE import RotatE
 from Models.RotatE3D import RotatE3D
+from Models.RotateCT import RotateCT
 from Models.RotPro import RotPro
 from Models.SAttLE import SAttLE
 from Models.SE import SE
@@ -284,6 +287,12 @@ def getModel(model_name, params, other_params=None):
         m = TransMVG(**kwargs)
     elif model_name == "sattle":
         m = SAttLE(**kwargs)
+    elif model_name == "hopfe":
+        m = HopfE(**kwargs)
+    elif model_name == "rotatect":
+        m = RotateCT(**kwargs)
+    elif model_name == "fivestare":
+        m = FiveStarE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -306,7 +315,8 @@ def getModel(model_name, params, other_params=None):
     # Caps-OWKG (uses text descriptions): https://doi.org/10.1007/s13042-020-01259-4
     # TransO (requires ontology information): https://link.springer.com/article/10.1007/s11280-022-01016-3
 
-    # 5*E: https://ojs.aaai.org/index.php/AAAI/article/view/17095
+
+
     # ODE: https://aclanthology.org/2021.emnlp-main.750/
     # AEM: https://ieeexplore.ieee.org/document/8545570
     # TRPE: https://www.sciencedirect.com/science/article/pii/S092523122200889X
@@ -340,8 +350,6 @@ def getModel(model_name, params, other_params=None):
     # BiMult: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8353191
     # SimEER: https://downloads.hindawi.com/journals/sp/2018/6325635.pdf
     # BiTransE: https://ieeexplore.ieee.org/document/9754641
-    # RotateCT: Yao Dong, Lei Wang, Ji Xiang, Xiaobo Guo, Yuqiang Xie: RotateCT: Knowledge Graph Embedding by Rotation
-    #   and Coordinate Transformation in Complex Space. COLING 2022: 4918-4932.
     # DyHHE: Dingyang Duan, Daren Zha, Xiao Yang, Xiaobo Guo: Dynamic Heterogeneous Information Network Embedding in
     #   Hyperbolic Space. SEKE 2022: 281-286.
     # Wenying Feng, Daren Zha, Xiaobo Guo, Yao Dong, Yuanye He: Representing Knowledge Graphs with Gaussian Mixture
@@ -402,13 +410,14 @@ def getModel(model_name, params, other_params=None):
     #   Knowledge Graph Completion. CSCWD 2022: 1360-1365.
     # Xiaobo Guo, Fali Wang, Neng Gao, Zeyi Liu, Kai Liu: ConvMB: Improving Convolution-Based Knowledge Graph Embeddings
     #   by Adopting Multi-Branch 3D Convolution Filters. ISPA/BDCloud/SocialCom/SustainCom 2021: 382-389.
-    # HopfE: https://dl.acm.org/doi/10.1145/3459637.3482263
     # CoKE: Q. Wang, P. Huang, H. Wang, S. Dai, W. Jiang, J. Liu, Y. Lyu, Y. Zhu, H. Wu, CoKE:
-    #   Contextualized knowledge graph embedding, 2019.
+    #   Contextualized knowledge graph embedding, 2019. --> https://github.com/PaddlePaddle/Research/blob/master/KG/CoKE/bin/model/coke.py
     # HittER: S. Chen, X. Liu, J. Gao, J. Jiao, R. Zhang, Y. Ji, HittER: Hierarchical transformers for knowledge graph
     #   embeddings, in: EMNLP, 2021, pp. 10395–10407. --> https://github.com/microsoft/HittER/blob/main/kge/model/trme.py#L190
     # CompGCN: Shikhar Vashishth, Soumya Sanyal, Vikram Nitin, and Partha Talukdar. 2020. Composition-based multi-
     #   relational graph convolutional networks. In ICLR.
+    # Wenpeng Yin, Yadollah Yaghoobzadeh, and Hinrich Schütze. 2018. Recurrent one-hop predictions for reasoning over
+    #   knowledge graphs. In COLING, 2369–2378.
 
 
 
