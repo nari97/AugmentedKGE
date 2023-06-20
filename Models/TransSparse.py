@@ -37,15 +37,15 @@ class TransSparse(Model):
         self.sparse_degrees = {}
         for loc in locations:
             # Find maximum.
-            max = -1;
+            max_ = -1
             for r in pc:
                 if pc[r][loc] > max:
-                    max = pc[r][loc]
+                    max_ = pc[r][loc]
             # Compute sparsity (see Eqs. (1) and (3)).
             for r in pc:
                 if r not in self.sparse_degrees:
                     self.sparse_degrees[r] = {}
-                self.sparse_degrees[r][loc] = 1 - ((1 - sp_deg_min) * pc[r][loc] / max)
+                self.sparse_degrees[r][loc] = 1 - ((1 - sp_deg_min) * pc[r][loc] / max_)
 
     def get_default_loss(self):
         # Eq. (6).

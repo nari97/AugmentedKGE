@@ -10,7 +10,7 @@ class SEEK(Model):
     def __init__(self, ent_total, rel_total, dim, k=4):
         """
             dim (int): Number of dimensions for embeddings
-            k (int): Number of segments to use.
+            k (int): Number of segments to use. Default: 4 (see Figure 3; best choice between MRR and running time).
         """
         super(SEEK, self).__init__(ent_total, rel_total)
         self.dim = dim

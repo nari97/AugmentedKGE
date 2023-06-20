@@ -6,22 +6,18 @@ from ax.service.ax_client import AxClient
 import time
 import os
 import torch
+import sys
 
 
 def run():
-    # TODO Trying!!
     # This is the main folder where AKGE is located.
-    #folder = sys.argv[1]
+    folder = sys.argv[1]
     # This is the file that contains the configuration: algo,dataset,split.
-    #config_file = sys.argv[2]
+    config_file = sys.argv[2]
     # This is the line to read in the file.
-    #index = int(sys.argv[3])
+    index = int(sys.argv[3])
     # This seed will be used to generate the same points with Sobol sequence (the answer to the ultimate question).
     seed = 42
-
-    folder = ''
-    config_file = 'Expl'
-    index = 70
 
     # Read file.
     with open(config_file) as f:
@@ -42,9 +38,7 @@ def run():
     # Validation and max epochs.
     validation_epochs, train_times = 10, 10
     # Strategy to generate negatives.
-    # TODO Change!
-    #corruption_mode = "LCWA"
-    corruption_mode = "Global"
+    corruption_mode = "LCWA"
     # Metric to use.
     metric_str = "mr"
     # Total trials indicate how many points we will inspect in the hyperparameter value optimization.
@@ -58,7 +52,7 @@ def run():
     # Hyperparameters that are constant.
     # If you set weight decay, you are using L2 regularization without control.
     # TODO Decide parameters!
-    hyperparameters = {"batch_size": 1000, "nr": 5, "dim": 10, "dime": 10, "dimr": 10,
+    hyperparameters = {"batch_size": 1500, "nr": 25, "dim": 150, "dime": 150, "dimr": 150,
                        "lr": None, "momentum": None, "weight_decay": None, "opt_method": "adam", "seed": seed}
 
     # Loading dataset.
@@ -84,12 +78,10 @@ def run():
     hyperparameters["tail_context"] = train_manager.tailDict
 
     # Get checkpoint file.
-    checkpoint_dir = folder + "Model/" + str(dataset) + "/" + model_name + "_" + split_prefix + \
-                     "_" + str(index) + "_" + config_file
+    checkpoint_dir = folder+"Model/"+str(dataset)+"/"+model_name+"_"+split_prefix+"_"+str(index)+"_"+config_file
     checkpoint_file = os.path.join(checkpoint_dir + ".ckpt")
     ax_file = os.path.join(checkpoint_dir + ".ax")
 
-    # TODO Decide parameters!
     params_to_optimize = [
         # Regularization.
         {"name": "lmbda", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},

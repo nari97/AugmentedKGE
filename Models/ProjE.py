@@ -6,12 +6,13 @@ class ProjE(Model):
     """
     Baoxu Shi, Tim Weninger: ProjE: Embedding Projection for Knowledge Graph Completion. AAAI 2017: 1236-1242.
     """
-    def __init__(self, ent_total, rel_total, dim, apply_sigmoid=False, hidden_dropout=0.3, variant='pointwise'):
+    def __init__(self, ent_total, rel_total, dim, apply_sigmoid=False, hidden_dropout=0.5, variant='pointwise'):
         """
             dim (int): Number of dimensions for embeddings
             apply_sigmoid (Bool): Whether sigmoid must be applied to scores during training. Note that BCEWithLogitsLoss
                 already applies sigmoid, so, if this is the loss function used, apply_sigmoid must be set to False. If
                 a different loss function is applied, then apply_sigmoid should be set to True.
+            hidden_dropout: dropout percentage to apply. Default: 0.5 (see Experiments section).
             variant can be pointwise or listwise.
         """
         super(ProjE, self).__init__(ent_total, rel_total)
