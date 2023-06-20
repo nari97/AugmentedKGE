@@ -30,11 +30,9 @@ def run():
             line_count += 1
             line = f.readline()
             # Get configuration.
-            model_name, dataset, split_prefix, last_inspected = line.split(',')
+            model_name, dataset, split_prefix = line.split(',')
             split_prefix = split_prefix.strip()
             dataset = int(dataset)
-            # This is the last point in the Sobol sequence that was inspected. Change this to resume.
-            last_inspected = int(last_inspected)
             if line_count == index+1:
                 break
 

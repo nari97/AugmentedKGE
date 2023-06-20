@@ -2,7 +2,7 @@ import torch
 from Models.Model import Model
 
 
-class TransA(Model):
+class TransG(Model):
     """
     Han Xiao, Minlie Huang, Xiaoyan Zhu: TransG : A Generative Model for Knowledge Graph Embedding. ACL (1) 2016.
     """
@@ -10,7 +10,7 @@ class TransA(Model):
         """
             dim (int): Number of dimensions for embeddings
         """
-        super(TransA, self).__init__(ent_total, rel_total)
+        super(TransG, self).__init__(ent_total, rel_total)
         self.dim = dim
 
     def get_default_loss(self):

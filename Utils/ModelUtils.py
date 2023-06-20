@@ -57,7 +57,6 @@ from Models.SpacE import SpacE
 from Models.StructurE import StructurE
 from Models.TimE import TimE
 from Models.Trans4E import Trans4E
-from Models.TransA import TransA
 from Models.TransAt import TransAt
 from Models.TransD import TransD
 from Models.TransComplEx import TransComplEx
@@ -67,6 +66,7 @@ from Models.TransEDT import TransEDT
 from Models.TransEdge import TransEdge
 from Models.TransEFT import TransEFT
 from Models.TransERS import TransERS
+from Models.TransG import TransG
 from Models.TransGate import TransGate
 from Models.TransH import TransH
 from Models.TransHFT import TransHFT
@@ -167,8 +167,8 @@ def getModel(model_name, params, other_params=None):
         m = CrossE(**kwargs)
     elif model_name == "hake":
         m = HAKE(**kwargs)
-    elif model_name == "transa":
-        m = TransA(**kwargs)
+    elif model_name == "transg":
+        m = TransG(**kwargs)
     elif model_name == "rescal":
         m = RESCAL(**kwargs)
     elif model_name == "murp":

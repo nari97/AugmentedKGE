@@ -37,18 +37,18 @@ class DihEdral(Model):
         for m in range(self.K):
             ok = self.create_embedding((2, 2), emb_type="global", register=False)
             ok.requires_grad = False
-            ok.emb.data[0,0,0] = np.cos(2 * np.pi * m / self.K)
-            ok.emb.data[0,0,1] = -np.sin(2 * np.pi * m / self.K)
-            ok.emb.data[0,1,0] = np.sin(2 * np.pi * m / self.K)
-            ok.emb.data[0,1,1] = np.cos(2 * np.pi * m / self.K)
+            ok.emb.data[0, 0, 0] = np.cos(2 * np.pi * m / self.K)
+            ok.emb.data[0, 0, 1] = -np.sin(2 * np.pi * m / self.K)
+            ok.emb.data[0, 1, 0] = np.sin(2 * np.pi * m / self.K)
+            ok.emb.data[0, 1, 1] = np.cos(2 * np.pi * m / self.K)
             self.Dk.append(ok)
 
             fk = self.create_embedding((2, 2), emb_type="global", register=False)
             fk.requires_grad = False
-            fk.emb.data[0,0,0] = np.cos(2 * np.pi * m / self.K)
-            fk.emb.data[0,0,1] = np.sin(2 * np.pi * m / self.K)
-            fk.emb.data[0,1,0] = np.sin(2 * np.pi * m / self.K)
-            fk.emb.data[0,1,1] = -np.cos(2 * np.pi * m / self.K)
+            fk.emb.data[0, 0, 0] = np.cos(2 * np.pi * m / self.K)
+            fk.emb.data[0, 0, 1] = np.sin(2 * np.pi * m / self.K)
+            fk.emb.data[0, 1, 0] = np.sin(2 * np.pi * m / self.K)
+            fk.emb.data[0, 1, 1] = -np.cos(2 * np.pi * m / self.K)
             self.Dk.append(fk)
         
     def _calc(self, h, r, t):

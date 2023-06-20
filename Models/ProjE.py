@@ -55,7 +55,7 @@ class ProjE(Model):
         combination = de * h + dr * r + bc
         # Eq. (5) where Wc is substituted by t.
         # "[we apply] a dropout layer on top of the combination operator to prevent over-fitting."
-        scores = g(torch.sum(t * torch.tanh(self.dropout(combination)) , -1)+ bp)
+        scores = g(torch.sum(t * torch.tanh(self.dropout(combination)), -1) + bp)
 
         # Apply only sigmoid when predicting.
         if self.variant == 'pointwise' and (is_predict or self.apply_sigmoid):

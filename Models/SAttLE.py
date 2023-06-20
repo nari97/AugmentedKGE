@@ -8,13 +8,13 @@ class SAttLE(Model):
         for link prediction. Knowl. Based Syst. 260: 110124 (2023).
     """
     def __init__(self, ent_total, rel_total, dim, apply_sigmoid=False, nhead=8, num_encoder_layers=6,
-                 num_decoder_layers=6, dim_feedforward=2048):
+                 dim_feedforward=2048):
         """
             dim (int): Number of dimensions for embeddings
             apply_sigmoid (Bool): Whether sigmoid must be applied to scores during training. Note that BCEWithLogitsLoss
                 already applies sigmoid, so, if this is the loss function used, apply_sigmoid must be set to False. If
                 a different loss function is applied, then apply_sigmoid should be set to True.
-            nhead, num_encoder_layers, num_decoder_layers, dim_feedforward: These are for the transformer.
+            nhead, num_encoder_layers, dim_feedforward: These are for the transformer.
         """
         super(SAttLE, self).__init__(ent_total, rel_total)
         self.dim = dim
