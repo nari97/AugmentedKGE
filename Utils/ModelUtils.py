@@ -55,6 +55,7 @@ from Models.SimplE import SimplE
 from Models.STransE import STransE
 from Models.SpacE import SpacE
 from Models.StructurE import StructurE
+from Models.TimE import TimE
 from Models.Trans4E import Trans4E
 from Models.TransA import TransA
 from Models.TransAt import TransAt
@@ -116,7 +117,8 @@ def getModel(model_name, params, other_params=None):
             model_name == "structure" or model_name == "transedt" or model_name == "harotate" or \
             model_name == "manifolde" or model_name == "transm" or model_name == "transat" or \
             model_name == "transrdt" or model_name == "transsparsedt" or model_name == "space" or \
-            model_name == "itransf" or model_name == "transcomplex" or model_name == "trans4e":
+            model_name == "itransf" or model_name == "transcomplex" or model_name == "trans4e" or \
+            model_name == "time":
         kwargs.update({"norm": params["pnorm"]})
     if model_name == "transsparse" or model_name == "transm" or model_name == "transsparsedt":
         kwargs.update({"pred_count": params["pred_count"], "pred_loc_count": params["pred_loc_count"]})
@@ -293,6 +295,8 @@ def getModel(model_name, params, other_params=None):
         m = RotateCT(**kwargs)
     elif model_name == "fivestare":
         m = FiveStarE(**kwargs)
+    elif model_name == "time":
+        m = TimE(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -317,7 +321,6 @@ def getModel(model_name, params, other_params=None):
 
 
 
-    # ODE: https://aclanthology.org/2021.emnlp-main.750/
     # AEM: https://ieeexplore.ieee.org/document/8545570
     # TRPE: https://www.sciencedirect.com/science/article/pii/S092523122200889X
     # MEI: Tran, Hung Nghiep; Takasu, Atsuhiro (2020). "Multi-Partition Embedding Interaction with Block Term
@@ -330,7 +333,6 @@ def getModel(model_name, params, other_params=None):
     #   Translations.
     # PTransE: Yankai Lin, Zhiyuan Liu, Huanbo Luan, Maosong Sun, Siwei Rao, and Song Liu. 2015a. Modeling Relation
     #   Paths for Representation Learning of Knowledge Bases.
-    # TimE: https://www.sciencedirect.com/science/article/abs/pii/S0950705120306936
     # ProtoE: https://www.mdpi.com/2078-2489/13/8/354
     # RGKE: https://link.springer.com/chapter/10.1007/978-3-030-16142-2_37
     # KALE: https://aclanthology.org/D16-1019.pdf
@@ -358,6 +360,7 @@ def getModel(model_name, params, other_params=None):
     #   Completion Based on Hypersphere. KSEM 2021: 517-528.
     # Xiaobo Guo, Neng Gao, Jun Yuan, Lin Zhao, Lei Wang, Sibo Cai: TransBidiFilter: Knowledge Embedding Based on a
     #   Bidirectional Filter. NLPCC (1) 2020: 232-243.
+    # FieldE: https://aclanthology.org/2021.emnlp-main.750/
 
 
     # Regularizer: https://ojs.aaai.org/index.php/AAAI/article/view/20490
@@ -384,8 +387,8 @@ def getModel(model_name, params, other_params=None):
     # MDE has a MDENN version.
     # ConKB: https://aclanthology.org/N18-2053/
     # WGE: https://arxiv.org/abs/2112.09231
-    # https://www.sciencedirect.com/science/article/abs/pii/S095070512200870X
-    # https://www.sciencedirect.com/science/article/abs/pii/S0950705121004500
+    # MFAE: https://www.sciencedirect.com/science/article/abs/pii/S095070512200870X
+    # KMAE: https://www.sciencedirect.com/science/article/abs/pii/S0950705121004500
     # https://www.sciencedirect.com/science/article/pii/S0950705122012205
     # https://aclanthology.org/2020.emnlp-main.460/
     # https://arxiv.org/abs/2205.12102
