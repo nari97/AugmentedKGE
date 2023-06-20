@@ -51,7 +51,6 @@ def run():
 
     # Hyperparameters that are constant.
     # If you set weight decay, you are using L2 regularization without control.
-    # TODO Decide parameters!
     hyperparameters = {"batch_size": 1500, "nr": 25, "dim": 150, "dime": 150, "dimr": 150,
                        "lr": None, "momentum": None, "weight_decay": None, "opt_method": "adam", "seed": seed}
 
