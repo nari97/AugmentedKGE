@@ -21,6 +21,7 @@ def run():
 
     # Read file.
     with open(config_file) as f:
+        config_filename = os.path.basename(f.name)
         line_count = 0
         while True:
             line_count += 1
@@ -77,7 +78,7 @@ def run():
     hyperparameters["tail_context"] = train_manager.tailDict
 
     # Get checkpoint file.
-    checkpoint_dir = folder+"Model/"+str(dataset)+"/"+model_name+"_"+split_prefix+"_"+str(index)+"_"+config_file
+    checkpoint_dir = folder+"Model/"+str(dataset)+"/"+model_name+"_"+split_prefix+"_"+str(index)+"_"+config_filename
     checkpoint_file = os.path.join(checkpoint_dir + ".ckpt")
     ax_file = os.path.join(checkpoint_dir + ".ax")
 
