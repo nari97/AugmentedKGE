@@ -68,7 +68,7 @@ class AttH(Model):
         else:
             h_rot = h
         if self.variant.startswith('att') or self.variant.startswith('ref'):
-            h_ref = GivensUtils.self.reflection_multiplication(phi, h, self.dim)
+            h_ref = GivensUtils.reflection_multiplication(phi, h, self.dim)
         else:
             h_ref = h
 
