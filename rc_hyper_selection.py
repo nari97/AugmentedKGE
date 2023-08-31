@@ -7,6 +7,7 @@ import time
 import os
 import torch
 import sys
+import itertools
 
 
 def run():
@@ -27,7 +28,7 @@ def run():
             line_count += 1
             line = f.readline()
             # Get configuration.
-            model_name, dataset, split_prefix = line.split(',')
+            model_name, dataset, split_prefix, hyperparams = line.split(',')
             split_prefix = split_prefix.strip()
             dataset = int(dataset)
             if line_count == index+1:
@@ -43,7 +44,7 @@ def run():
     # Metric to use.
     metric_str = "mr"
     # Total trials indicate how many points we will inspect in the hyperparameter value optimization.
-    total_trials = 32
+    total_trials = 20
 
     # Get the name of the dataset.
     dataset_name = DatasetUtils.get_dataset_name(dataset)
@@ -81,22 +82,6 @@ def run():
     checkpoint_dir = folder+"Model/"+str(dataset)+"/"+model_name+"_"+split_prefix+"_"+str(index)+"_"+config_filename
     checkpoint_file = os.path.join(checkpoint_dir + ".ckpt")
     ax_file = os.path.join(checkpoint_dir + ".ax")
-
-    params_to_optimize = [
-        # Regularization.
-        {"name": "lmbda", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
-        {"name": "reg_type", "value_type": "str", "type": "choice", "values": ['L1', 'L2', 'L3'], "is_ordered":True},
-        # Weight of constraints over parameters and negatives.
-        {"name": "weight_constraints", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
-        {"name": "weight_negatives", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
-        # Margin of loss functions with margins.
-        {"name": "margin", "value_type": "float", "type": "range", "bounds": [1e-4, 10.0]},
-        {"name": "other_margin", "value_type": "float", "type": "range", "bounds": [1e-4, 10.0]},
-        # Norms of models that use vector norms.
-        {"name": "pnorm", "value_type": "int", "type": "choice", "values": [1, 2], "is_ordered":True},
-        # Whether using Bernoulli or not for sampling negatives.
-        {"name": "use_bern", "value_type": "bool", "type": "choice", "values": [False, True], "is_ordered":True},
-    ]
 
     def train_evaluate(parameterization, saving_file=None):
         print('Trying hyperparameters:', parameterization)
@@ -156,30 +141,71 @@ def run():
         # Return MR (and standard error, .0 in our case).
         return current_collector.get_metric().get(), .0
 
-    # Optimize using Ax.
-    ax_client = AxClient(
-        # Note that this does not guarantee reproducibility. See:
-        #   https://github.com/facebook/Ax/issues/151#issuecomment-524446967
-        random_seed=seed,
-    )
+    params_to_optimize = [
+        # Regularization.
+        {"name": "lmbda", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        {"name": "reg_type", "value_type": "str", "type": "choice", "values": ['L1', 'L2', 'L3'], "is_ordered": True},
+        # Weight of constraints over parameters and negatives.
+        {"name": "weight_constraints", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        {"name": "weight_negatives", "value_type": "float", "type": "range", "bounds": [1e-4, 1.0]},
+        # Margin of loss functions with margins.
+        {"name": "margin", "value_type": "float", "type": "range", "bounds": [1e-4, 10.0]},
+        {"name": "other_margin", "value_type": "float", "type": "range", "bounds": [1e-4, 10.0]},
+        # Norms of models that use vector norms.
+        {"name": "pnorm", "value_type": "int", "type": "choice", "values": [1, 2], "is_ordered": True},
+        # Whether using Bernoulli or not for sampling negatives.
+        {"name": "use_bern", "value_type": "bool", "type": "choice", "values": [False, True], "is_ordered": True},
+    ]
 
-    ax_client.create_experiment(
-        name="hyperparameter_optimization_experiment",
-        parameters=params_to_optimize,
-        objective_name=metric_str,
-        minimize=True, )
+    # If there are no hyperparameters specified, go for regular Ax optimization.
+    if len(hyperparams) == 0:
+        # Optimize using Ax.
+        ax_client = AxClient(
+            # Note that this does not guarantee reproducibility. See:
+            #   https://github.com/facebook/Ax/issues/151#issuecomment-524446967
+            random_seed=seed,
+        )
 
-    if os.path.exists(ax_file):
-        # Load for resume!
-        ax_client = ax_client.load_from_json_file(filepath=ax_file)
-        total_trials -= len(ax_client.experiment.trials)
+        ax_client.create_experiment(
+            name="hyperparameter_optimization_experiment",
+            parameters=params_to_optimize,
+            objective_name=metric_str,
+            minimize=True, )
 
-    for i in range(total_trials):
-        parameters, trial_index = ax_client.get_next_trial()
-        ax_client.complete_trial(trial_index=trial_index, raw_data=train_evaluate(parameters))
-        ax_client.save_to_json_file(filepath=ax_file)
+        if os.path.exists(ax_file):
+            # Load for resume!
+            ax_client = ax_client.load_from_json_file(filepath=ax_file)
+            total_trials -= len(ax_client.experiment.trials)
 
-    best_parameters, values = ax_client.get_best_parameters()
+        for i in range(total_trials):
+            parameters, trial_index = ax_client.get_next_trial()
+            ax_client.complete_trial(trial_index=trial_index, raw_data=train_evaluate(parameters))
+            ax_client.save_to_json_file(filepath=ax_file)
+
+        best_parameters, values = ax_client.get_best_parameters()
+    else:
+        best_parameters, best_value = None, None
+        # Hyperparameters are specified, go for an exhaustive search.
+        all_names, all_values = [], []
+        for hyperparam in hyperparams.split(';'):
+            # Find and get values.
+            for params in params_to_optimize:
+                if params['name'] == hyperparam:
+                    all_names.append(params['name'])
+                    all_values.append(params_to_optimize['values'])
+
+        # Exhaustive search.
+        for combination in itertools.product(all_values):
+            parameters = {}
+            for idx_p, p in enumerate(combination):
+                parameters[all_names[idx_p]] = p
+
+            metric, std = train_evaluate(parameters)
+
+            if best_value is None or metric < best_value:
+                best_parameters = parameters
+                best_value = metric
+
     print('Best hyperparameters found:', best_parameters)
 
     # Train again with best hyperparameter values and save.

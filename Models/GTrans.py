@@ -119,7 +119,7 @@ class GTrans(Model):
             self.onthefly_constraints.append(self.scale_constraint(h))
             self.onthefly_constraints.append(self.scale_constraint(t))
             # Eq. (23). This returns a single value.
-            self.onthefly_constraints.append(self.scale_constraint(wr, ctype='ge').view(-1, 1))
+            self.onthefly_constraints.append(self.scale_constraint(wr, ctype='ge').view(1))
 
         return torch.pow(torch.linalg.norm(wr.view(-1, 1) * result, ord=self.pnorm, dim=-1), 2)
 

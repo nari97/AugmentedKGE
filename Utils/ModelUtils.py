@@ -300,6 +300,9 @@ def getModel(model_name, params, other_params=None):
     elif model_name == "amie":
         m = Models.Amie()
 
+    # Update the hyperparameters used.
+    m.set_hyperparameters_used(kwargs)
+
     return m
 
 
@@ -382,6 +385,7 @@ def getModel(model_name, params, other_params=None):
 
 
     # Neural networks
+    # TODO Check this!: https://pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html
     # CapsE: https://arxiv.org/pdf/1808.04122v3.pdf
     # CapsE: https://aclanthology.org/N19-1226/
     # MDE has a MDENN version.

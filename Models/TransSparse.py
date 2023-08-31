@@ -39,7 +39,7 @@ class TransSparse(Model):
             # Find maximum.
             max_ = -1
             for r in pc:
-                if pc[r][loc] > max:
+                if pc[r][loc] > max_:
                     max_ = pc[r][loc]
             # Compute sparsity (see Eqs. (1) and (3)).
             for r in pc:

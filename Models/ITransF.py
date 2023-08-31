@@ -82,8 +82,8 @@ class ITransF(Model):
 
         # "We normalize the projected entity vectors..." That is, the transfers. We use the same as TransD.
         if not is_predict:
-            self.onthefly_constraints.append(Model.scale_constraint(h_transfer))
-            self.onthefly_constraints.append(Model.scale_constraint(t_transfer))
+            self.onthefly_constraints.append(self.scale_constraint(h_transfer))
+            self.onthefly_constraints.append(self.scale_constraint(t_transfer))
 
         # Eq. (1).
         return torch.linalg.norm(h_transfer + r - t_transfer, dim=-1, ord=self.pnorm)

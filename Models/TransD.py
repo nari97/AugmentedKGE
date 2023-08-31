@@ -69,8 +69,8 @@ class TransD(Model):
         tt = self.get_et(t, tp, rp)
         # The transfers are also scaled (see below Eq. (14)). Only during training.
         if not is_predict:
-            self.onthefly_constraints.append(Model.scale_constraint(ht))
-            self.onthefly_constraints.append(Model.scale_constraint(tt))
+            self.onthefly_constraints.append(self.scale_constraint(ht))
+            self.onthefly_constraints.append(self.scale_constraint(tt))
         # Eq. (14).
         return torch.pow(torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm), 2)
 

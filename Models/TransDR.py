@@ -55,10 +55,10 @@ class TransDR(Model):
         # Apply constraints only during training.
         if not is_predict:
             # See Eq. (8).
-            self.onthefly_constraints.append(Model.scale_constraint(h))
-            self.onthefly_constraints.append(Model.scale_constraint(t))
+            self.onthefly_constraints.append(self.scale_constraint(h))
+            self.onthefly_constraints.append(self.scale_constraint(t))
             # The paper says ||wr||=1, but they implement it as ||wr||>=1 (see Eq. 8).
-            self.onthefly_constraints.append(Model.scale_constraint(wr, ctype='ge'))
+            self.onthefly_constraints.append(self.scale_constraint(wr, ctype='ge').view(1))
         return torch.pow(torch.linalg.norm(wr.view(-1, 1) * result, dim=-1, ord=self.pnorm), 2)
 
     def return_score(self, is_predict=False):

@@ -255,11 +255,9 @@ class TripleManager():
             for h in self.tailCorruptedDict[r].keys():
                 self.tailCorruptedDict[r][h] = 0
     def corrupt_head(self, h, r, t):
-        # TODO This should also work for Global now.
         return self.next_corrupted(t, self.headCorruptedDict[r], self.headEntities[r], self.headDict[r])
 
     def corrupt_tail(self, h, r, t):
-        # TODO This should also work for Global now.
         return self.next_corrupted(h, self.tailCorruptedDict[r], self.tailEntities[r], self.tailDict[r])
 
     def next_corrupted(self, e, corrupted_dict, all_entities, these_entities):
@@ -278,8 +276,7 @@ class TripleManager():
 
     """ All corrupted heads or tails. """
     def get_corrupted(self, h, r, t, type='head'):
-        # TODO This should work now without making any distinction: headEntities and tailEntities should point to -1
-        #   for every relation when using Global.
+        # headEntities and tailEntities point to -1 for every relation when using Global.
         if type == "head":
             corrupted = set(self.headEntities[r]) - self.headDict[r][t]
         elif type == "tail":

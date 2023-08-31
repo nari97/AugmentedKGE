@@ -115,12 +115,13 @@ class Calibrator(object):
             return torch.tensor([1]).repeat(bs)
 
     def test(self, manager, only_score=False):
+        pos_time = 0
         start = time.perf_counter()
 
         # Get test triples.
         triples = manager.tripleList
 
-        all_expected, all_scores, all_ranks, positive_probs = None, None, [], []
+        all_expected, all_scores, all_ranks, all_rel_ranks, positive_probs = None, None, [], [], []
         # For each positive triple.
         for triple in triples:
             h, r, t = triple.h, triple.r, triple.t
@@ -147,6 +148,14 @@ class Calibrator(object):
                 # Predict the probability.
                 scores = self.predict(scores_from_model)
 
+                # Measure time of getting the probability of the positive triple only.
+                start_positive = time.perf_counter()
+                self.predict(self.model({'batch_h': torch.tensor([h]),
+                                         'batch_t': torch.tensor([t]),
+                                         'batch_r': torch.tensor([r])}))
+                end_positive = time.perf_counter()
+                pos_time += end_positive - start_positive
+
                 # Compute fractional ranks.
                 positive_triple_score = scores_from_model[0].item()
                 corrupted_heads, corrupted_tails = scores_from_model[1:len(heads)+1], scores_from_model[len(heads)+1:]
@@ -166,6 +175,9 @@ class Calibrator(object):
                 # The same probability score results into two different ranks.
                 all_ranks += [frac_rank(rankh_less, rankh_eq), frac_rank(rankt_less, rankt_eq)]
                 positive_probs += [scores[0].item(), scores[0].item()]
+                # A relative rank is 1-(rank-1)/total, that is, the relative position of the triple.
+                all_rel_ranks += [1-((frac_rank(rankh_less, rankh_eq)-1)/len(corrupted_heads)),
+                                  1-((frac_rank(rankt_less, rankt_eq)-1)/len(corrupted_tails))]
 
             # Positive first, then all negatives.
             expected = torch.cat((torch.tensor([1]), torch.tensor([0]).repeat(len(heads)),
@@ -182,6 +194,7 @@ class Calibrator(object):
 
         end = time.perf_counter()
         print('Test time:', end - start)
+        print('Positives only time:', pos_time)
 
         # Extra tests.
         print('Computing extra stuff...')
@@ -207,6 +220,9 @@ class Calibrator(object):
 
         # Correlation between positive probabilities and ranks.
         correlation = pearsonr(all_ranks, positive_probs)
+
+        # Correlation between positive probabilities and relative ranks.
+        correlation_rel = pearsonr(all_rel_ranks, positive_probs)
 
         roc_auc = roc_auc_score(all_expected, all_scores, sample_weight=all_expected_weights)
         # Brier scores
@@ -273,16 +289,77 @@ class Calibrator(object):
         print('Brier score positive and negative:', bs_pos, bs_neg)
         print('R2 score:', r2_weighted)
         print('Pearson correlation:', correlation)
+        print('Pearson relative correlation:', correlation_rel)
         print('Mean rank:', mr, '+-', mr_std)
         print('Mean positive probability:', mp, '+-', mp_std)
         print('All ranks:', all_ranks)
+        print('All relative ranks:', all_rel_ranks)
         print('All positive probabilities:', positive_probs)
 
-        return 'tp,fn,tn,fp,roc_auc,auc,ks_scores,ks_cutoff,brier,brier_pos,brier_neg,r2,pearson,mr,mr_std,mp,mp_std', \
+        # This gets values and positions between certain numbers.
+        def get_between_ab(t, a, b):
+            positions = torch.where((t >= a) & (t <= b), True, False).nonzero().flatten()
+            values = t[positions]
+            return values, positions
+
+        # This is to get examples.
+        def extract_examples(values, positions):
+            for p_idx, position in enumerate(positions):
+                # For each triple, there are two probabilities.
+                triple = triples[position//2]
+                h, r, t = triple.h, triple.r, triple.t
+                print('Positive triple: ', h, r, t, ' with probability: ', values[p_idx].item())
+
+                heads, tails = list(manager.get_corrupted(h, r, t, type='head')), \
+                    list(manager.get_corrupted(h, r, t, type='tail'))
+
+                # For certain strategies, there are no negatives, skip!
+                if len(heads) == 0 and len(tails) == 0:
+                    continue
+
+                # Checking only negatives!
+                bh = torch.cat((torch.tensor(heads), torch.tensor([h]).repeat(len(tails)))).to(torch.long)
+                br = torch.cat((torch.tensor([r]).repeat(len(heads)), torch.tensor([r]).repeat(len(tails)))).to(torch.long)
+                bt = torch.cat((torch.tensor([t]).repeat(len(heads)), torch.tensor(tails))).to(torch.long)
+
+                # Get scores.
+                with torch.no_grad():
+                    # Predict the probabilities.
+                    scores = self.predict(self.model({'batch_h': bh, 'batch_t': bt, 'batch_r': br}))
+
+                    # Top-k, bottom-k and between .4 and .6.
+                    for idx, n_vp in enumerate([torch.topk(scores, min(k, scores.size(dim=0))),
+                                                torch.topk(scores, min(k, scores.size(dim=0)), largest=False),
+                                                get_between_ab(scores, .4, .6)]):
+                        (n_values, n_positions) = n_vp
+                        to_print = ''
+                        if idx == 0:
+                            to_print = 'Top-'+str(k)
+                        elif idx == 1:
+                            to_print = 'Bottom-' + str(k)
+                        else:
+                            to_print = '[.4, .6]'
+
+                        print('\t', to_print, 'negatives:')
+                        for n_idx, np in enumerate(n_positions):
+                            print('\t\tNegative triple: ', bh[np], br[np], bt[np], ' with probability: ', n_values[n_idx].item())
+
+        k = 25
+        pos_probs_tensor = torch.tensor(positive_probs)
+        # * is for unpacking! Believe it or not!
+        print('Positive triples top-', k)
+        extract_examples(*torch.topk(pos_probs_tensor, k))
+        print('Positive triples bottom-', k)
+        extract_examples(*torch.topk(pos_probs_tensor, k, largest=False))
+        print('Positive triples [.4, .6]')
+        extract_examples(*get_between_ab(pos_probs_tensor, .4, .6))
+
+        return 'tp,fn,tn,fp,roc_auc,auc,ks_scores,ks_cutoff,brier,brier_pos,brier_neg,r2,pearson,' \
+               'pearson_rel,mr,mr_std,mp,mp_std', \
             str(true_positives.shape[0])+','+str(false_negatives.shape[0])+','+str(true_negatives.shape[0])+',' +\
-            str(false_positives.shape[0])+','+str(roc_auc)+','+str(this_auc)+','+str(ks_scores)+','+str(ks_cutoff)+',' +\
-            str(bs_all_weighted)+','+str(bs_pos)+','+str(bs_neg)+','+str(r2_weighted)+','+str(correlation)+',' +\
-            str(mr)+','+str(mr_std)+','+str(mp)+','+str(mp_std)
+            str(false_positives.shape[0])+','+str(roc_auc)+','+str(this_auc)+','+str(ks_scores)+',' +\
+            str(ks_cutoff)+','+str(bs_all_weighted)+','+str(bs_pos)+','+str(bs_neg)+','+str(r2_weighted)+',' +\
+            str(correlation)+','+str(correlation_rel)+','+str(mr)+','+str(mr_std)+','+str(mp)+','+str(mp_std)
 
 
 class PlattCalibrator(Calibrator):

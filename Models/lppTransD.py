@@ -51,8 +51,8 @@ class lppTransD(Model):
         ht = self.get_et(h, hp, rph)
         tt = self.get_et(t, tp, rpt)
         if not is_predict:
-            self.onthefly_constraints.append(Model.scale_constraint(ht))
-            self.onthefly_constraints.append(Model.scale_constraint(tt))
+            self.onthefly_constraints.append(self.scale_constraint(ht))
+            self.onthefly_constraints.append(self.scale_constraint(tt))
         return torch.pow(torch.linalg.norm(ht + r - tt, dim=-1, ord=self.pnorm), 2)
 
     def return_score(self, is_predict=False):

@@ -20,7 +20,7 @@ def getLoss(model, loss_str=None, margin=0, other_margin=0, neg_weight=1.0, reg_
             loss: Loss function selected according to model
     """
 
-    kwargs = {"model": model, "reg_type": reg_type, "margin" : margin}
+    kwargs = {"model": model, "reg_type": reg_type, "margin": margin}
 
     if loss_str is None:
         loss_str = model.get_default_loss()
@@ -60,5 +60,7 @@ def getLoss(model, loss_str=None, margin=0, other_margin=0, neg_weight=1.0, reg_
         loss = MarginLimitLoss(**kwargs)
     else:
         pass
+
+    loss.set_hyperparameters_used(kwargs)
 
     return loss

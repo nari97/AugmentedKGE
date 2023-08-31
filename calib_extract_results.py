@@ -1,9 +1,10 @@
 import glob
 import matplotlib.pyplot as plt
 
+
 def run():
     # Folder with output files.
-    folder, fig_folder = 'C:/Users/crr/Desktop/Calib_Results/', 'platt/'
+    folder, fig_folder = 'C:/Users/crr/Desktop/Calib_Results/', 'iso/'
 
     # TODO Count how many models per model and dataset to see if we have missing!
     csv_header, csv_data = None, []
@@ -12,12 +13,30 @@ def run():
         split_name = file.split('_')
         job_id = split_name[len(split_name)-1]
 
+        iso_time, test_time, pos_time = 0, 0, 0
         with open(file, 'r') as f:
             all_lines = f.readlines()
 
-            in_csv, i = False, 0
+            in_csv, in_isotonic_fitting, in_test_time, i = False, False, False, 0
             for index, line in enumerate(all_lines):
                 line = line.replace('\n','')
+
+                if line == 'Fitting isotonic regressor...':
+                    # Time measurement comes after this line.
+                    in_isotonic_fitting = True
+                elif in_isotonic_fitting:
+                    iso_time = line.replace('Time: ','')
+                    in_isotonic_fitting = False
+
+                if line == 'Testing using corruption mode: LCWA':
+                    in_test_time = True
+                elif in_test_time:
+                    test_time = line.replace('Test time: ', '')
+                    in_test_time = False
+
+                if line.startswith('Positives only time: '):
+                    pos_time = line.replace('Positives only time: ', '')
+
                 # Indicates whether we have started with the CSV part.
                 if line == '<CSVResults>':
                     in_csv = True
@@ -37,7 +56,7 @@ def run():
                             line_as_dict[csv_header[idx]] = item
 
                         # Dataset 4 is problematic; skip!
-                        if line_as_dict['dataset'] != '4' and line_as_dict['calib'] == 'platt' and line_as_dict['neg1'] == '0':
+                        if line_as_dict['dataset'] != '4':
                                 # Also, let's check Platt results only using binary targets.
                                 # and line_as_dict['calib'] == 'platt' and line_as_dict['neg1'] == '0'
                             # Add derived fields: TPR=tp/(tp+fn); TNR=tn/(tn+fp); BA=(TPR+TNR)/2; BM=TPR+TNR-1.
@@ -48,19 +67,23 @@ def run():
                             line_as_dict['BA'] = str((float(line_as_dict['TPR']) + float(line_as_dict['TNR'])) / 2)
                             line_as_dict['BM'] = str(float(line_as_dict['TPR']) + float(line_as_dict['TNR']) - 1)
                             line_as_dict['job_id'] = job_id
+                            line_as_dict['iso_time'] = iso_time
+                            line_as_dict['test_time'] = test_time
+                            line_as_dict['pos_time'] = pos_time
+                            line_as_dict['time_red'] = str((float(iso_time) + float(pos_time))*100/float(test_time))
 
                             # Store in the data.
                             csv_data.append(line_as_dict)
                     i += 1
 
     # For the same model and dataset, find best calibration model using LCWA based on R2.
-    best_calib_models, best_check, corruption_to_check = {}, 'r2', 'Valid (LCWA)' # LCWA, Valid (LCWA)
+    best_calib_models, best_check, corruption_to_check = {}, 'r2', 'LCWA' # LCWA, Valid (LCWA)
     for data in csv_data:
         if data['corruption'] == corruption_to_check:
             model_dataset = data['model']+'_'+data['dataset']
 
             def filter(x):
-                if best_check == 'pearson':
+                if best_check == 'pearson' or best_check == 'pearson_rel':
                     # Change sign!
                     return -1*float(x.replace('(', '').split('; ')[0])
                 else:
@@ -110,7 +133,7 @@ def run():
                 data_by_model[model] = []
             value = calib_model_data[key]
 
-            if key == 'pearson':
+            if key == 'pearson' or key == 'pearson_rel':
                 value = value.replace('(', '').split('; ')[0]
 
             data_by_model[model].append(float(value))
@@ -151,7 +174,7 @@ def run():
     #    plot_results('LCWA', key, best_calib_models)
 
     for corrupt in ['LCWA', 'TCLCWA', 'Global', 'Local']:
-        for key in ['r2', 'pearson', 'brier', 'BA']:
+        for key in ['r2', 'pearson', 'pearson_rel', 'brier', 'BA', 'time_red']:
             plot_results(corrupt, key, calib_models_other_strategies[corrupt].values())
 
     # Global and local merged.

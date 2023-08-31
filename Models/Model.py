@@ -32,16 +32,21 @@ class Model(nn.Module):
         self.embeddings_regularization_complex = {"entity": [], "relation": [], "global": []}
         # TODO This regularization is executed once for the current batch. Are we using this?
         self.onthefly_regularization = []
+        # How many regularizations were applied to the batch?
+        self.total_regularizations = 0
 
         self.ranks = None
         self.totals = None
         self.hyperparameters = None
+        self.hyperparameters_used = None
 
         self.custom_constraints = []
         # These constraints scale the embedding norms, e.g., ||x||<=1.
         self.scale_constraints = []
         # These constraints are executed once for the current batch.
         self.onthefly_constraints = []
+        # How many constraints were applied to the batch?
+        self.total_constraints = 0
 
         self.current_batch = None
         self.current_data = None
@@ -189,8 +194,10 @@ class Model(nn.Module):
                            'onthefly': self.onthefly_constraints}
 
         constraints = []
+        self.total_constraints = 0
         for key in all_constraints.keys():
             for c in all_constraints[key]:
+                self.total_constraints += 1
                 v = []
                 if key == 'custom':
                     v.append(c(head_emb, rel_emb, tail_emb))
@@ -243,6 +250,7 @@ class Model(nn.Module):
         rel_emb = self.get_relation_embeddings(data)
         global_emb = self.get_global_embeddings()
 
+        self.total_regularizations = 0
         for etype in self.embeddings_regularization.keys():
             embeds_to_apply = []
             if etype == 'entity':
@@ -254,6 +262,7 @@ class Model(nn.Module):
                 embeds_to_apply.append(global_emb)
 
             for ename in self.embeddings_regularization[etype].keys():
+                self.total_regularizations += 1
                 for e in embeds_to_apply:
                     reg_params = self.embeddings_regularization[etype][ename]
                     r = self.apply_individual_regularization(e[ename], reg_type, reg_params)
@@ -271,6 +280,7 @@ class Model(nn.Module):
                 embeds_to_apply.append(global_emb)
 
             for d in self.embeddings_regularization_complex[etype]:
+                self.total_regularizations += 1
                 for e in embeds_to_apply:
                     real_part, img_part = e[d["real_part"]], e[d["img_part"]]
                     reg_params = d["params"]
@@ -280,6 +290,7 @@ class Model(nn.Module):
                     total += len(r)
 
         for (x, reg_params) in self.onthefly_regularization:
+            self.total_regularizations += 1
             r = self.apply_individual_regularization(x, reg_type, reg_params)
             reg.append(r)
             total += len(r)
@@ -346,7 +357,12 @@ class Model(nn.Module):
     def get_hyperparameters(self):
         return self.hyperparameters
 
+    # These are the hyperparameters actually used by the model.
+    def set_hyperparameters_used(self, hyperparameters_used):
+        self.hyperparameters_used = hyperparameters_used
 
+    def get_hyperparameters_used(self):
+        return self.hyperparameters_used
 
 
     def get_embedding(self, emb_type, name):

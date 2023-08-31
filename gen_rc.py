@@ -18,17 +18,25 @@ def run():
                            'transat', 'transcomplex', 'transd', 'transdr', 'transe', 'transedge_cc', 'transedge_cp',
                            'transedt', 'transeft', 'transers', 'transg', 'transgate_fc', 'transgate_wv', 'transh',
                            'transhft', 'transhrs', 'transm', 'transms', 'transmvg', 'transr', 'transrdt', 'transrft',
-                           'transparse_share', 'transparse_separate', 'transparsedt_share', 'transparsedt_separate',
+                           'transsparse_share', 'transsparse_separate', 'transsparsedt_share', 'transsparsedt_separate',
                            'tucker']:
             for dataset in range(0, 10):
                 f.write(model_name)
                 f.write(',')
                 f.write(str(dataset))
-                # TODO Change split for NELL!
+                # Change split for NELL!
                 if dataset == 3:
                     f.write(',resplit_')
                 else:
                     f.write(', ')
+                # These are the models that do not have enough hyperparameters.
+                if model_name in ['analogy', 'atth_atth', 'atth_roth', 'atth_refh', 'atth_atte', 'atth_rote',
+                                  'atth_refe', 'gie_full', 'gie_gie1', 'gie_gie2', 'murp_murp', 'murp_mure', 'tucker']:
+                    f.write(',user_bern')
+                elif model_name in ['trans4e']:
+                        f.write(',user_bern;pnorm')
+                else:
+                    f.write(',')
                 f.write('\n')
 
     # Missing (NNs): ConvE, HypER, SAttLE
