@@ -79,6 +79,7 @@ from Models.TransRDT import TransRDT
 from Models.TransRFT import TransRFT
 from Models.TransSparse import TransSparse
 from Models.TransSparseDT import TransSparseDT
+from Models.TriModel import TriModel
 from Models.TorusE import TorusE
 from Models.TuckER import TuckER
 
@@ -297,6 +298,8 @@ def getModel(model_name, params, other_params=None):
         m = FiveStarE(**kwargs)
     elif model_name == "time":
         m = TimE(**kwargs)
+    elif model_name == "trimodel":
+        m = TriModel(**kwargs)
     elif model_name == "amie":
         m = Models.Amie()
 
@@ -364,6 +367,9 @@ def getModel(model_name, params, other_params=None):
     # Xiaobo Guo, Neng Gao, Jun Yuan, Lin Zhao, Lei Wang, Sibo Cai: TransBidiFilter: Knowledge Embedding Based on a
     #   Bidirectional Filter. NLPCC (1) 2020: 232-243.
     # FieldE: https://aclanthology.org/2021.emnlp-main.750/
+    # HousE: https://arxiv.org/pdf/2202.07919.pdf
+    # QuatRE: https://arxiv.org/pdf/2009.12517.pdf
+    # LowFER: https://arxiv.org/pdf/2008.10858.pdf
 
 
     # Regularizer: https://ojs.aaai.org/index.php/AAAI/article/view/20490

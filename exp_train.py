@@ -1,5 +1,5 @@
 from DataLoader.TripleManager import TripleManager
-from Train.Evaluator import Evaluator, RankCollector
+from Train.Evaluator import Evaluator
 from Train.Trainer import Trainer
 from Utils import LossUtils, DatasetUtils, HyperparameterUtils
 import time
@@ -15,6 +15,8 @@ def run():
     config_file = sys.argv[2]
     # This is the line to read in the file.
     index = int(sys.argv[3])
+    # This is the suffix of the models we will be looking for.
+    name_suffix = sys.argv[4]
     # This seed will be used to generate the same points with Sobol sequence (the answer to the ultimate question).
     seed = 42
 
@@ -29,7 +31,7 @@ def run():
             split_prefix = split_prefix.strip()
             dataset = int(dataset)
             # This is the last point in the Sobol sequence that was inspected. Change this to resume.
-            last_inspected = int(last_inspected)
+            # last_inspected = int(last_inspected)
             if line_count == index+1:
                 break
 
@@ -37,10 +39,10 @@ def run():
     # All predicates will be considered.
     rel_anomaly_min, rel_anomaly_max = 0, 1.0
     # Validation and max epochs.
-    validation_epochs, train_times = 50, 10000
+    validation_epochs, train_times = 50, 1000
     corruption_mode = "LCWA"
     # Metric to use.
-    metric_str = "matsize"
+    metric_str = "mr"
 
     # Get the name of the dataset.
     dataset_name = DatasetUtils.get_dataset_name(dataset)
@@ -51,7 +53,7 @@ def run():
     start = time.perf_counter()
 
     # Get checkpoint file. It must exist!
-    checkpoint_dir = folder+"Model/"+str(dataset)+"/"+model_name+"_"+split_prefix+"_"+str(index)+"_Expl"
+    checkpoint_dir = folder+"Model/"+str(dataset)+"/"+model_name+"_"+split_prefix+"_"+str(index)+"_"+name_suffix
     checkpoint_file = os.path.join(checkpoint_dir + ".ckpt")
     valid_file = os.path.join(checkpoint_dir + ".valid")
     model_file = os.path.join(checkpoint_dir + ".model")
@@ -186,6 +188,7 @@ def run():
               " out of: ", len(current_collector.all_ranks), '; Pencentage: ',
               current_collector.get_ranks_below_expected().count(True) / len(current_collector.all_ranks))
         print()
+
 
 if __name__ == '__main__':
     run()

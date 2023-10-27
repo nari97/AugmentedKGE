@@ -30,6 +30,7 @@ def run():
             # Get configuration.
             model_name, dataset, split_prefix, hyperparams = line.split(',')
             split_prefix = split_prefix.strip()
+            hyperparams = hyperparams.strip()
             dataset = int(dataset)
             if line_count == index+1:
                 break
@@ -192,13 +193,18 @@ def run():
             for params in params_to_optimize:
                 if params['name'] == hyperparam:
                     all_names.append(params['name'])
-                    all_values.append(params_to_optimize['values'])
+                    all_values.append(params['values'])
 
         # Exhaustive search.
-        for combination in itertools.product(all_values):
+        for combination in itertools.product(*all_values):
             parameters = {}
             for idx_p, p in enumerate(combination):
                 parameters[all_names[idx_p]] = p
+
+            # Adding these to make sure the loss function does not crash, but they are not really used.
+            parameters["margin"] = parameters["other_margin"] = parameters["weight_negatives"] = \
+                parameters["weight_constraints"] = parameters["lmbda"] = .1
+            parameters["reg_type"] = 'L2'
 
             metric, std = train_evaluate(parameters)
 

@@ -7,6 +7,7 @@ from Loss.LogSoftmaxLoss import LogSoftmaxLoss
 import torch.nn as nn
 
 
+# TODO Improve! margin and the other parameters can be dynamic.
 def getLoss(model, loss_str=None, margin=0, other_margin=0, neg_weight=1.0, reg_type='L2'):
     """
         Gets the loss function based on model

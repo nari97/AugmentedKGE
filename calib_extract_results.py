@@ -4,7 +4,15 @@ import matplotlib.pyplot as plt
 
 def run():
     # Folder with output files.
-    folder, fig_folder = 'C:/Users/crr/Desktop/Calib_Results/', 'iso/'
+    folder, fig_folder = 'C:/Users/crr/Desktop/Calib_Results/', 'platt/'
+    # 'pearson_rel' and 'time_red' are only available in the new experiments.
+    metrics_to_check = ['r2', 'pearson', 'brier', 'BA', 'pearson_rel']
+
+    def filter_csv_data(line_as_dict):
+        # Dataset 4 is problematic; skip!
+        return line_as_dict['dataset'] != '4' and line_as_dict['calib'] == 'platt' and line_as_dict['neg1'] == '0'
+        # Also, let's check Platt results only using binary targets.
+        # and line_as_dict['calib'] == 'platt' and line_as_dict['neg1'] == '0'
 
     # TODO Count how many models per model and dataset to see if we have missing!
     csv_header, csv_data = None, []
@@ -15,11 +23,9 @@ def run():
 
         iso_time, test_time, pos_time = 0, 0, 0
         with open(file, 'r') as f:
-            all_lines = f.readlines()
-
-            in_csv, in_isotonic_fitting, in_test_time, i = False, False, False, 0
-            for index, line in enumerate(all_lines):
-                line = line.replace('\n','')
+            in_csv, in_isotonic_fitting, in_test_time, i, prev_line = False, False, False, 0, None
+            for line in f:
+                line = line.replace('\n', '')
 
                 if line == 'Fitting isotonic regressor...':
                     # Time measurement comes after this line.
@@ -47,7 +53,7 @@ def run():
                         csv_header = line.split(',')
                     elif i % 2 == 0:
                         # Due to a bug, each line is split into two (way to go!). Fixing here that stupid issue.
-                        fixed_line = all_lines[index-1].replace('\n','')+line
+                        fixed_line = prev_line.replace('\n','')+line
                         # Some results contain commas, e.g., KS(X, Y). Take care of that.
                         fixed_line = fixed_line.replace(', ', '; ')
                         # Transform into dictionary form.
@@ -56,9 +62,7 @@ def run():
                             line_as_dict[csv_header[idx]] = item
 
                         # Dataset 4 is problematic; skip!
-                        if line_as_dict['dataset'] != '4':
-                                # Also, let's check Platt results only using binary targets.
-                                # and line_as_dict['calib'] == 'platt' and line_as_dict['neg1'] == '0'
+                        if filter_csv_data(line_as_dict):
                             # Add derived fields: TPR=tp/(tp+fn); TNR=tn/(tn+fp); BA=(TPR+TNR)/2; BM=TPR+TNR-1.
                             tp, fp, fn, tn = float(line_as_dict['tp']), float(line_as_dict['fp']), \
                                 float(line_as_dict['fn']), float(line_as_dict['tn'])
@@ -70,11 +74,17 @@ def run():
                             line_as_dict['iso_time'] = iso_time
                             line_as_dict['test_time'] = test_time
                             line_as_dict['pos_time'] = pos_time
-                            line_as_dict['time_red'] = str((float(iso_time) + float(pos_time))*100/float(test_time))
+                            line_as_dict['time_red'] = str((float(iso_time) + float(pos_time))/float(test_time))
 
                             # Store in the data.
                             csv_data.append(line_as_dict)
                     i += 1
+
+                prev_line = line
+
+    def get_pearson_value(x):
+        x = x.replace('(', '').split('; ')[0]
+        return x.replace('PearsonRResultstatistic=','')
 
     # For the same model and dataset, find best calibration model using LCWA based on R2.
     best_calib_models, best_check, corruption_to_check = {}, 'r2', 'LCWA' # LCWA, Valid (LCWA)
@@ -85,7 +95,7 @@ def run():
             def filter(x):
                 if best_check == 'pearson' or best_check == 'pearson_rel':
                     # Change sign!
-                    return -1*float(x.replace('(', '').split('; ')[0])
+                    return -1*float(get_pearson_value(x))
                 else:
                     return float(x)
 
@@ -129,12 +139,18 @@ def run():
         data_by_model = {}
         for calib_model_data in calib_models:
             model = calib_model_data['model']
+
+            # We skip TuckER. We did not train the models using data augmentation (for every (h, r, t), add (t, r-1, h))
+            #   so TuckER models tend to have bad performance predicting heads.
+            if model == 'tucker':
+                continue
+
             if model not in data_by_model.keys():
                 data_by_model[model] = []
             value = calib_model_data[key]
 
             if key == 'pearson' or key == 'pearson_rel':
-                value = value.replace('(', '').split('; ')[0]
+                value = get_pearson_value(value)
 
             data_by_model[model].append(float(value))
 
@@ -174,11 +190,11 @@ def run():
     #    plot_results('LCWA', key, best_calib_models)
 
     for corrupt in ['LCWA', 'TCLCWA', 'Global', 'Local']:
-        for key in ['r2', 'pearson', 'pearson_rel', 'brier', 'BA', 'time_red']:
+        for key in metrics_to_check:
             plot_results(corrupt, key, calib_models_other_strategies[corrupt].values())
 
     # Global and local merged.
-    for key in ['r2', 'pearson', 'brier', 'BA']:
+    for key in metrics_to_check:
         merged = list(calib_models_other_strategies['Global'].values())
         merged += list(calib_models_other_strategies['Local'].values())
 
@@ -192,11 +208,12 @@ def run():
         print('Dataset:', dataset)
         calib_model_lst = []
         for calib_model_data in best_calib_models.values():
-            if calib_model_data['dataset'] == str(dataset):
+            # Removing TuckER models also from here.
+            if calib_model_data['dataset'] == str(dataset) and calib_model_data['model'] != 'tucker':
                 calib_model_lst.append(calib_model_data)
 
         all_metrics, all_models = ['mr', 'mp', 'TPR'], set()
-        partial_ranks_by_metric = {}
+        partial_ranks_by_metric, model_positions_by_metric = {}, {}
         for key in all_metrics:
             calib_model_lst = sorted(calib_model_lst, key=lambda x: float(x[key]), reverse=(key=='mp' or key=='TPR'))
 
@@ -212,15 +229,18 @@ def run():
 
             # Get partial ranks: [a, b, c] => [a>b, a>c, b>c]
             partial_ranks = set()
+            model_positions = {}
             for i in range(len(calib_model_lst)):
                 i_model = calib_model_lst[i]['model']
                 all_models.add(i_model)
+                model_positions[i_model] = i
                 for j in range(i+1, len(calib_model_lst)):
                     j_model = calib_model_lst[j]['model']
                     partial_ranks.add(i_model+'>'+j_model)
                     all_models.add(j_model)
 
             partial_ranks_by_metric[key] = partial_ranks
+            model_positions_by_metric[key] = model_positions
 
         # Check discrepancies: two models that were ranked differently in relative terms.
         for i in range(len(all_metrics)):
@@ -231,8 +251,28 @@ def run():
                 def overlap(s1, s2, total):
                     return float(len(set(s1).intersection(s2))) / (total*(total-1)/2)
 
+                def jaccard(s1, s2):
+                    return float(len(set(s1).intersection(s2))) / float(len(set(s1).union(s2)))
+
+                def dice(s1, s2):
+                    return float(2*len(set(s1).intersection(s2))) / float(len(set(s1)) + len(set(s2)))
+
+                i_model_positions, j_model_positions = model_positions_by_metric[i_metric], \
+                    model_positions_by_metric[j_metric]
+
+                position_error = 0
+                for m in all_models:
+                    position_error += abs(i_model_positions[m] - j_model_positions[m])
+
                 print('Metric', i_metric, ' vs. ', j_metric, '; Overlap:',
-                      overlap(i_partial_ranks, j_partial_ranks, len(all_models)))
+                      overlap(i_partial_ranks, j_partial_ranks, len(all_models)), '; Error:',
+                      position_error/len(all_models), '; Jaccard:', jaccard(i_partial_ranks, j_partial_ranks),
+                      '; Dice:', dice(i_partial_ranks, j_partial_ranks))
+
+        for m_data in calib_model_lst:
+            t_alt = float(m_data['iso_time']) + float(m_data['pos_time'])
+            t_test = float(m_data['test_time'])
+            print('Model:', m_data['model'], '; Time alt.:', t_alt, '; Delta:', (t_alt - t_test)*100/t_test)
 
 
 if __name__ == '__main__':

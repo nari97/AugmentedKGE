@@ -32,9 +32,9 @@ def run():
                 # These are the models that do not have enough hyperparameters.
                 if model_name in ['analogy', 'atth_atth', 'atth_roth', 'atth_refh', 'atth_atte', 'atth_rote',
                                   'atth_refe', 'gie_full', 'gie_gie1', 'gie_gie2', 'murp_murp', 'murp_mure', 'tucker']:
-                    f.write(',user_bern')
+                    f.write(',use_bern')
                 elif model_name in ['trans4e']:
-                        f.write(',user_bern;pnorm')
+                        f.write(',use_bern;pnorm')
                 else:
                     f.write(',')
                 f.write('\n')

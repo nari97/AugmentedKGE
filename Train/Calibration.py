@@ -172,12 +172,18 @@ class Calibrator(object):
                 def frac_rank(less, eq):
                     return (2 * less + eq + 1) / 2
 
+                def rel_rank(less, eq, corr):
+                    if len(corr) > 0:
+                        return 1-((frac_rank(less, eq)-1)/len(corr))
+                    else:
+                        return 1
+
                 # The same probability score results into two different ranks.
                 all_ranks += [frac_rank(rankh_less, rankh_eq), frac_rank(rankt_less, rankt_eq)]
                 positive_probs += [scores[0].item(), scores[0].item()]
                 # A relative rank is 1-(rank-1)/total, that is, the relative position of the triple.
-                all_rel_ranks += [1-((frac_rank(rankh_less, rankh_eq)-1)/len(corrupted_heads)),
-                                  1-((frac_rank(rankt_less, rankt_eq)-1)/len(corrupted_tails))]
+                all_rel_ranks += [rel_rank(rankh_less, rankh_eq, corrupted_heads),
+                                  rel_rank(rankt_less, rankt_eq, corrupted_tails)]
 
             # Positive first, then all negatives.
             expected = torch.cat((torch.tensor([1]), torch.tensor([0]).repeat(len(heads)),
@@ -224,7 +230,12 @@ class Calibrator(object):
         # Correlation between positive probabilities and relative ranks.
         correlation_rel = pearsonr(all_rel_ranks, positive_probs)
 
-        roc_auc = roc_auc_score(all_expected, all_scores, sample_weight=all_expected_weights)
+        # TODO It seems all_expected contains multiple values (more than 0 and 1)?
+        print('Bin count expected:', torch.bincount(all_expected))
+        try:
+            roc_auc = roc_auc_score(all_expected, all_scores, sample_weight=all_expected_weights)
+        except Exception as err:
+            print('Error while computing ROC_AUC score:', err)
         # Brier scores
         bs_all_weighted = brier_score_loss(all_expected, all_scores, sample_weight=all_expected_weights)
 
@@ -330,7 +341,7 @@ class Calibrator(object):
                     # Top-k, bottom-k and between .4 and .6.
                     for idx, n_vp in enumerate([torch.topk(scores, min(k, scores.size(dim=0))),
                                                 torch.topk(scores, min(k, scores.size(dim=0)), largest=False),
-                                                get_between_ab(scores, .4, .6)]):
+                                                get_between_ab(scores, .475, .525)]):
                         (n_values, n_positions) = n_vp
                         to_print = ''
                         if idx == 0:
@@ -338,7 +349,7 @@ class Calibrator(object):
                         elif idx == 1:
                             to_print = 'Bottom-' + str(k)
                         else:
-                            to_print = '[.4, .6]'
+                            to_print = '[.475, .525]'
 
                         print('\t', to_print, 'negatives:')
                         for n_idx, np in enumerate(n_positions):
@@ -351,8 +362,8 @@ class Calibrator(object):
         extract_examples(*torch.topk(pos_probs_tensor, k))
         print('Positive triples bottom-', k)
         extract_examples(*torch.topk(pos_probs_tensor, k, largest=False))
-        print('Positive triples [.4, .6]')
-        extract_examples(*get_between_ab(pos_probs_tensor, .4, .6))
+        print('Positive triples [.475, .525]')
+        extract_examples(*get_between_ab(pos_probs_tensor, .475, .525))
 
         return 'tp,fn,tn,fp,roc_auc,auc,ks_scores,ks_cutoff,brier,brier_pos,brier_neg,r2,pearson,' \
                'pearson_rel,mr,mr_std,mp,mp_std', \
