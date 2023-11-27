@@ -10,7 +10,7 @@ import os
 
 def run(model_name=None):
     folder = ''
-    model_name, dataset, split_prefix, point = 'time', 6, '', 0
+    model_name, dataset, split_prefix, point = 'dense', 5, '', 0
 
     other_parameters = {}
     # Only for SAttLE.
@@ -21,14 +21,15 @@ def run(model_name=None):
 
     rel_anomaly_min = 0
     rel_anomaly_max = 1.0
+    use_bern = True
 
-    validation_epochs = 5
+    validation_epochs = 100
     train_times = 500
     seed = 42
 
     use_gpu = False
 
-    corruption_mode = "Global"
+    corruption_mode = "LCWA"
 
     parameters = {}
     parameters["batch_size"] = 1000
@@ -42,11 +43,11 @@ def run(model_name=None):
     parameters["lr"] = None
 
     # TODO Testing regularization
-    parameters["lmbda"] = 1e-5
-    parameters["reg_type"] = 'L2'
+    parameters["lmbda"] = 0.997513602489233
+    parameters["reg_type"] = 'L1'
 
     # Weight of constraints over parameters.
-    parameters["weight_constraints"] = 1e-5
+    parameters["weight_constraints"] = 0.8229965562939644
     # TODO Normalization of lambda: https://arxiv.org/pdf/1711.05101.pdf (Appendix B.1)
 
     # TODO This is L2 regularization!
@@ -57,10 +58,11 @@ def run(model_name=None):
     parameters["momentum"] = None
     parameters["opt_method"] = "adam"
 
-    parameters["gamma"] = 1e-4
-    parameters["other_gamma"] = 1e-4
+    parameters["gamma"] = 5.283268174183369
+    parameters["other_gamma"] = 0.5625014522880316
+    parameters["weight_negatives"] = 0.41949022002220154
 
-    parameters["pnorm"] = 2
+    parameters["pnorm"] = 1
 
     dataset_name = DatasetUtils.get_dataset_name(dataset)
 
@@ -72,7 +74,7 @@ def run(model_name=None):
     start = time.perf_counter()
     path = folder + "Datasets/" + dataset_name + "/"
     train_manager = TripleManager(path, splits=[split_prefix + "train"], batch_size=parameters["batch_size"],
-                                  neg_rate=parameters["nr"], corruption_mode=corruption_mode, seed=seed)
+                                  neg_rate=parameters["nr"], corruption_mode=corruption_mode, seed=seed, use_bern=use_bern)
     parameters["ent_total"] = train_manager.entityTotal
     parameters["rel_total"] = train_manager.relationTotal
     parameters["pred_count"] = train_manager.triple_count_by_pred
@@ -84,7 +86,8 @@ def run(model_name=None):
     mu.set_hyperparameters(parameters)
     print("Model name : ", mu.get_model_name())
 
-    loss = LossUtils.getLoss(margin=parameters["gamma"], model=mu, reg_type=parameters["reg_type"])
+    loss = LossUtils.getLoss(margin=parameters["gamma"], other_margin=parameters["other_gamma"], model=mu,
+                             reg_type=parameters["reg_type"], neg_weight=parameters["weight_negatives"])
 
     validation = Evaluator(TripleManager(path, splits=[split_prefix + "valid", split_prefix + "train"],
                                          batch_size=parameters["batch_size"], neg_rate=parameters["nr"],

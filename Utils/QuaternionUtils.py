@@ -54,9 +54,10 @@ def get_angles(x):
 def get_angles_with_norm(x, norm):
     (x_a, x_b, x_c, x_d) = x
 
-    psi = torch.acos(x_a / norm) * 2
-    theta = torch.acos(x_d / (norm * torch.sin(psi / 2)))
-    phi = torch.acos(x_b / (norm * torch.sin(psi / 2) * torch.sin(theta)))
+    # In acos(x), x \in (-1, 1).
+    psi = torch.acos(torch.clamp(x_a / norm, min=-1 + 1e-10, max=1 - 1e-10)) * 2
+    theta = torch.acos(torch.clamp(x_d / (norm * torch.sin(psi / 2)), min=-1 + 1e-10, max=1 - 1e-10))
+    phi = torch.acos(torch.clamp(x_b / (norm * torch.sin(psi / 2) * torch.sin(theta)), min=-1 + 1e-10, max=1 - 1e-10))
 
     return psi, theta, phi
 
