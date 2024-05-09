@@ -15,7 +15,7 @@ def run():
 
     def filter_csv_data(line_as_dict):
         # Dataset 4 is problematic; skip!
-        return line_as_dict['dataset'] != '4' and line_as_dict['calib'] == 'iso' and line_as_dict['neg1'] == '0'
+        return line_as_dict['dataset'] != '4' and line_as_dict['calib'] == calib_type and line_as_dict['neg1'] == '0'
         # Also, let's check Platt results only using binary targets.
         # and line_as_dict['calib'] == 'platt' and line_as_dict['neg1'] == '0'
 
