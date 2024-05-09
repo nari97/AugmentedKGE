@@ -1,16 +1,21 @@
 import glob
 import matplotlib.pyplot as plt
+import sys
 
 
 def run():
     # Folder with output files.
-    folder, fig_folder = 'C:/Users/crr/Desktop/Calib_Results/', 'platt/'
-    # 'pearson_rel' and 'time_red' are only available in the new experiments.
-    metrics_to_check = ['r2', 'pearson', 'brier', 'BA', 'pearson_rel']
+    folder, fig_folder = sys.argv[1], sys.argv[2]
+    metrics_to_check = [
+        # 'r2', 'pearson', 'brier', 'BA', 'pearson_rel',
+        'TPR'
+    ]
+    # Check either isotonic regression or Platt.
+    calib_type = 'iso' # 'platt'
 
     def filter_csv_data(line_as_dict):
         # Dataset 4 is problematic; skip!
-        return line_as_dict['dataset'] != '4' and line_as_dict['calib'] == 'platt' and line_as_dict['neg1'] == '0'
+        return line_as_dict['dataset'] != '4' and line_as_dict['calib'] == 'iso' and line_as_dict['neg1'] == '0'
         # Also, let's check Platt results only using binary targets.
         # and line_as_dict['calib'] == 'platt' and line_as_dict['neg1'] == '0'
 
