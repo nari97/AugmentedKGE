@@ -22,4 +22,8 @@ def get_dataset_name(dataset):
         dataset_name = "Hetionet"
     if dataset == 10:
         dataset_name = "SNOMED"
+    if dataset == 11:
+        dataset_name = "Codex-S"
+    if dataset == 12:
+        dataset_name = "Codex-M"
     return dataset_name

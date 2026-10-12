@@ -55,7 +55,9 @@ class HAKE(Model):
 
     def _calc(self, hm, hp, rm, rmprime, rp, tm, tp, l1, l2):
         # This is d'_{r,m}(h, t) in the paper.
-        modulus_scores = torch.linalg.norm(hm*((1-rmprime)/(rm+rmprime))-tm, dim=-1, ord=2)
+        # modulus_scores = torch.linalg.norm(hm*((1-rmprime)/(rm+rmprime))-tm, dim=-1, ord=2)   # This one gives errors
+                                                                                                # when rm=rmprime=1e-10.
+        modulus_scores = torch.linalg.norm(hm * rm + (hm + tm) * rmprime - tm, dim=-1, ord=2)
         scores = modulus_scores
 
         if self.variant == 'both':
@@ -63,6 +65,14 @@ class HAKE(Model):
             phase_scores = torch.linalg.norm(torch.sin((hp+rp-tp)/2), dim=-1, ord=1)
             # See Training Protocol in Section 4.
             scores = l1 * modulus_scores + l2 * phase_scores
+
+        # Get indices split by dimensions
+        indices = torch.where(scores < -80.0)
+
+        # Extract the actual values using those indices
+        if len(indices[0]) > 0:
+            extreme_values = scores[indices]
+
         return scores
 
     def return_score(self, is_predict=False):

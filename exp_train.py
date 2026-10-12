@@ -61,7 +61,7 @@ def run():
 
     # If this exists, we are done; otherwise, let's go for it.
     if not os.path.exists(model_file):
-        model = torch.load(checkpoint_file)
+        model = torch.load(checkpoint_file, weights_only=False)
         init_epoch = model.epoch
         hyperparameters = model.get_hyperparameters()
 

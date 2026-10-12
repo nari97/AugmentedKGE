@@ -3,6 +3,7 @@ from Train.Evaluator import Evaluator, RankCollector
 from Train.Trainer import Trainer
 from Utils import ModelUtils, LossUtils, DatasetUtils, HyperparameterUtils
 from ax.service.ax_client import AxClient
+from ax.service.utils.instantiation import ObjectiveProperties
 import time
 import os
 import torch
@@ -166,12 +167,13 @@ def run():
             #   https://github.com/facebook/Ax/issues/151#issuecomment-524446967
             random_seed=seed,
         )
-
         ax_client.create_experiment(
             name="hyperparameter_optimization_experiment",
             parameters=params_to_optimize,
-            objective_name=metric_str,
-            minimize=True, )
+            objectives={
+                metric_str: ObjectiveProperties(minimize=True)
+            },
+        )
 
         if os.path.exists(ax_file):
             # Load for resume!
